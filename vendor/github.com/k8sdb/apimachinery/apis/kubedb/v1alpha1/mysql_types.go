@@ -3,7 +3,6 @@ package v1alpha1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
-	"k8s.io/kubernetes/pkg/api"
 )
 
 const (
@@ -32,7 +31,7 @@ type MySQLSpec struct {
 	// Storage spec to specify how storage shall be used.
 	Storage *apiv1.PersistentVolumeClaimSpec `json:"storage,omitempty"`
 	// Database authentication secret
-	DatabaseSecret *api.SecretVolumeSource `json:"databaseSecret,omitempty"`
+	DatabaseSecret *apiv1.SecretVolumeSource `json:"databaseSecret,omitempty"`
 	// NodeSelector is a selector which must be true for the pod to fit on a node
 	// +optional
 	NodeSelector map[string]string `json:"nodeSelector,omitempty"`
