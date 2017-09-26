@@ -1,5 +1,5 @@
 hash: 7c80cc8444a1be38643293b756031e5c175fec6ce325100d5693e72aa78022f0
-updated: 2017-09-25T17:55:52.101041948+06:00
+updated: 2017-09-26T16:11:23.644178247+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -10,7 +10,6 @@ imports:
   version: 5f5a94d551a6a3147a2dfc5e287da0fc251b1bac
   subpackages:
   - context
-  - crypto/rand
   - encoding/json/types
   - encoding/yaml
   - hold
@@ -170,6 +169,10 @@ imports:
   version: 95467b6cacee2a06f112a3cf7e47a70fad6000cf
   subpackages:
   - registry
+- name: github.com/howeyc/gopass
+  version: bf9dde6d0d2c004a008c27aaee91170c786f6db8
+- name: github.com/imdario/mergo
+  version: 6633656539c1639d9d78127b7d47c622b5d7b6dc
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jmespath/go-jmespath
@@ -187,6 +190,7 @@ imports:
   - pkg/docker
   - pkg/eventer
   - pkg/storage
+  - pkg/validator
 - name: github.com/mailru/easyjson
   version: d5b7844b561a7bc640052f1b935f7b800330d7e0
   subpackages:
@@ -225,6 +229,10 @@ imports:
   version: ded73eae5db7e7a0ef6f55aace87a2873c5d2b74
   subpackages:
   - codec
+- name: golang.org/x/crypto
+  version: d172538b2cfce0c13cee31e647d0367aa8cd2486
+  subpackages:
+  - ssh/terminal
 - name: golang.org/x/net
   version: f2499483f923065a842d38eb4c7f1927e6fc6e6d
   subpackages:
@@ -421,19 +429,26 @@ imports:
   - pkg/version
   - rest
   - rest/watch
+  - tools/auth
   - tools/cache
+  - tools/clientcmd
   - tools/clientcmd/api
+  - tools/clientcmd/api/latest
+  - tools/clientcmd/api/v1
   - tools/metrics
   - tools/record
   - transport
   - util/cert
   - util/flowcontrol
+  - util/homedir
   - util/integer
 - name: k8s.io/kubernetes
   version: 4bc5e7f9a6c25dc4c03d4d656f2cefd21540e28c
   subpackages:
   - pkg/api
 testImports:
+- name: github.com/mitchellh/go-homedir
+  version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/onsi/ginkgo
   version: 67b9df7f55fe1165fd9ad49aca7754cce01a42b8
   subpackages:

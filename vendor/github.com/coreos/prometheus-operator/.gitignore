@@ -1,0 +1,8 @@
+/operator
+.build/
+*~
+*.tgz
+requirements.lock
+.idea
+*.iml
+.DS_Store

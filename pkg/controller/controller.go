@@ -6,22 +6,21 @@ import (
 
 	"github.com/appscode/go/hold"
 	"github.com/appscode/go/log"
-	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1alpha1"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
+	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	extensionsobj "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
 	clientset "k8s.io/client-go/kubernetes"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
 )
@@ -89,13 +88,14 @@ func (c *Controller) Run() {
 
 	// Watch MySQL TPR objects
 	go c.watchMySQl()
-	// Watch Snapshot with labelSelector only for MySQL
 
-	//>>>>>>>>> go c.watchSnapshot() <<<<<<<<<<<< LATER
-
-	// Watch DormantDatabase with labelSelector only for MySQL
-
-	//>>>>>>>>> go c.watchDormantDatabase() <<<<<<<<<<<<<<< LATER
+	//// Watch Snapshot with labelSelector only for MySQL
+	//go c.watchSnapshot()
+	//
+	//// Watch DormantDatabase with labelSelector only for MySQL
+	//go c.watchDeletedDatabase()
+	// hold
+	hold.Hold()
 }
 
 // Blocks caller. Intended to be called as a Go routine.
@@ -103,7 +103,7 @@ func (c *Controller) RunAndHold() {
 	c.Run()
 
 	// Run HTTP server to expose metrics, audit endpoint & debug profiles.
-	//go c.runHTTPServer()
+	//go c.runHTTPServer() #LATER
 	// hold
 	hold.Hold()
 }
@@ -128,14 +128,14 @@ func (c *Controller) watchMySQl() {
 				if mysql.Status.CreationTime == nil {
 					if err := c.create(mysql); err != nil {
 						log.Errorln(err)
-						//>>>>>>>>>>> c.pushFailureEvent(mysql, err.Error()) <<<<<<<<<< LATER
+						c.pushFailureEvent(mysql, err.Error())
 					}
 				}
 			},
 			DeleteFunc: func(obj interface{}) {
-				if err := c.pause(obj.(*tapi.MySQL)); err != nil {
-					log.Errorln(err)
-				}
+				//if err := c.pause(obj.(*tapi.MySQL)); err != nil {
+				//	log.Errorln(err)
+				//}
 			},
 			UpdateFunc: func(old, new interface{}) {
 				oldObj, ok := old.(*tapi.MySQL)
@@ -147,9 +147,9 @@ func (c *Controller) watchMySQl() {
 					return
 				}
 				if !reflect.DeepEqual(oldObj.Spec, newObj.Spec) {
-					if err := c.update(oldObj, newObj); err != nil {
-						log.Errorln(err)
-					}
+					//if err := c.update(oldObj, newObj); err != nil {
+					//	log.Errorln(err)
+					//}
 				}
 			},
 		},
@@ -157,13 +157,61 @@ func (c *Controller) watchMySQl() {
 	cacheController.Run(wait.NeverStop)
 }
 
+//func (c *Controller) watchSnapshot() {
+//	labelMap := map[string]string{
+//		// TODO: Use appropriate ResourceKind.
+//		tapi.LabelDatabaseKind: tapi.ResourceKindMySQL,
+//	}
+//	// Watch with label selector
+//	lw := &cache.ListWatch{
+//		ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
+//			return c.ExtClient.Snapshots(metav1.NamespaceAll).List(
+//				metav1.ListOptions{
+//					LabelSelector: labels.SelectorFromSet(labelMap).String(),
+//				})
+//		},
+//		WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
+//			return c.ExtClient.Snapshots(metav1.NamespaceAll).Watch(
+//				metav1.ListOptions{
+//					LabelSelector: labels.SelectorFromSet(labelMap).String(),
+//				})
+//		},
+//	}
+//
+//	amc.NewSnapshotController(c.Client, c.ApiExtKubeClient, c.ExtClient, c, lw, c.syncPeriod).Run()
+//}
+
+
+//func (c *Controller) watchDeletedDatabase() {
+//	labelMap := map[string]string{
+//		// TODO: Use appropriate ResourceKind.
+//		tapi.LabelDatabaseKind: tapi.ResourceKindMySQL,
+//	}
+//	// Watch with label selector
+//	lw := &cache.ListWatch{
+//		ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
+//			return c.ExtClient.DormantDatabases(metav1.NamespaceAll).List(
+//				metav1.ListOptions{
+//					LabelSelector: labels.SelectorFromSet(labelMap).String(),
+//				})
+//		},
+//		WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
+//			return c.ExtClient.DormantDatabases(metav1.NamespaceAll).Watch(
+//				metav1.ListOptions{
+//					LabelSelector: labels.SelectorFromSet(labelMap).String(),
+//				})
+//		},
+//	}
+//
+//	amc.NewDormantDbController(c.Client, c.ApiExtKubeClient, c.ExtClient, c, lw, c.syncPeriod).Run()
+//}
+
 func (c *Controller) ensureCustomResourceDefinition() {
 	log.Infoln("Ensuring CustomResourceDefinition...")
 
 	resourceName := tapi.ResourceTypeMySQL + "." + tapi.SchemeGroupVersion.Group
 	if _, err := c.ApiExtKubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(resourceName, metav1.GetOptions{}); err != nil {
 		if !kerr.IsNotFound(err) {
-			log.Fatalln(err)
 		}
 	} else {
 		return
@@ -190,5 +238,25 @@ func (c *Controller) ensureCustomResourceDefinition() {
 
 	if _, err := c.ApiExtKubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Create(crd); err != nil {
 		log.Fatalln(err)
+	}
+}
+
+func (c *Controller) pushFailureEvent(mysql *tapi.MySQL, reason string) {
+	c.recorder.Eventf(
+		mysql.ObjectReference(),
+		apiv1.EventTypeWarning,
+		eventer.EventReasonFailedToStart,
+		`Fail to be ready MySQL: "%v". Reason: %v`,
+		mysql.Name,
+		reason,
+	)
+
+	_, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
+		in.Status.Phase = tapi.DatabasePhaseFailed
+		in.Status.Reason = reason
+		return in
+	})
+	if err != nil {
+		c.recorder.Eventf(mysql.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 	}
 }
