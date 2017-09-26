@@ -27,7 +27,6 @@ import (
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	v1 "k8s.io/client-go/pkg/api/v1"
-	api "k8s.io/kubernetes/pkg/api"
 )
 
 func init() {
@@ -471,7 +470,7 @@ func DeepCopy_kubedb_MySQLSpec(in interface{}, out interface{}, c *conversion.Cl
 			if newVal, err := c.DeepCopy(*in); err != nil {
 				return err
 			} else {
-				*out = newVal.(*api.SecretVolumeSource)
+				*out = newVal.(*v1.SecretVolumeSource)
 			}
 		}
 		if in.NodeSelector != nil {

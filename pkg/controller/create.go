@@ -1,12 +1,17 @@
 package controller
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
+	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/k8sdb/apimachinery/pkg/docker"
+	"github.com/k8sdb/apimachinery/pkg/eventer"
+	"github.com/k8sdb/apimachinery/pkg/storage"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -67,8 +72,7 @@ func (c *Controller) createService(mysql *tapi.MySQL) error {
 		})
 	}
 
-	_, err := c.Client.CoreV1().Services(mysql.Namespace).Create(svc)
-	if err != nil {
+	if _, err := c.Client.CoreV1().Services(mysql.Namespace).Create(svc); err != nil {
 		return err
 	}
 	return nil
@@ -111,30 +115,28 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 				Spec: apiv1.PodSpec{
 					Containers: []apiv1.Container{
 						{
-							Name:            tapi.ResourceNameMySQL,
-							Image:           fmt.Sprintf("%s:%s", "mysql", mysql.Spec.Version), //<<<<<<<<< image name Needs update later #LATER
+							Name: tapi.ResourceNameMySQL,
+							//TODO: Use correct image. Its a template
+							Image:           fmt.Sprintf("%s:%s", "mysql", mysql.Spec.Version),
 							ImagePullPolicy: apiv1.PullIfNotPresent,
-							Ports: []apiv1.ContainerPort{
+							Ports:           []apiv1.ContainerPort{
+								//TODO: Use appropriate port for your container
 								{
 									Name:          "db",
 									ContainerPort: 3306,
 								},
 							},
 							Resources: mysql.Spec.Resources,
-							//VolumeMounts: []apiv1.VolumeMount{
-							//	{
-							//		Name:      "secret",
-							//		MountPath: "/srv/" + tapi.ResourceNameMySQL + "/secrets",
-							//	},
-							//	{
-							//		Name:      "data",
-							//		MountPath: "/var/pv",
-							//	},
-							//},
-							//Args: []string{modeBasic},
+							VolumeMounts: []apiv1.VolumeMount{
+								//TODO: Add Secret volume if necessary
+								{
+									Name:      "data",
+									MountPath: "/var/pv",
+								},
+							},
 							Env: []apiv1.EnvVar{
 								{Name: "MYSQL_ROOT_PASSWORD", Value: "test"}, // #Later
-								// Root password is set to test
+							// Root password is set to test
 							},
 						},
 					},
@@ -147,65 +149,73 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 		},
 	}
 
-	//if mysql.Spec.Monitor != nil &&
-	//	mysql.Spec.Monitor.Agent == tapi.AgentCoreosPrometheus &&
-	//	mysql.Spec.Monitor.Prometheus != nil {
-	//	exporter := apiv1.Container{
-	//		Name: "exporter",
-	//		Args: []string{
-	//			"export",
-	//			fmt.Sprintf("--address=:%d", tapi.PrometheusExporterPortNumber),
-	//			"--v=3",
-	//		},
-	//		Image:           docker.ImageOperator + ":" + c.opt.ExporterTag,
-	//		ImagePullPolicy: apiv1.PullIfNotPresent,
-	//		Ports: []apiv1.ContainerPort{
-	//			{
-	//				Name:          tapi.PrometheusExporterPortName,
-	//				Protocol:      apiv1.ProtocolTCP,
-	//				ContainerPort: int32(tapi.PrometheusExporterPortNumber),
-	//			},
-	//		},
-	//	}
-	//	statefulSet.Spec.Template.Spec.Containers = append(statefulSet.Spec.Template.Spec.Containers, exporter)
-	//}
+	if mysql.Spec.Monitor != nil &&
+		mysql.Spec.Monitor.Agent == tapi.AgentCoreosPrometheus &&
+		mysql.Spec.Monitor.Prometheus != nil {
+		exporter := apiv1.Container{
+			Name: "exporter",
+			Args: []string{
+				"export",
+				fmt.Sprintf("--address=:%d", tapi.PrometheusExporterPortNumber),
+				"--v=3",
+			},
+			Image:           docker.ImageOperator + ":" + c.opt.ExporterTag,
+			ImagePullPolicy: apiv1.PullIfNotPresent,
+			Ports: []apiv1.ContainerPort{
+				{
+					Name:          tapi.PrometheusExporterPortName,
+					Protocol:      apiv1.ProtocolTCP,
+					ContainerPort: int32(tapi.PrometheusExporterPortNumber),
+				},
+			},
+		}
+		statefulSet.Spec.Template.Spec.Containers = append(statefulSet.Spec.Template.Spec.Containers, exporter)
+	}
 
-	//if mysql.Spec.DatabaseSecret == nil {
-	//	secretVolumeSource, err := c.createDatabaseSecret(mysql)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	_mysql, err := kutildb.TryPatchPostgres(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
-	//		in.Spec.DatabaseSecret = secretVolumeSource
-	//		return in
-	//	})
-	//	if err != nil {
-	//		c.recorder.Eventf(mysql.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-	//		return nil, err
-	//	}
-	//	mysql = _mysql
-	//}
+	// ---> Start
+	//TODO: Use following if secret is necessary
+	// otherwise remove
+	if mysql.Spec.DatabaseSecret == nil {
+		secretVolumeSource, err := c.createDatabaseSecret(mysql)
+		if err != nil {
+			return nil, err
+		}
+
+		_mysql, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
+			in.Spec.DatabaseSecret = secretVolumeSource
+			return in
+		})
+		if err != nil {
+			c.recorder.Eventf(mysql.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			return nil, err
+		}
+		mysql = _mysql
+	}
 
 	// Add secretVolume for authentication
-	//addSecretVolume(statefulSet, mysql.Spec.DatabaseSecret)
-	//
-	//// Add Data volume for StatefulSet
+	addSecretVolume(statefulSet, mysql.Spec.DatabaseSecret)
+	// --- > End
+
+	// Add Data volume for StatefulSet
 	addDataVolume(statefulSet, mysql.Spec.Storage)
-	//
-	//// Add InitialScript to run at startup
-	//if mysql.Spec.Init != nil && mysql.Spec.Init.ScriptSource != nil {
-	//	addInitialScript(statefulSet, mysql.Spec.Init.ScriptSource)
-	//}
-	//
-	//if c.opt.EnableRbac {
-	//	// Ensure ClusterRoles for database statefulsets
-	//	if err := c.createRBACStuff(mysql); err != nil {
-	//		return nil, err
-	//	}
-	//
-	//	statefulSet.Spec.Template.Spec.ServiceAccountName = mysql.Name
-	//}
+
+	// ---> Start
+	//TODO: Use following if supported
+	// otherwise remove
+	// Add InitialScript to run at startup
+	if mysql.Spec.Init != nil && mysql.Spec.Init.ScriptSource != nil {
+		addInitialScript(statefulSet, mysql.Spec.Init.ScriptSource)
+	}
+	// ---> End
+
+	if c.opt.EnableRbac {
+		// Ensure ClusterRoles for database statefulsets
+		if err := c.createRBACStuff(mysql); err != nil {
+			return nil, err
+		}
+
+		statefulSet.Spec.Template.Spec.ServiceAccountName = mysql.Name
+	}
 
 	if _, err := c.Client.AppsV1beta1().StatefulSets(statefulSet.Namespace).Create(statefulSet); err != nil {
 		return nil, err
@@ -229,6 +239,58 @@ func (c *Controller) findSecret(secretName, namespace string) (bool, error) {
 
 	return true, nil
 }
+
+// ---> start
+//TODO: Use this method to create secret dynamically
+// otherwise remove this method
+func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*apiv1.SecretVolumeSource, error) {
+	authSecretName := mysql.Name + "-admin-auth"
+
+	found, err := c.findSecret(authSecretName, mysql.Namespace)
+	if err != nil {
+		return nil, err
+	}
+
+	if !found {
+
+		secret := &apiv1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: authSecretName,
+				Labels: map[string]string{
+					tapi.LabelDatabaseKind: tapi.ResourceKindMySQL,
+				},
+			},
+			Type: apiv1.SecretTypeOpaque,
+			Data: make(map[string][]byte), // Add secret data
+		}
+		if _, err := c.Client.CoreV1().Secrets(mysql.Namespace).Create(secret); err != nil {
+			return nil, err
+		}
+	}
+
+	return &apiv1.SecretVolumeSource{
+		SecretName: authSecretName,
+	}, nil
+}
+
+// ---> End
+
+// ---> Start
+//TODO: Use this method to add secret volume
+// otherwise remove this method
+func addSecretVolume(statefulSet *apps.StatefulSet, secretVolume *apiv1.SecretVolumeSource) error {
+	statefulSet.Spec.Template.Spec.Volumes = append(statefulSet.Spec.Template.Spec.Volumes,
+		apiv1.Volume{
+			Name: "secret",
+			VolumeSource: apiv1.VolumeSource{
+				Secret: secretVolume,
+			},
+		},
+	)
+	return nil
+}
+
+// ---> End
 
 func addDataVolume(statefulSet *apps.StatefulSet, pvcSpec *apiv1.PersistentVolumeClaimSpec) {
 	if pvcSpec != nil {
@@ -265,6 +327,67 @@ func addDataVolume(statefulSet *apps.StatefulSet, pvcSpec *apiv1.PersistentVolum
 	}
 }
 
+// ---> Start
+//TODO: Use this method to add initial script, if supported
+// Otherwise, remove it
+func addInitialScript(statefulSet *apps.StatefulSet, script *tapi.ScriptSourceSpec) {
+	statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
+		apiv1.VolumeMount{
+			Name:      "initial-script",
+			MountPath: "/var/db-script",
+		},
+	)
+	statefulSet.Spec.Template.Spec.Containers[0].Args = []string{
+		// Add additional args
+		script.ScriptPath,
+	}
+
+	statefulSet.Spec.Template.Spec.Volumes = append(statefulSet.Spec.Template.Spec.Volumes,
+		apiv1.Volume{
+			Name:         "initial-script",
+			VolumeSource: script.VolumeSource,
+		},
+	)
+}
+
+// ---> End
+
+func (c *Controller) createDormantDatabase(mysql *tapi.MySQL) (*tapi.DormantDatabase, error) {
+	dormantDb := &tapi.DormantDatabase{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      mysql.Name,
+			Namespace: mysql.Namespace,
+			Labels: map[string]string{
+				tapi.LabelDatabaseKind: tapi.ResourceKindMySQL,
+			},
+		},
+		Spec: tapi.DormantDatabaseSpec{
+			Origin: tapi.Origin{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:        mysql.Name,
+					Namespace:   mysql.Namespace,
+					Labels:      mysql.Labels,
+					Annotations: mysql.Annotations,
+				},
+				Spec: tapi.OriginSpec{
+					MySQL: &mysql.Spec,
+				},
+			},
+		},
+	}
+
+	initSpec, _ := json.Marshal(mysql.Spec.Init)
+	if initSpec != nil {
+		dormantDb.Annotations = map[string]string{
+			tapi.MySQLInitSpec: string(initSpec),
+		}
+	}
+
+	dormantDb.Spec.Origin.Spec.MySQL.Init = nil
+
+	return c.ExtClient.DormantDatabases(dormantDb.Namespace).Create(dormantDb)
+}
+
 func (c *Controller) reCreateMySQL(mysql *tapi.MySQL) error {
 	_mysql := &tapi.MySQL{
 		ObjectMeta: metav1.ObjectMeta{
@@ -280,6 +403,7 @@ func (c *Controller) reCreateMySQL(mysql *tapi.MySQL) error {
 	if _, err := c.ExtClient.MySQLs(_mysql.Namespace).Create(_mysql); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -288,102 +412,97 @@ const (
 	snapshotType_DumpRestore = "dump-restore"
 )
 
-
 func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot) (*batch.Job, error) {
+	databaseName := mysql.Name
+	jobName := snapshot.OffshootName()
+	jobLabel := map[string]string{
+		tapi.LabelDatabaseName: databaseName,
+		tapi.LabelJobType:      SnapshotProcess_Restore,
+	}
+	backupSpec := snapshot.Spec.SnapshotStorageSpec
+	bucket, err := backupSpec.Container()
+	if err != nil {
+		return nil, err
+	}
 
-	return nil,nil
+	// Get PersistentVolume object for Backup Util pod.
+	persistentVolume, err := c.getVolumeForSnapshot(mysql.Spec.Storage, jobName, mysql.Namespace)
+	if err != nil {
+		return nil, err
+	}
 
-	// #LATER
-	//databaseName := mysql.Name
-	//jobName := snapshot.OffshootName()
-	//jobLabel := map[string]string{
-	//	tapi.LabelDatabaseName: databaseName,
-	//	tapi.LabelJobType:      SnapshotProcess_Restore,
-	//}
-	//backupSpec := snapshot.Spec.SnapshotStorageSpec
-	//bucket, err := backupSpec.Container()
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//// Get PersistentVolume object for Backup Util pod.
-	//persistentVolume, err := c.getVolumeForSnapshot(mysql.Spec.Storage, jobName, mysql.Namespace)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//// Folder name inside Cloud bucket where backup will be uploaded
-	//folderName, _ := snapshot.Location()
-	//
-	//job := &batch.Job{
-	//	ObjectMeta: metav1.ObjectMeta{
-	//		Name:   jobName,
-	//		Labels: jobLabel,
-	//	},
-	//	Spec: batch.JobSpec{
-	//		Template: apiv1.PodTemplateSpec{
-	//			ObjectMeta: metav1.ObjectMeta{
-	//				Labels: jobLabel,
-	//			},
-	//			Spec: apiv1.PodSpec{
-	//				Containers: []apiv1.Container{
-	//					{
-	//						Name: SnapshotProcess_Restore,
-	//						//TODO: Use appropriate image
-	//						Image: fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version),
-	//						Args: []string{
-	//							fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
-	//							fmt.Sprintf(`--host=%s`, databaseName),
-	//							fmt.Sprintf(`--bucket=%s`, bucket),
-	//							fmt.Sprintf(`--folder=%s`, folderName),
-	//							fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
-	//						},
-	//						Resources: snapshot.Spec.Resources,
-	//						VolumeMounts: []apiv1.VolumeMount{
-	//							//TODO: Mount secret volume if necessary
-	//							{
-	//								Name:      persistentVolume.Name,
-	//								MountPath: "/var/" + snapshotType_DumpRestore + "/",
-	//							},
-	//							{
-	//								Name:      "osmconfig",
-	//								MountPath: storage.SecretMountPath,
-	//								ReadOnly:  true,
-	//							},
-	//						},
-	//					},
-	//				},
-	//				Volumes: []apiv1.Volume{
-	//					//TODO: Add secret volume if necessary
-	//					// Check postgres repository for example
-	//					{
-	//						Name:         persistentVolume.Name,
-	//						VolumeSource: persistentVolume.VolumeSource,
-	//					},
-	//					{
-	//						Name: "osmconfig",
-	//						VolumeSource: apiv1.VolumeSource{
-	//							Secret: &apiv1.SecretVolumeSource{
-	//								SecretName: snapshot.Name,
-	//							},
-	//						},
-	//					},
-	//				},
-	//				RestartPolicy: apiv1.RestartPolicyNever,
-	//			},
-	//		},
-	//	},
-	//}
-	//if snapshot.Spec.SnapshotStorageSpec.Local != nil {
-	//	job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts, apiv1.VolumeMount{
-	//		Name:      "local",
-	//		MountPath: snapshot.Spec.SnapshotStorageSpec.Local.Path,
-	//	})
-	//	volume := apiv1.Volume{
-	//		Name:         "local",
-	//		VolumeSource: snapshot.Spec.SnapshotStorageSpec.Local.VolumeSource,
-	//	}
-	//	job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, volume)
-	//}
-	//return c.Client.BatchV1().Jobs(mysql.Namespace).Create(job)
+	// Folder name inside Cloud bucket where backup will be uploaded
+	folderName, _ := snapshot.Location()
+
+	job := &batch.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:   jobName,
+			Labels: jobLabel,
+		},
+		Spec: batch.JobSpec{
+			Template: apiv1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: jobLabel,
+				},
+				Spec: apiv1.PodSpec{
+					Containers: []apiv1.Container{
+						{
+							Name: SnapshotProcess_Restore,
+							//TODO: Use appropriate image
+							Image: fmt.Sprintf("%s:%s", "", mysql.Spec.Version),
+							Args: []string{
+								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
+								fmt.Sprintf(`--host=%s`, databaseName),
+								fmt.Sprintf(`--bucket=%s`, bucket),
+								fmt.Sprintf(`--folder=%s`, folderName),
+								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
+							},
+							Resources: snapshot.Spec.Resources,
+							VolumeMounts: []apiv1.VolumeMount{
+								//TODO: Mount secret volume if necessary
+								{
+									Name:      persistentVolume.Name,
+									MountPath: "/var/" + snapshotType_DumpRestore + "/",
+								},
+								{
+									Name:      "osmconfig",
+									MountPath: storage.SecretMountPath,
+									ReadOnly:  true,
+								},
+							},
+						},
+					},
+					Volumes: []apiv1.Volume{
+						//TODO: Add secret volume if necessary
+						// Check postgres repository for example
+						{
+							Name:         persistentVolume.Name,
+							VolumeSource: persistentVolume.VolumeSource,
+						},
+						{
+							Name: "osmconfig",
+							VolumeSource: apiv1.VolumeSource{
+								Secret: &apiv1.SecretVolumeSource{
+									SecretName: snapshot.Name,
+								},
+							},
+						},
+					},
+					RestartPolicy: apiv1.RestartPolicyNever,
+				},
+			},
+		},
+	}
+	if snapshot.Spec.SnapshotStorageSpec.Local != nil {
+		job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts, apiv1.VolumeMount{
+			Name:      "local",
+			MountPath: snapshot.Spec.SnapshotStorageSpec.Local.Path,
+		})
+		volume := apiv1.Volume{
+			Name:         "local",
+			VolumeSource: snapshot.Spec.SnapshotStorageSpec.Local.VolumeSource,
+		}
+		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, volume)
+	}
+	return c.Client.BatchV1().Jobs(mysql.Namespace).Create(job)
 }

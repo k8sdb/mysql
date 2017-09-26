@@ -29,7 +29,6 @@ import (
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	api_v1 "k8s.io/client-go/pkg/api/v1"
-	api "k8s.io/kubernetes/pkg/api"
 )
 
 func init() {
@@ -587,7 +586,7 @@ func autoConvert_v1alpha1_MySQLSpec_To_kubedb_MySQLSpec(in *MySQLSpec, out *kube
 	out.Version = in.Version
 	out.Replicas = in.Replicas
 	out.Storage = (*api_v1.PersistentVolumeClaimSpec)(unsafe.Pointer(in.Storage))
-	out.DatabaseSecret = (*api.SecretVolumeSource)(unsafe.Pointer(in.DatabaseSecret))
+	out.DatabaseSecret = (*api_v1.SecretVolumeSource)(unsafe.Pointer(in.DatabaseSecret))
 	out.NodeSelector = *(*map[string]string)(unsafe.Pointer(&in.NodeSelector))
 	out.Init = (*kubedb.InitSpec)(unsafe.Pointer(in.Init))
 	out.BackupSchedule = (*kubedb.BackupScheduleSpec)(unsafe.Pointer(in.BackupSchedule))
@@ -609,7 +608,7 @@ func autoConvert_kubedb_MySQLSpec_To_v1alpha1_MySQLSpec(in *kubedb.MySQLSpec, ou
 	out.Version = in.Version
 	out.Replicas = in.Replicas
 	out.Storage = (*api_v1.PersistentVolumeClaimSpec)(unsafe.Pointer(in.Storage))
-	out.DatabaseSecret = (*api.SecretVolumeSource)(unsafe.Pointer(in.DatabaseSecret))
+	out.DatabaseSecret = (*api_v1.SecretVolumeSource)(unsafe.Pointer(in.DatabaseSecret))
 	out.NodeSelector = *(*map[string]string)(unsafe.Pointer(&in.NodeSelector))
 	out.Init = (*InitSpec)(unsafe.Pointer(in.Init))
 	out.BackupSchedule = (*BackupScheduleSpec)(unsafe.Pointer(in.BackupSchedule))

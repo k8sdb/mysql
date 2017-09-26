@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"reflect"
 	"time"
-	ll "log"
-
 	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
@@ -19,17 +17,14 @@ import (
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
-// TODO: Use your resource instead of *tapi.MySQL
+
 func (c *Controller) create(mysql *tapi.MySQL) error {
-	// TODO: Use correct TryPatch method
 	_, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
 		t := metav1.Now()
 		in.Status.CreationTime = &t
 		in.Status.Phase = tapi.DatabasePhaseCreating
 		return in
 	})
-
-	ll.Println("After tryPatch!!>>", err)
 
 	if err != nil {
 		c.recorder.Eventf(mysql.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
@@ -115,27 +110,25 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 
 	// Ensure Schedule backup
 	c.ensureBackupScheduler(mysql)
-
-	// #LATER
-	//if mysql.Spec.Monitor != nil {
-	//	if err := c.addMonitor(mysql); err != nil {
-	//		c.recorder.Eventf(
-	//			mysql.ObjectReference(),
-	//			apiv1.EventTypeWarning,
-	//			eventer.EventReasonFailedToCreate,
-	//			"Failed to add monitoring system. Reason: %v",
-	//			err,
-	//		)
-	//		log.Errorln(err)
-	//		return nil
-	//	}
-	//	c.recorder.Event(
-	//		mysql.ObjectReference(),
-	//		apiv1.EventTypeNormal,
-	//		eventer.EventReasonSuccessfulCreate,
-	//		"Successfully added monitoring system.",
-	//	)
-	//}
+	if mysql.Spec.Monitor != nil {
+		if err := c.addMonitor(mysql); err != nil {
+			c.recorder.Eventf(
+				mysql.ObjectReference(),
+				apiv1.EventTypeWarning,
+				eventer.EventReasonFailedToCreate,
+				"Failed to add monitoring system. Reason: %v",
+				err,
+			)
+			log.Errorln(err)
+			return nil
+		}
+		c.recorder.Event(
+			mysql.ObjectReference(),
+			apiv1.EventTypeNormal,
+			eventer.EventReasonSuccessfulCreate,
+			"Successfully added monitoring system.",
+		)
+	}
 	return nil
 }
 
@@ -168,14 +161,12 @@ func (c *Controller) matchDormantDatabase(mysql *tapi.MySQL) (bool, error) {
 	}
 
 	// Check DatabaseKind
-	// TODO: Change tapi.ResourceKindMySQL
 	if dormantDb.Labels[tapi.LabelDatabaseKind] != tapi.ResourceKindMySQL {
 		return sendEvent(fmt.Sprintf(`Invalid MySQL: "%v". Exists DormantDatabase "%v" of different Kind`,
 			mysql.Name, dormantDb.Name))
 	}
 
 	// Check InitSpec
-	// TODO: Change tapi.MySQLInitSpec
 	initSpecAnnotationStr := dormantDb.Annotations[tapi.MySQLInitSpec]
 	if initSpecAnnotationStr != "" {
 		var initSpecAnnotation *tapi.InitSpec
@@ -195,15 +186,15 @@ func (c *Controller) matchDormantDatabase(mysql *tapi.MySQL) (bool, error) {
 	originalSpec := mysql.Spec
 	originalSpec.Init = nil
 
-	//// ---> Start
-	//// TODO: Use following part if database secret is supported
-	//// Otherwise, remove it
-	//if originalSpec.DatabaseSecret == nil {
-	//	originalSpec.DatabaseSecret = &apiv1.SecretVolumeSource{
-	//		SecretName: mysql.Name + "-admin-auth",
-	//	}
-	//}
-	//// ---> End
+	// ---> Start
+	// TODO: Use following part if database secret is supported
+	// Otherwise, remove it
+	if originalSpec.DatabaseSecret == nil {
+		originalSpec.DatabaseSecret = &apiv1.SecretVolumeSource{
+			SecretName: mysql.Name + "-admin-auth",
+		}
+	}
+	// ---> End
 
 	if !reflect.DeepEqual(drmnOriginSpec, &originalSpec) {
 		return sendEvent("MySQL spec mismatches with OriginSpec in DormantDatabases")
@@ -278,7 +269,6 @@ func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
 	}
 
 	if mysql.Spec.Init != nil && mysql.Spec.Init.SnapshotSource != nil {
-		// TODO: Use correct TryPatch method
 		_, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
 			in.Status.Phase = tapi.DatabasePhaseInitializing
 			return in
@@ -299,7 +289,6 @@ func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
 		}
 	}
 
-	// TODO: Use correct TryPatch method
 	_, err = kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
 		in.Status.Phase = tapi.DatabasePhaseRunning
 		return in
@@ -387,128 +376,125 @@ func (c *Controller) initialize(mysql *tapi.MySQL) error {
 	return nil
 }
 
-//func (c *Controller) pause(mysql *tapi.MySQL) error {
-//	if mysql.Annotations != nil {
-//		if val, found := mysql.Annotations["kubedb.com/ignore"]; found {
-//			//TODO: Add Event Reason "Ignored"
-//			c.recorder.Event(mysql.ObjectReference(), apiv1.EventTypeNormal, "Ignored", val)
-//			return nil
-//		}
-//	}
-//
-//	c.recorder.Event(mysql.ObjectReference(), apiv1.EventTypeNormal, eventer.EventReasonPausing, "Pausing MySQL")
-//
-//	if mysql.Spec.DoNotPause {
-//		c.recorder.Eventf(
-//			mysql.ObjectReference(),
-//			apiv1.EventTypeWarning,
-//			eventer.EventReasonFailedToPause,
-//			`MySQL "%v" is locked.`,
-//			mysql.Name,
-//		)
-//
-//		if err := c.reCreateMySQL(mysql); err != nil {
-//			c.recorder.Eventf(
-//				mysql.ObjectReference(),
-//				apiv1.EventTypeWarning,
-//				eventer.EventReasonFailedToCreate,
-//				`Failed to recreate MySQL: "%v". Reason: %v`,
-//				mysql.Name,
-//				err,
-//			)
-//			return err
-//		}
-//		return nil
-//	}
-//
-//	if _, err := c.createDormantDatabase(mysql); err != nil {
-//		c.recorder.Eventf(
-//			mysql.ObjectReference(),
-//			apiv1.EventTypeWarning,
-//			eventer.EventReasonFailedToCreate,
-//			`Failed to create DormantDatabase: "%v". Reason: %v`,
-//			mysql.Name,
-//			err,
-//		)
-//		return err
-//	}
-//	c.recorder.Eventf(
-//		mysql.ObjectReference(),
-//		apiv1.EventTypeNormal,
-//		eventer.EventReasonSuccessfulCreate,
-//		`Successfully created DormantDatabase: "%v"`,
-//		mysql.Name,
-//	)
-//
-//	c.cronController.StopBackupScheduling(mysql.ObjectMeta)
-//
-//	if mysql.Spec.Monitor != nil {
-//		if err := c.deleteMonitor(mysql); err != nil {
-//			c.recorder.Eventf(
-//				mysql.ObjectReference(),
-//				apiv1.EventTypeWarning,
-//				eventer.EventReasonFailedToDelete,
-//				"Failed to delete monitoring system. Reason: %v",
-//				err,
-//			)
-//			log.Errorln(err)
-//			return nil
-//		}
-//		c.recorder.Event(
-//			mysql.ObjectReference(),
-//			apiv1.EventTypeNormal,
-//			eventer.EventReasonSuccessfulMonitorDelete,
-//			"Successfully deleted monitoring system.",
-//		)
-//	}
-//	return nil
-//}
+func (c *Controller) pause(mysql *tapi.MySQL) error {
+	if mysql.Annotations != nil {
+		if val, found := mysql.Annotations["kubedb.com/ignore"]; found {
+			c.recorder.Event(mysql.ObjectReference(), apiv1.EventTypeNormal, "Ignored", val)
+			return nil
+		}
+	}
 
+	c.recorder.Event(mysql.ObjectReference(), apiv1.EventTypeNormal, eventer.EventReasonPausing, "Pausing MySQL")
 
+	if mysql.Spec.DoNotPause {
+		c.recorder.Eventf(
+			mysql.ObjectReference(),
+			apiv1.EventTypeWarning,
+			eventer.EventReasonFailedToPause,
+			`MySQL "%v" is locked.`,
+			mysql.Name,
+		)
 
-//func (c *Controller) update(oldMySQL, updatedMySQL *tapi.MySQL) error {
-//	if err := validator.ValidateMySQL(c.Client, updatedMySQL); err != nil {
-//		c.recorder.Event(updatedMySQL.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
-//		return err
-//	}
-//	// Event for successful validation
-//	c.recorder.Event(
-//		updatedMySQL.ObjectReference(),
-//		apiv1.EventTypeNormal,
-//		eventer.EventReasonSuccessfulValidate,
-//		"Successfully validate MySQL",
-//	)
-//
-//	if err := c.ensureService(updatedMySQL); err != nil {
-//		return err
-//	}
-//	if err := c.ensureStatefulSet(updatedMySQL); err != nil {
-//		return err
-//	}
-//
-//	if !reflect.DeepEqual(updatedMySQL.Spec.BackupSchedule, oldMySQL.Spec.BackupSchedule) {
-//		c.ensureBackupScheduler(updatedMySQL)
-//	}
-//
-//	if !reflect.DeepEqual(oldMySQL.Spec.Monitor, updatedMySQL.Spec.Monitor) {
-//		if err := c.updateMonitor(oldMySQL, updatedMySQL); err != nil {
-//			c.recorder.Eventf(
-//				updatedMySQL.ObjectReference(),
-//				apiv1.EventTypeWarning,
-//				eventer.EventReasonFailedToUpdate,
-//				"Failed to update monitoring system. Reason: %v",
-//				err,
-//			)
-//			log.Errorln(err)
-//			return nil
-//		}
-//		c.recorder.Event(
-//			updatedMySQL.ObjectReference(),
-//			apiv1.EventTypeNormal,
-//			eventer.EventReasonSuccessfulMonitorUpdate,
-//			"Successfully updated monitoring system.",
-//		)
-//
-//	}
-//	return nil
-//}
+		if err := c.reCreateMySQL(mysql); err != nil {
+			c.recorder.Eventf(
+				mysql.ObjectReference(),
+				apiv1.EventTypeWarning,
+				eventer.EventReasonFailedToCreate,
+				`Failed to recreate MySQL: "%v". Reason: %v`,
+				mysql.Name,
+				err,
+			)
+			return err
+		}
+		return nil
+	}
+
+	if _, err := c.createDormantDatabase(mysql); err != nil {
+		c.recorder.Eventf(
+			mysql.ObjectReference(),
+			apiv1.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			`Failed to create DormantDatabase: "%v". Reason: %v`,
+			mysql.Name,
+			err,
+		)
+		return err
+	}
+	c.recorder.Eventf(
+		mysql.ObjectReference(),
+		apiv1.EventTypeNormal,
+		eventer.EventReasonSuccessfulCreate,
+		`Successfully created DormantDatabase: "%v"`,
+		mysql.Name,
+	)
+
+	c.cronController.StopBackupScheduling(mysql.ObjectMeta)
+
+	if mysql.Spec.Monitor != nil {
+		if err := c.deleteMonitor(mysql); err != nil {
+			c.recorder.Eventf(
+				mysql.ObjectReference(),
+				apiv1.EventTypeWarning,
+				eventer.EventReasonFailedToDelete,
+				"Failed to delete monitoring system. Reason: %v",
+				err,
+			)
+			log.Errorln(err)
+			return nil
+		}
+		c.recorder.Event(
+			mysql.ObjectReference(),
+			apiv1.EventTypeNormal,
+			eventer.EventReasonSuccessfulMonitorDelete,
+			"Successfully deleted monitoring system.",
+		)
+	}
+	return nil
+}
+
+func (c *Controller) update(oldMySQL, updatedMySQL *tapi.MySQL) error {
+	if err := validator.ValidateMySQL(c.Client, updatedMySQL); err != nil {
+		c.recorder.Event(updatedMySQL.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
+		return err
+	}
+	// Event for successful validation
+	c.recorder.Event(
+		updatedMySQL.ObjectReference(),
+		apiv1.EventTypeNormal,
+		eventer.EventReasonSuccessfulValidate,
+		"Successfully validate MySQL",
+	)
+
+	if err := c.ensureService(updatedMySQL); err != nil {
+		return err
+	}
+	if err := c.ensureStatefulSet(updatedMySQL); err != nil {
+		return err
+	}
+
+	if !reflect.DeepEqual(updatedMySQL.Spec.BackupSchedule, oldMySQL.Spec.BackupSchedule) {
+		c.ensureBackupScheduler(updatedMySQL)
+	}
+
+	if !reflect.DeepEqual(oldMySQL.Spec.Monitor, updatedMySQL.Spec.Monitor) {
+		if err := c.updateMonitor(oldMySQL, updatedMySQL); err != nil {
+			c.recorder.Eventf(
+				updatedMySQL.ObjectReference(),
+				apiv1.EventTypeWarning,
+				eventer.EventReasonFailedToUpdate,
+				"Failed to update monitoring system. Reason: %v",
+				err,
+			)
+			log.Errorln(err)
+			return nil
+		}
+		c.recorder.Event(
+			updatedMySQL.ObjectReference(),
+			apiv1.EventTypeNormal,
+			eventer.EventReasonSuccessfulMonitorUpdate,
+			"Successfully updated monitoring system.",
+		)
+
+	}
+	return nil
+}
