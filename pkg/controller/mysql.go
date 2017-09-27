@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+
 	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
@@ -16,7 +17,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
-
 
 func (c *Controller) create(mysql *tapi.MySQL) error {
 	_, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {

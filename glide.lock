@@ -1,5 +1,5 @@
 hash: 52730aa141ae78396bf0d0b3970bc6c8d2564c27bd15db640ae7f644730749d7
-updated: 2017-09-26T18:44:24.762654798+06:00
+updated: 2017-09-27T10:13:08.608459243+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -313,7 +313,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: cec5cc05d57604ba2d2eaaf5381d3248fac4814d
+  version: e962708912ea1b4d4321358ccdae614a77eb883a
   subpackages:
   - gensupport
   - googleapi

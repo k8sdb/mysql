@@ -109,7 +109,6 @@ func (c *Controller) RunAndHold() {
 	hold.Hold()
 }
 
-
 func (c *Controller) watchMySQL() {
 	lw := &cache.ListWatch{
 		ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {

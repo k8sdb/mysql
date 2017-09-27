@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"testing"
-	"path/filepath"
 	"log"
+	"path/filepath"
+	"testing"
 
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,16 +16,16 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func GetNewController() *Controller{
+func GetNewController() *Controller {
 	userHome, err := homedir.Dir()
-	if err!= nil {
+	if err != nil {
 		log.Fatalln(err)
 	}
 
 	// Kubernetes config
 	kubeconfigPath := filepath.Join(userHome, ".kube/config")
- 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
-	if err!= nil {
+	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+	if err != nil {
 		log.Fatalln(err)
 	}
 	// Clients
@@ -44,11 +44,11 @@ func GetNewController() *Controller{
 	//root.EventuallyCRD().Should(Succeed())
 	//return ctrl
 	return New(kubeClient, apiExtKubeClient, extClient, nil, cronController, Options{
-		GoverningService:  tapi.DatabaseNamePrefix,
+		GoverningService: tapi.DatabaseNamePrefix,
 	})
 }
 
-func DemoMySQL() *tapi.MySQL{
+func DemoMySQL() *tapi.MySQL {
 	//var rscList map[apiv1.ResourceName]resource.Quantity
 	//
 	//rscList["storage"] = resource.Quantity{50 * 2^20}
@@ -56,15 +56,15 @@ func DemoMySQL() *tapi.MySQL{
 	return &tapi.MySQL{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "kubedb.com/v1alpha1",
-			Kind: "MySQL",
+			Kind:       "MySQL",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "m12",
+			Name:      "m12",
 			Namespace: "demo",
 		},
 		Spec: tapi.MySQLSpec{
-			Version: "8.0",
-			Replicas: 1,
+			Version:    "8.0",
+			Replicas:   1,
 			DoNotPause: true,
 			//Storage: &apiv1.PersistentVolumeClaimSpec{
 			//	StorageClassName: &"standard",
@@ -93,8 +93,8 @@ func TestController_CreateService(t *testing.T) {
 
 	log.Println("Creating Service!")
 	msql := DemoMySQL()
-	if err:=ctrl.createService(msql) ; err != nil{
-		log.Println("error whiloe creating service",err)
+	if err := ctrl.createService(msql); err != nil {
+		log.Println("error whiloe creating service", err)
 	} else {
 		log.Println("Service created!!")
 	}
@@ -105,10 +105,10 @@ func TestController_FindService(t *testing.T) {
 
 	log.Println("Finding Service!")
 	msql := DemoMySQL()
-	if flag,err := ctrl.findService(msql) ; flag {
+	if flag, err := ctrl.findService(msql); flag {
 		log.Println("Service Found!!")
 	} else {
-		log.Println("No services!! >",err)
+		log.Println("No services!! >", err)
 	}
 
 }
@@ -119,11 +119,11 @@ func TestController_createStatefulSet(t *testing.T) {
 	log.Println("Creating stateful Set")
 	msql := DemoMySQL()
 
-	rsl,err := ctrl.createStatefulSet(msql)
-	if err!=nil {
+	rsl, err := ctrl.createStatefulSet(msql)
+	if err != nil {
 		log.Println("Error while creating Statefulset", err)
 	} else {
-		log.Println("statefulset creation successful",rsl)
+		log.Println("statefulset creation successful", rsl)
 	}
 
 }
@@ -134,25 +134,24 @@ func TestController_findStatefulSet(t *testing.T) {
 	log.Println("Finding stateful Set")
 	msql := DemoMySQL()
 
-	rsl,err := ctrl.findStatefulSet(msql)
+	rsl, err := ctrl.findStatefulSet(msql)
 	if rsl {
 		log.Println("Stateful set exists!!")
 	} else {
-		log.Println("no such statefulset! > ",err)
+		log.Println("no such statefulset! > ", err)
 	}
 }
 
-func TestController_reCreateMySQL(t *testing.T){
+func TestController_reCreateMySQL(t *testing.T) {
 	ctrl := GetNewController()
 
 	log.Println("Re-creating mysql")
 	msql := DemoMySQL()
 
 	err := ctrl.reCreateMySQL(msql)
-	if err!=nil {
+	if err != nil {
 		log.Println("Error while re-creating MySQL", err)
 	} else {
 		log.Println("re-creation successful")
 	}
 }
-

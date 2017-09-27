@@ -19,8 +19,8 @@ func ValidateMySQL(client clientset.Interface, mysql *tapi.MySQL) error {
 	// Set Database Image version
 	version := mysql.Spec.Version
 	// TODO: docker.ImageMySQL should hold correct image name
-	if err := docker.CheckDockerImageVersion("mysql", version); err != nil {    // #LATER , docker image
-		return fmt.Errorf(`Image %v:%v not found`, "mysql", version)            // #LATER, Docker image
+	if err := docker.CheckDockerImageVersion("mysql", version); err != nil { // #LATER , docker image
+		return fmt.Errorf(`Image %v:%v not found`, "mysql", version) // #LATER, Docker image
 	}
 
 	if mysql.Spec.Storage != nil {
@@ -30,6 +30,7 @@ func ValidateMySQL(client clientset.Interface, mysql *tapi.MySQL) error {
 		}
 	}
 
+	//// ---> Start
 	//// TODO: Use following if database needs/supports authentication secret
 	//// otherwise, delete
 	//databaseSecret := mysql.Spec.DatabaseSecret
@@ -38,6 +39,7 @@ func ValidateMySQL(client clientset.Interface, mysql *tapi.MySQL) error {
 	//		return err
 	//	}
 	//}
+	//// ---> End
 
 	backupScheduleSpec := mysql.Spec.BackupSchedule
 	if backupScheduleSpec != nil {

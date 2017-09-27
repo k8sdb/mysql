@@ -119,7 +119,7 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 							//TODO: Use correct image. Its a template
 							Image:           fmt.Sprintf("%s:%s", "mysql", mysql.Spec.Version),
 							ImagePullPolicy: apiv1.PullIfNotPresent,
-							Ports:           []apiv1.ContainerPort{
+							Ports: []apiv1.ContainerPort{
 								//TODO: Use appropriate port for your container
 								{
 									Name:          "db",
@@ -136,7 +136,7 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 							},
 							Env: []apiv1.EnvVar{
 								{Name: "MYSQL_ROOT_PASSWORD", Value: "test"}, // #Later
-							// Root password is set to test
+								// Root password is set to test
 							},
 						},
 					},
