@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"reflect"
 	"time"
 
@@ -126,13 +125,10 @@ func (c *Controller) watchMySQL() {
 		c.syncPeriod,
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
-				fmt.Println("Add func!!!")
 				mysql := obj.(*tapi.MySQL)
 				kutildb.AssignTypeKind(mysql)
 				if mysql.Status.CreationTime == nil {
-					fmt.Println("CreationTime is nil!!!")
 					if err := c.create(mysql); err != nil {
-						fmt.Println(err)
 						log.Errorln(err)
 						c.pushFailureEvent(mysql, err.Error())
 					}
