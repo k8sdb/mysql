@@ -583,7 +583,7 @@ func Convert_kubedb_MySQLList_To_v1alpha1_MySQLList(in *kubedb.MySQLList, out *M
 }
 
 func autoConvert_v1alpha1_MySQLSpec_To_kubedb_MySQLSpec(in *MySQLSpec, out *kubedb.MySQLSpec, s conversion.Scope) error {
-	out.Version = in.Version
+	out.Version = types.StrYo(in.Version)
 	out.Replicas = in.Replicas
 	out.Storage = (*api_v1.PersistentVolumeClaimSpec)(unsafe.Pointer(in.Storage))
 	out.DatabaseSecret = (*api_v1.SecretVolumeSource)(unsafe.Pointer(in.DatabaseSecret))
@@ -605,7 +605,7 @@ func Convert_v1alpha1_MySQLSpec_To_kubedb_MySQLSpec(in *MySQLSpec, out *kubedb.M
 }
 
 func autoConvert_kubedb_MySQLSpec_To_v1alpha1_MySQLSpec(in *kubedb.MySQLSpec, out *MySQLSpec, s conversion.Scope) error {
-	out.Version = in.Version
+	out.Version = types.StrYo(in.Version)
 	out.Replicas = in.Replicas
 	out.Storage = (*api_v1.PersistentVolumeClaimSpec)(unsafe.Pointer(in.Storage))
 	out.DatabaseSecret = (*api_v1.SecretVolumeSource)(unsafe.Pointer(in.DatabaseSecret))

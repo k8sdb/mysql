@@ -26,6 +26,7 @@ func (c *Controller) ValidateSnapshot(snapshot *tapi.Snapshot) error {
 	}
 
 	if _, err := c.ExtClient.MySQLs(snapshot.Namespace).Get(databaseName, metav1.GetOptions{}); err != nil {
+		fmt.Println("Snapshot Error:::", err)
 		return err
 	}
 

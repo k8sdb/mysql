@@ -1,5 +1,5 @@
 hash: 52730aa141ae78396bf0d0b3970bc6c8d2564c27bd15db640ae7f644730749d7
-updated: 2017-09-27T10:13:08.608459243+06:00
+updated: 2017-09-27T16:58:33.835515294+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -117,7 +117,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
-  version: d3de07a94d22b4a0972deb4b96d790c2c0ce8333
+  version: 2e44421e256d82ebbf3d4d4fcabe8930b905eff3
 - name: github.com/go-openapi/analysis
   version: b44dc874b601d9e4e2f6e19140e794ba24bead3b
 - name: github.com/go-openapi/jsonpointer
@@ -191,7 +191,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/k8sdb/apimachinery
-  version: 3cb235eed301569faae1baab4c8e4ad0bcf2e605
+  version: c8f18099ea67475fd8e1e7b6ce3b02e4aea8e614
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1

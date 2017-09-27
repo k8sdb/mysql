@@ -19,22 +19,27 @@ import (
 )
 
 func (c *Controller) create(mysql *tapi.MySQL) error {
+	fmt.Println("In Create func!!")
 	_, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
 		t := metav1.Now()
 		in.Status.CreationTime = &t
 		in.Status.Phase = tapi.DatabasePhaseCreating
 		return in
 	})
-
+	fmt.Println("Try-Patch Complete!!")
 	if err != nil {
+		fmt.Println("TryPatch Error!!>> ", err)
 		c.recorder.Eventf(mysql.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
+	fmt.Println("Validation starts!!")
 	if err := validator.ValidateMySQL(c.Client, mysql); err != nil {
+		fmt.Println("Erron in validation function", err)
 		c.recorder.Event(mysql.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err
 	}
+	fmt.Println("Successful validation!!")
 	// Event for successful validation
 	c.recorder.Event(
 		mysql.ObjectReference(),
@@ -42,7 +47,7 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 		eventer.EventReasonSuccessfulValidate,
 		"Successfully validate MySQL",
 	)
-
+	fmt.Println("Check dormant database!!")
 	// Check DormantDatabase
 	matched, err := c.matchDormantDatabase(mysql)
 	if err != nil {
@@ -186,15 +191,15 @@ func (c *Controller) matchDormantDatabase(mysql *tapi.MySQL) (bool, error) {
 	originalSpec := mysql.Spec
 	originalSpec.Init = nil
 
-	// ---> Start
-	// TODO: Use following part if database secret is supported
-	// Otherwise, remove it
-	if originalSpec.DatabaseSecret == nil {
-		originalSpec.DatabaseSecret = &apiv1.SecretVolumeSource{
-			SecretName: mysql.Name + "-admin-auth",
-		}
-	}
-	// ---> End
+	//// ---> Start  #LATER
+	//// TODO: Use following part if database secret is supported
+	//// Otherwise, remove it
+	//if originalSpec.DatabaseSecret == nil {
+	//	originalSpec.DatabaseSecret = &apiv1.SecretVolumeSource{
+	//		SecretName: mysql.Name + "-admin-auth",
+	//	}
+	//}
+	//// ---> End
 
 	if !reflect.DeepEqual(drmnOriginSpec, &originalSpec) {
 		return sendEvent("MySQL spec mismatches with OriginSpec in DormantDatabases")

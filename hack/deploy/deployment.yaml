@@ -17,7 +17,8 @@ spec:
     spec:
       containers:
       - name: operator
-        image: kubedb/mysql-operator:canary
+        image: maruftuhin/mysql-operator:0.0.1
+        imagePullPolicy: Always
         args:
         - run
         - --v=4

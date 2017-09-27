@@ -7,10 +7,10 @@ import (
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
-	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
+	//kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/apimachinery/pkg/docker"
-	"github.com/k8sdb/apimachinery/pkg/eventer"
+	//"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -172,29 +172,29 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 		statefulSet.Spec.Template.Spec.Containers = append(statefulSet.Spec.Template.Spec.Containers, exporter)
 	}
 
-	// ---> Start
-	//TODO: Use following if secret is necessary
-	// otherwise remove
-	if mysql.Spec.DatabaseSecret == nil {
-		secretVolumeSource, err := c.createDatabaseSecret(mysql)
-		if err != nil {
-			return nil, err
-		}
-
-		_mysql, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
-			in.Spec.DatabaseSecret = secretVolumeSource
-			return in
-		})
-		if err != nil {
-			c.recorder.Eventf(mysql.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			return nil, err
-		}
-		mysql = _mysql
-	}
-
-	// Add secretVolume for authentication
-	addSecretVolume(statefulSet, mysql.Spec.DatabaseSecret)
-	// --- > End
+	//// ---> Start #Later
+	////TODO: Use following if secret is necessary
+	//// otherwise remove
+	//if mysql.Spec.DatabaseSecret == nil {
+	//	secretVolumeSource, err := c.createDatabaseSecret(mysql)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//
+	//	_mysql, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
+	//		in.Spec.DatabaseSecret = secretVolumeSource
+	//		return in
+	//	})
+	//	if err != nil {
+	//		c.recorder.Eventf(mysql.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+	//		return nil, err
+	//	}
+	//	mysql = _mysql
+	//}
+	//
+	//// Add secretVolume for authentication
+	//addSecretVolume(statefulSet, mysql.Spec.DatabaseSecret)
+	//// --- > End
 
 	// Add Data volume for StatefulSet
 	addDataVolume(statefulSet, mysql.Spec.Storage)
@@ -449,7 +449,7 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 						{
 							Name: SnapshotProcess_Restore,
 							//TODO: Use appropriate image
-							Image: fmt.Sprintf("%s:%s", "", mysql.Spec.Version),
+							Image: fmt.Sprintf("%s:%s", "library/mysql", mysql.Spec.Version), // #LATER Kubedb/mysql image
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),

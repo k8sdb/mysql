@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"github.com/appscode/go/encoding/json/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
@@ -25,7 +26,7 @@ type MySQL struct {
 
 type MySQLSpec struct {
 	// Version of Xdb to be deployed.
-	Version string `json:"version,omitempty"`
+	Version types.StrYo `json:"version,omitempty"`
 	// Number of instances to deploy for a Xdb database.
 	Replicas int32 `json:"replicas,omitempty"`
 	// Storage spec to specify how storage shall be used.
