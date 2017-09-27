@@ -25,4 +25,4 @@ import:
 - package: k8s.io/apimachinery
   version: 1fd2e63a9a370677308a42f24fd40c86438afddf
 - package: k8s.io/client-go
-  version:
+  version: v4.0.0
