@@ -116,7 +116,7 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 				Spec: apiv1.PodSpec{
 					Containers: []apiv1.Container{
 						{
-							Name: tapi.ResourceNameMySQL,
+							Name:            tapi.ResourceNameMySQL,
 							Image:           fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version),
 							ImagePullPolicy: apiv1.PullIfNotPresent,
 							Ports: []apiv1.ContainerPort{
@@ -248,7 +248,6 @@ func (c *Controller) findSecret(secretName, namespace string) (bool, error) {
 	return true, nil
 }
 
-
 func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*apiv1.SecretVolumeSource, error) {
 	authSecretName := mysql.Name + "-admin-auth"
 
@@ -283,7 +282,6 @@ func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*apiv1.SecretVolum
 		SecretName: authSecretName,
 	}, nil
 }
-
 
 func addDataVolume(statefulSet *apps.StatefulSet, pvcSpec *apiv1.PersistentVolumeClaimSpec) {
 	if pvcSpec != nil {
@@ -440,7 +438,7 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 				Spec: apiv1.PodSpec{
 					Containers: []apiv1.Container{
 						{
-							Name: SnapshotProcess_Restore,
+							Name:  SnapshotProcess_Restore,
 							Image: fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version), // #LATER Kubedb/mysql image
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),

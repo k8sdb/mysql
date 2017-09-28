@@ -184,7 +184,6 @@ func (c *Controller) matchDormantDatabase(mysql *tapi.MySQL) (bool, error) {
 	originalSpec := mysql.Spec
 	originalSpec.Init = nil
 
-
 	if originalSpec.DatabaseSecret == nil {
 		originalSpec.DatabaseSecret = &apiv1.SecretVolumeSource{
 			SecretName: mysql.Name + "-admin-auth",
