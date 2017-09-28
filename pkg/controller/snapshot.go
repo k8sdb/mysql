@@ -11,6 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	batch "k8s.io/client-go/pkg/apis/batch/v1"
+	"github.com/k8sdb/apimachinery/pkg/docker"
 )
 
 const (
@@ -81,8 +82,7 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 					Containers: []apiv1.Container{
 						{
 							Name: SnapshotProcess_Backup,
-							//TODO: Use appropriate image
-							Image: fmt.Sprintf("%s:%s-util", "", mysql.Spec.Version),
+							Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Backup),
 								fmt.Sprintf(`--host=%s`, databaseName),

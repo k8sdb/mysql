@@ -184,15 +184,12 @@ func (c *Controller) matchDormantDatabase(mysql *tapi.MySQL) (bool, error) {
 	originalSpec := mysql.Spec
 	originalSpec.Init = nil
 
-	//// ---> Start  #LATER
-	//// TODO: Use following part if database secret is supported
-	//// Otherwise, remove it
-	//if originalSpec.DatabaseSecret == nil {
-	//	originalSpec.DatabaseSecret = &apiv1.SecretVolumeSource{
-	//		SecretName: mysql.Name + "-admin-auth",
-	//	}
-	//}
-	//// ---> End
+
+	if originalSpec.DatabaseSecret == nil {
+		originalSpec.DatabaseSecret = &apiv1.SecretVolumeSource{
+			SecretName: mysql.Name + "-admin-auth",
+		}
+	}
 
 	if !reflect.DeepEqual(drmnOriginSpec, &originalSpec) {
 		return sendEvent("MySQL spec mismatches with OriginSpec in DormantDatabases")

@@ -117,11 +117,9 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 					Containers: []apiv1.Container{
 						{
 							Name: tapi.ResourceNameMySQL,
-							//TODO: Use correct image. Its a template
-							Image:           fmt.Sprintf("%s:%s", "mysql", mysql.Spec.Version),
+							Image:           fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version),
 							ImagePullPolicy: apiv1.PullIfNotPresent,
 							Ports: []apiv1.ContainerPort{
-								//TODO: Use appropriate port for your container
 								{
 									Name:          "db",
 									ContainerPort: 3306,
@@ -169,9 +167,6 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 		statefulSet.Spec.Template.Spec.Containers = append(statefulSet.Spec.Template.Spec.Containers, exporter)
 	}
 
-	// ---> Start #Later
-	//TODO: Use following if secret is necessary
-	// otherwise remove
 	if mysql.Spec.DatabaseSecret == nil {
 		secretVolumeSource, err := c.createDatabaseSecret(mysql)
 		if err != nil {
@@ -192,14 +187,10 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 	//Set root user password from Secret
 	setEnvFromSecret(statefulSet, mysql.Spec.DatabaseSecret)
 
-	//// Add secretVolume for authentication
-	//addSecretVolume(statefulSet, mysql.Spec.DatabaseSecret)
-	//// --- > End
-
 	// Add Data volume for StatefulSet
 	addDataVolume(statefulSet, mysql.Spec.Storage)
 
-	// ---> Start
+	// ---> Start #LATER
 	//TODO: Use following if supported
 	// otherwise remove
 	// Add InitialScript to run at startup
@@ -257,9 +248,7 @@ func (c *Controller) findSecret(secretName, namespace string) (bool, error) {
 	return true, nil
 }
 
-// ---> start
-//TODO: Use this method to create secret dynamically
-// otherwise remove this method
+
 func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*apiv1.SecretVolumeSource, error) {
 	authSecretName := mysql.Name + "-admin-auth"
 
@@ -295,24 +284,6 @@ func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*apiv1.SecretVolum
 	}, nil
 }
 
-// ---> End
-
-//// ---> Start
-////TODO: Use this method to add secret volume
-//// otherwise remove this method
-//func addSecretVolume(statefulSet *apps.StatefulSet, secretVolume *apiv1.SecretVolumeSource) error {
-//	statefulSet.Spec.Template.Spec.Volumes = append(statefulSet.Spec.Template.Spec.Volumes,
-//		apiv1.Volume{
-//			Name: "secret",
-//			VolumeSource: apiv1.VolumeSource{
-//				Secret: secretVolume,
-//			},
-//		},
-//	)
-//	return nil
-//}
-//
-//// ---> End
 
 func addDataVolume(statefulSet *apps.StatefulSet, pvcSpec *apiv1.PersistentVolumeClaimSpec) {
 	if pvcSpec != nil {
@@ -470,8 +441,7 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 					Containers: []apiv1.Container{
 						{
 							Name: SnapshotProcess_Restore,
-							//TODO: Use appropriate image
-							Image: fmt.Sprintf("%s:%s", "library/mysql", mysql.Spec.Version), // #LATER Kubedb/mysql image
+							Image: fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version), // #LATER Kubedb/mysql image
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),
