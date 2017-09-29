@@ -98,6 +98,7 @@ func (c *Controller) findStatefulSet(mysql *tapi.MySQL) (bool, error) {
 }
 
 func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, error) {
+	fmt.Printf("%v",mysql)
 	// SatatefulSet for MySQL database
 	statefulSet := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -127,7 +128,6 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 							},
 							Resources: mysql.Spec.Resources,
 							VolumeMounts: []apiv1.VolumeMount{
-								//TODO: Add Secret volume if necessary
 								{
 									Name:      "data",
 									MountPath: "/var/pv",
@@ -328,6 +328,7 @@ func addInitialScript(statefulSet *apps.StatefulSet, script *tapi.ScriptSourceSp
 			MountPath: "/var/db-script",
 		},
 	)
+	fmt.Println(">>>> ScriptPath",script.ScriptPath)
 	statefulSet.Spec.Template.Spec.Containers[0].Args = []string{
 		// Add additional args
 		script.ScriptPath,
@@ -439,7 +440,7 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 					Containers: []apiv1.Container{
 						{
 							Name:  SnapshotProcess_Restore,
-							Image: fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version), // #LATER Kubedb/mysql image
+							Image: fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version),
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),
@@ -449,7 +450,6 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 							},
 							Resources: snapshot.Spec.Resources,
 							VolumeMounts: []apiv1.VolumeMount{
-								//TODO: Mount secret volume if necessary
 								{
 									Name:      persistentVolume.Name,
 									MountPath: "/var/" + snapshotType_DumpRestore + "/",
@@ -463,8 +463,6 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 						},
 					},
 					Volumes: []apiv1.Volume{
-						//TODO: Add secret volume if necessary
-						// Check postgres repository for example
 						{
 							Name:         persistentVolume.Name,
 							VolumeSource: persistentVolume.VolumeSource,

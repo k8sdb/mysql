@@ -24,6 +24,7 @@ import (
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
+	"fmt"
 )
 
 type Options struct {
@@ -125,8 +126,11 @@ func (c *Controller) watchMySQL() {
 		c.syncPeriod,
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
+				fmt.Printf("Object %v\n\n",obj)
 				mysql := obj.(*tapi.MySQL)
+				fmt.Printf("Mysql %v\n\n",mysql)
 				kutildb.AssignTypeKind(mysql)
+				fmt.Printf("Mysql %v\n\n",mysql)
 				if mysql.Status.CreationTime == nil {
 					if err := c.create(mysql); err != nil {
 						log.Errorln(err)
