@@ -15,7 +15,7 @@ import (
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"arcTEMP/src/k8s.io/apimachinery/pkg/util/json"
+	"encoding/json"
 )
 
 func TestGetMS(t *testing.T) {

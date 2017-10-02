@@ -29,7 +29,6 @@ import (
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	api_v1 "k8s.io/client-go/pkg/api/v1"
-	"fmt"
 )
 
 func init() {
@@ -1011,8 +1010,6 @@ func Convert_kubedb_S3Spec_To_v1alpha1_S3Spec(in *kubedb.S3Spec, out *S3Spec, s 
 
 func autoConvert_v1alpha1_ScriptSourceSpec_To_kubedb_ScriptSourceSpec(in *ScriptSourceSpec, out *kubedb.ScriptSourceSpec, s conversion.Scope) error {
 	out.ScriptPath = in.ScriptPath
-	fmt.Println("---+ ", in.ScriptPath)
-	fmt.Println("---+ ", out.ScriptPath)
 	out.VolumeSource = in.VolumeSource
 	return nil
 }
@@ -1024,8 +1021,6 @@ func Convert_v1alpha1_ScriptSourceSpec_To_kubedb_ScriptSourceSpec(in *ScriptSour
 
 func autoConvert_kubedb_ScriptSourceSpec_To_v1alpha1_ScriptSourceSpec(in *kubedb.ScriptSourceSpec, out *ScriptSourceSpec, s conversion.Scope) error {
 	out.ScriptPath = in.ScriptPath
-	fmt.Println("---+ ", in.ScriptPath)
-	fmt.Println("---+ ", out.ScriptPath)
 	out.VolumeSource = in.VolumeSource
 	return nil
 }

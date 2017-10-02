@@ -27,7 +27,6 @@ import (
 	conversion "k8s.io/apimachinery/pkg/conversion"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	v1 "k8s.io/client-go/pkg/api/v1"
-	"fmt"
 )
 
 func init() {
@@ -360,9 +359,7 @@ func DeepCopy_v1alpha1_GCSSpec(in interface{}, out interface{}, c *conversion.Cl
 func DeepCopy_v1alpha1_InitSpec(in interface{}, out interface{}, c *conversion.Cloner) error {
 	{
 		in := in.(*InitSpec)
-		fmt.Println("+++", in.ScriptSource.ScriptPath)
 		out := out.(*InitSpec)
-		fmt.Println("+++", out.ScriptSource.ScriptPath)
 		*out = *in
 		if in.ScriptSource != nil {
 			in, out := &in.ScriptSource, &out.ScriptSource
@@ -885,10 +882,7 @@ func DeepCopy_v1alpha1_S3Spec(in interface{}, out interface{}, c *conversion.Clo
 func DeepCopy_v1alpha1_ScriptSourceSpec(in interface{}, out interface{}, c *conversion.Cloner) error {
 	{
 		in := in.(*ScriptSourceSpec)
-		fmt.Println("--- ", in.ScriptPath)
 		out := out.(*ScriptSourceSpec)
-		fmt.Println("--- ", out.ScriptPath)
-
 		*out = *in
 		if newVal, err := c.DeepCopy(&in.VolumeSource); err != nil {
 			return err
