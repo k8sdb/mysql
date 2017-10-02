@@ -8,13 +8,37 @@ import (
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	//apiv1 "k8s.io/client-go/pkg/api/v1"
+	"fmt"
 	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/mitchellh/go-homedir"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	"arcTEMP/src/k8s.io/apimachinery/pkg/util/json"
 )
+
+func TestGetMS(t *testing.T) {
+	c := GetNewController()
+	_, _ = c.ExtClient.MySQLs("default").Create(&tapi.MySQL{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "t1",
+		},
+		Spec: tapi.MySQLSpec{
+			Init: &tapi.InitSpec{
+				ScriptSource: &tapi.ScriptSourceSpec{
+					ScriptPath: "/var/var",
+				},
+			},
+		},
+	},
+	)
+
+	my, _ := c.ExtClient.MySQLs("default").Get("t1", metav1.GetOptions{})
+
+	data, _ := json.Marshal(my.Spec)
+	fmt.Println(string(data))
+}
 
 func GetNewController() *Controller {
 	userHome, err := homedir.Dir()

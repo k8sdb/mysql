@@ -126,11 +126,15 @@ func (c *Controller) watchMySQL() {
 		c.syncPeriod,
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
-				fmt.Printf("Object %v\n\n",obj)
+				fmt.Printf("Object %#v\n\n",obj)
+
 				mysql := obj.(*tapi.MySQL)
-				fmt.Printf("Mysql %v\n\n",mysql)
+
+				fmt.Printf("Mysql %+v\n\n",mysql)
+
+				fmt.Printf("Mysql %+v\n\n",mysql.Spec.Init)
+
 				kutildb.AssignTypeKind(mysql)
-				fmt.Printf("Mysql %v\n\n",mysql)
 				if mysql.Status.CreationTime == nil {
 					if err := c.create(mysql); err != nil {
 						log.Errorln(err)

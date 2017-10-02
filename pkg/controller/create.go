@@ -98,7 +98,6 @@ func (c *Controller) findStatefulSet(mysql *tapi.MySQL) (bool, error) {
 }
 
 func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, error) {
-	fmt.Printf("%v",mysql)
 	// SatatefulSet for MySQL database
 	statefulSet := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -325,10 +324,10 @@ func addInitialScript(statefulSet *apps.StatefulSet, script *tapi.ScriptSourceSp
 	statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
 		apiv1.VolumeMount{
 			Name:      "initial-script",
-			MountPath: "/var/db-script",
+			MountPath: "/docker-entrypoint-in",
 		},
 	)
-	fmt.Println(">>>> ScriptPath",script.ScriptPath)
+	fmt.Println("\n\n>>>> ScriptPath",script.ScriptPath)
 	statefulSet.Spec.Template.Spec.Containers[0].Args = []string{
 		// Add additional args
 		script.ScriptPath,

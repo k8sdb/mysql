@@ -10,7 +10,7 @@ type InitSpec struct {
 }
 
 type ScriptSourceSpec struct {
-	ScriptPath         string `json:"scriptPath,omitempty"`
+	ScriptPath         string `json:"scriptPath"`
 	apiv1.VolumeSource `json:",inline,omitempty"`
 }
 
