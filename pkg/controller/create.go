@@ -118,8 +118,8 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 						{
 							Name:  tapi.ResourceNameMySQL,
 							Image: fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version),
-							// todo:	ImagePullPolicy: apiv1.PullIfNotPresent,
-							ImagePullPolicy: "Always", //Testing
+							ImagePullPolicy: apiv1.PullIfNotPresent,
+							//ImagePullPolicy: "Always", //Testing
 							Ports: []apiv1.ContainerPort{
 								{
 									Name:          "db",

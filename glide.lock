@@ -1,5 +1,5 @@
 hash: d0d281af722e813b97520c5b37f14450a6c97276742bb57b6efbcc44a21f8053
-updated: 2017-10-03T17:19:17.395265659+06:00
+updated: 2017-10-03T17:44:10.441152897+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -222,6 +222,20 @@ imports:
   - signal
 - name: github.com/ncw/swift
   version: 9d3f812e23d270d1c66a9a01e20af1005061cdc4
+- name: github.com/onsi/gomega
+  version: d59fa0ac68bb5dd932ee8d24eed631cdd519efc3
+  subpackages:
+  - format
+  - internal/assertion
+  - internal/asyncassertion
+  - internal/oraclematcher
+  - internal/testingtsupport
+  - matchers
+  - matchers/support/goraph/bipartitegraph
+  - matchers/support/goraph/edge
+  - matchers/support/goraph/node
+  - matchers/support/goraph/util
+  - types
 - name: github.com/orcaman/concurrent-map
   version: 2ae17bc4c860c83513ee50feb9746f3e50d7515d
 - name: github.com/pkg/errors
@@ -485,6 +499,13 @@ imports:
   - util/homedir
   - util/integer
 testImports:
+- name: github.com/k8sdb/postgres
+  version: 8061b8d21c0daf87cea1c8c6edb36630a99e80dc
+  subpackages:
+  - pkg/controller
+  - pkg/validator
+  - test/e2e/framework
+  - test/e2e/matcher
 - name: github.com/mitchellh/go-homedir
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/onsi/ginkgo
@@ -506,18 +527,4 @@ testImports:
   - reporters/stenographer
   - reporters/stenographer/support/go-colorable
   - reporters/stenographer/support/go-isatty
-  - types
-- name: github.com/onsi/gomega
-  version: d59fa0ac68bb5dd932ee8d24eed631cdd519efc3
-  subpackages:
-  - format
-  - internal/assertion
-  - internal/asyncassertion
-  - internal/oraclematcher
-  - internal/testingtsupport
-  - matchers
-  - matchers/support/goraph/bipartitegraph
-  - matchers/support/goraph/edge
-  - matchers/support/goraph/node
-  - matchers/support/goraph/util
   - types
