@@ -8,14 +8,15 @@ import (
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	//apiv1 "k8s.io/client-go/pkg/api/v1"
+	"encoding/json"
 	"fmt"
+
 	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/mitchellh/go-homedir"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"encoding/json"
 )
 
 func TestController_Run(t *testing.T) {
@@ -41,7 +42,7 @@ func TestGetMS(t *testing.T) {
 
 	my, _ := c.ExtClient.MySQLs("default").Get("t1", metav1.GetOptions{})
 
-	data, _ := json.MarshalIndent(my.Spec,"","  ")
+	data, _ := json.MarshalIndent(my.Spec, "", "  ")
 	fmt.Println(string(data))
 }
 
@@ -95,15 +96,6 @@ func DemoMySQL() *tapi.MySQL {
 			Version:    "8.0",
 			Replicas:   1,
 			DoNotPause: true,
-			//Storage: &apiv1.PersistentVolumeClaimSpec{
-			//	StorageClassName: &"standard",
-			//	AccessModes: []apiv1.PersistentVolumeAccessMode {
-			//		"ReadWriteOnce",
-			//	},
-			//	Resources: apiv1.ResourceRequirements{
-			//		Requests:
-			//	},
-			//},
 		},
 	}
 }
@@ -184,7 +176,6 @@ func TestController_reCreateMySQL(t *testing.T) {
 		log.Println("re-creation successful")
 	}
 }
-
 
 func TestController_create(t *testing.T) {
 

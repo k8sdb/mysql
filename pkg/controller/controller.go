@@ -24,7 +24,6 @@ import (
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
-	"github.com/TamalSaha/go-oneliners"
 )
 
 type Options struct {
@@ -127,14 +126,9 @@ func (c *Controller) watchMySQL() {
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				mysql := obj.(*tapi.MySQL)
-
-	//			data, _ := json.MarshalIndent(obj,"","  ")
-	//			oneliners.FILE("=========================\n\n",string(data))  // #TESTING
-
 				kutildb.AssignTypeKind(mysql)
 				if mysql.Status.CreationTime == nil {
 					if err := c.create(mysql); err != nil {
-						oneliners.FILE(err)
 						log.Errorln(err)
 						c.pushFailureEvent(mysql, err.Error())
 					}
