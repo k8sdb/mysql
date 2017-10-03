@@ -18,6 +18,11 @@ import (
 	"encoding/json"
 )
 
+func TestController_Run(t *testing.T) {
+	ctrl := GetNewController()
+	ctrl.Run()
+}
+
 func TestGetMS(t *testing.T) {
 	c := GetNewController()
 	_, _ = c.ExtClient.MySQLs("default").Create(&tapi.MySQL{
@@ -36,7 +41,7 @@ func TestGetMS(t *testing.T) {
 
 	my, _ := c.ExtClient.MySQLs("default").Get("t1", metav1.GetOptions{})
 
-	data, _ := json.Marshal(my.Spec)
+	data, _ := json.MarshalIndent(my.Spec,"","  ")
 	fmt.Println(string(data))
 }
 
@@ -177,5 +182,18 @@ func TestController_reCreateMySQL(t *testing.T) {
 		log.Println("Error while re-creating MySQL", err)
 	} else {
 		log.Println("re-creation successful")
+	}
+}
+
+
+func TestController_create(t *testing.T) {
+
+	ctrl := GetNewController()
+	msql := DemoMySQL()
+	log.Println("creating!!")
+	if err := ctrl.create(msql); err != nil {
+		log.Println("error creating MySQL", err)
+	} else {
+		log.Println("Creating task succesfull")
 	}
 }

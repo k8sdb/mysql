@@ -118,7 +118,8 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 						{
 							Name:            tapi.ResourceNameMySQL,
 							Image:           fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version),
-							ImagePullPolicy: apiv1.PullIfNotPresent,
+						// todo:	ImagePullPolicy: apiv1.PullIfNotPresent,
+							ImagePullPolicy: "Always", //Testing
 							Ports: []apiv1.ContainerPort{
 								{
 									Name:          "db",
@@ -129,7 +130,7 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 							VolumeMounts: []apiv1.VolumeMount{
 								{
 									Name:      "data",
-									MountPath: "/var/pv",
+									MountPath: "/var/lib/mysql", //Volume path of mysql, https://github.com/docker-library/mysql/blob/86431f073b3d2f963d21e33cb8943f0bdcdf143d/8.0/Dockerfile#L48
 								},
 							},
 						},
@@ -324,14 +325,14 @@ func addInitialScript(statefulSet *apps.StatefulSet, script *tapi.ScriptSourceSp
 	statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
 		apiv1.VolumeMount{
 			Name:      "initial-script",
-			MountPath: "/docker-entrypoint-in",
+			MountPath: "/docker-entrypoint-initdb.d",
 		},
 	)
-	fmt.Println("\n\n>>>> ScriptPath",script.ScriptPath)
-	statefulSet.Spec.Template.Spec.Containers[0].Args = []string{
-		// Add additional args
-		script.ScriptPath,
-	}
+	//fmt.Println("\n\n>>>> ScriptPath",script.ScriptPath)
+	//statefulSet.Spec.Template.Spec.Containers[0].Args = []string{
+	//	// Add additional args
+	//	script.ScriptPath,
+	//}
 
 	statefulSet.Spec.Template.Spec.Volumes = append(statefulSet.Spec.Template.Spec.Volumes,
 		apiv1.Volume{
