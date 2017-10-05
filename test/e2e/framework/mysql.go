@@ -22,7 +22,7 @@ func (f *Invocation) MySQL() *tapi.MySQL {
 			},
 		},
 		Spec: tapi.MySQLSpec{
-			Version: types.StrYo("9.5"),
+			Version: types.StrYo("8.0"),
 		},
 	}
 }

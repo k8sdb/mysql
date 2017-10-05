@@ -64,23 +64,15 @@ func (c *Controller) WipeOutDatabase(dormantDb *tapi.DormantDatabase) error {
 		return err
 	}
 
-	// ---> Start
-	//TODO: Use following to delete secret, if appropriate
-	// Otherwise, remove it
 	if dormantDb.Spec.Origin.Spec.MySQL.DatabaseSecret != nil {
 		if err := c.deleteSecret(dormantDb); err != nil {
 			return err
 		}
-
 	}
-	// ---> End
 
 	return nil
 }
 
-// ---> Start
-//TODO: Use this method to delete secret, if supported
-// Otherwise, remove it
 func (c *Controller) deleteSecret(dormantDb *tapi.DormantDatabase) error {
 
 	var secretFound bool = false
@@ -127,7 +119,6 @@ func (c *Controller) deleteSecret(dormantDb *tapi.DormantDatabase) error {
 					break
 				}
 			}
-
 		}
 	}
 
@@ -139,8 +130,6 @@ func (c *Controller) deleteSecret(dormantDb *tapi.DormantDatabase) error {
 
 	return nil
 }
-
-// ---> End
 
 func (c *Controller) ResumeDatabase(dormantDb *tapi.DormantDatabase) error {
 	origin := dormantDb.Spec.Origin

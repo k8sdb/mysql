@@ -8,11 +8,12 @@ package v1alpha1
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"runtime"
+
 	codec1978 "github.com/ugorji/go/codec"
 	pkg2_resource "k8s.io/apimachinery/pkg/api/resource"
 	pkg1_v1 "k8s.io/client-go/pkg/api/v1"
-	"reflect"
-	"runtime"
 )
 
 const (

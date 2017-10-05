@@ -11,8 +11,6 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/resource"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
-	"github.com/TamalSaha/go-oneliners"
-	"log"
 )
 
 const (
@@ -26,7 +24,7 @@ var _ = Describe("MySQL", func() {
 	var (
 		err         error
 		f           *framework.Invocation
-		mysql    *tapi.MySQL
+		mysql       *tapi.MySQL
 		snapshot    *tapi.Snapshot
 		secret      *apiv1.Secret
 		skipMessage string
@@ -85,14 +83,12 @@ var _ = Describe("MySQL", func() {
 	Describe("Test", func() {
 
 		Context("General", func() {
-			log.Println("General!!!")
 
 			Context("-", func() {
 				It("should run successfully", shouldSuccessfullyRunning)
 			})
 
 			Context("With PVC", func() {
-				oneliners.FILE("With PVC")
 				BeforeEach(func() {
 					if f.StorageClass == "" {
 						skipMessage = "Missing StorageClassName. Provide as flag to test this."
@@ -111,7 +107,6 @@ var _ = Describe("MySQL", func() {
 		})
 
 		Context("DoNotPause", func() {
-			oneliners.FILE("Donot pause")
 			BeforeEach(func() {
 				mysql.Spec.DoNotPause = true
 			})

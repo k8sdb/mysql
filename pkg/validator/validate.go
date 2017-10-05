@@ -30,16 +30,12 @@ func ValidateMySQL(client clientset.Interface, mysql *tapi.MySQL) error {
 		}
 	}
 
-	// ---> Start
-	// TODO: Use following if database needs/supports authentication secret
-	// otherwise, delete
 	databaseSecret := mysql.Spec.DatabaseSecret
 	if databaseSecret != nil {
 		if _, err := client.CoreV1().Secrets(mysql.Namespace).Get(databaseSecret.SecretName, metav1.GetOptions{}); err != nil {
 			return err
 		}
 	}
-	// ---> End
 
 	backupScheduleSpec := mysql.Spec.BackupSchedule
 	if backupScheduleSpec != nil {

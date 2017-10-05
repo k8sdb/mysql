@@ -1,5 +1,5 @@
 hash: d0d281af722e813b97520c5b37f14450a6c97276742bb57b6efbcc44a21f8053
-updated: 2017-10-03T17:44:10.441152897+06:00
+updated: 2017-10-05T17:54:32.714448849+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,7 +7,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: 5f5a94d551a6a3147a2dfc5e287da0fc251b1bac
+  version: 0e061f0b9a7819f85a7e0e1b4eadf4f5ac0c29a6
   subpackages:
   - context
   - crypto/rand
@@ -192,7 +192,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/k8sdb/apimachinery
-  version: 0ab93a1a66324bfbf355df6df66ad8096c93ca31
+  version: a244894460b12be29cac72262cf1e6e26a398528
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -273,7 +273,7 @@ imports:
 - name: github.com/Sirupsen/logrus
   version: 4b6ea7319e214d98c938f12692336f7ca9348d6b
 - name: github.com/spf13/cobra
-  version: 0dacccfbaabc71b872087c1719c5380d3e185173
+  version: d5bde60e022436203e377c47806e001418c16af3
   subpackages:
   - doc
 - name: github.com/spf13/pflag
@@ -328,7 +328,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: 2ae7de5be730a6b0939fabcd06b18185a8a3e2db
+  version: 7a7376eff6a51c6a053fcf8e9e50bf01a20f2673
   subpackages:
   - gensupport
   - googleapi
@@ -499,13 +499,6 @@ imports:
   - util/homedir
   - util/integer
 testImports:
-- name: github.com/k8sdb/postgres
-  version: 8061b8d21c0daf87cea1c8c6edb36630a99e80dc
-  subpackages:
-  - pkg/controller
-  - pkg/validator
-  - test/e2e/framework
-  - test/e2e/matcher
 - name: github.com/mitchellh/go-homedir
   version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/onsi/ginkgo
