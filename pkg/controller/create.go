@@ -190,14 +190,10 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 	// Add Data volume for StatefulSet
 	addDataVolume(statefulSet, mysql.Spec.Storage)
 
-	// ---> Start #LATER
-	//TODO: Use following if supported
-	// otherwise remove
-	// Add InitialScript to run at startup
+
 	if mysql.Spec.Init != nil && mysql.Spec.Init.ScriptSource != nil {
 		addInitialScript(statefulSet, mysql.Spec.Init.ScriptSource)
 	}
-	// ---> End
 
 	if c.opt.EnableRbac {
 		// Ensure ClusterRoles for database statefulsets

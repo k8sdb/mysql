@@ -23,7 +23,7 @@ import (
 var storageClass string
 
 func init() {
-	flag.StringVar(&storageClass, "storageclass", "", "Kubernetes StorageClass name")
+	flag.StringVar(&storageClass, "storageclass", "standard", "Kubernetes StorageClass name")
 }
 
 const (

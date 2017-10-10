@@ -10,7 +10,6 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 )
 
-// TODO: Change method name. ValidateMySQL -> Validate<--->
 func ValidateMySQL(client clientset.Interface, mysql *tapi.MySQL) error {
 	if mysql.Spec.Version == "" {
 		return fmt.Errorf(`Object 'Version' is missing in '%v'`, mysql.Spec)
@@ -18,7 +17,6 @@ func ValidateMySQL(client clientset.Interface, mysql *tapi.MySQL) error {
 
 	// Set Database Image version
 	version := fmt.Sprintf("%v", mysql.Spec.Version) // #Later , add -db with %v, ex: "%v-db"
-	// TODO: docker.ImageMySQL should hold correct image name
 	if err := docker.CheckDockerImageVersion(docker.ImageMySQL, version); err != nil {
 		return fmt.Errorf(`Image %v:%v not found`, docker.ImageMySQL, version)
 	}

@@ -1,44 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="12" failures="9" time="2978.688481257">
-      <testcase name="MySQL Test General - should run successfully" classname="e2e Suite" time="35.034751835"></testcase>
-      <testcase name="MySQL Test General With PVC should run successfully" classname="e2e Suite" time="0.000303572">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test DoNotPause should work successfully" classname="e2e Suite" time="40.038244651"></testcase>
-      <testcase name="MySQL Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="315.021127256">
-          <failure type="Failure">/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:193&#xA;Timed out after 300.000s.&#xA;Expected&#xA;    &lt;v1alpha1.SnapshotPhase&gt;: &#xA;to equal&#xA;    &lt;v1alpha1.SnapshotPhase&gt;: Succeeded&#xA;/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:162</failure>
-          <system-out>�[1mSTEP�[0m: Create MySQL: mysql-5ub5ti&#xA;�[1mSTEP�[0m: Wait for Running mysql&#xA;�[1mSTEP�[0m: Create Secret&#xA;�[1mSTEP�[0m: Create Snapshot&#xA;�[1mSTEP�[0m: Check for Successed snapshot&#xA;</system-out>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In S3 should take Snapshot successfully" classname="e2e Suite" time="320.017193009">
-          <failure type="Failure">/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:205&#xA;Timed out after 300.000s.&#xA;Expected&#xA;    &lt;v1alpha1.SnapshotPhase&gt;: &#xA;to equal&#xA;    &lt;v1alpha1.SnapshotPhase&gt;: Succeeded&#xA;/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:162</failure>
-          <system-out>�[1mSTEP�[0m: Create MySQL: mysql-5i5quu&#xA;�[1mSTEP�[0m: Wait for Running mysql&#xA;�[1mSTEP�[0m: Create Secret&#xA;�[1mSTEP�[0m: Create Snapshot&#xA;�[1mSTEP�[0m: Check for Successed snapshot&#xA;</system-out>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="320.012727751">
-          <failure type="Failure">/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:217&#xA;Timed out after 300.000s.&#xA;Expected&#xA;    &lt;v1alpha1.SnapshotPhase&gt;: &#xA;to equal&#xA;    &lt;v1alpha1.SnapshotPhase&gt;: Succeeded&#xA;/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:162</failure>
-          <system-out>�[1mSTEP�[0m: Create MySQL: mysql-ykwxqt&#xA;�[1mSTEP�[0m: Wait for Running mysql&#xA;�[1mSTEP�[0m: Create Secret&#xA;�[1mSTEP�[0m: Create Snapshot&#xA;�[1mSTEP�[0m: Check for Successed snapshot&#xA;</system-out>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In Azure should take Snapshot successfully" classname="e2e Suite" time="315.013403774">
-          <failure type="Failure">/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:229&#xA;Timed out after 300.000s.&#xA;Expected&#xA;    &lt;v1alpha1.SnapshotPhase&gt;: &#xA;to equal&#xA;    &lt;v1alpha1.SnapshotPhase&gt;: Succeeded&#xA;/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:162</failure>
-          <system-out>�[1mSTEP�[0m: Create MySQL: mysql-obdmu5&#xA;�[1mSTEP�[0m: Wait for Running mysql&#xA;�[1mSTEP�[0m: Create Secret&#xA;�[1mSTEP�[0m: Create Snapshot&#xA;�[1mSTEP�[0m: Check for Successed snapshot&#xA;</system-out>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In Swift should take Snapshot successfully" classname="e2e Suite" time="315.012479068">
-          <failure type="Failure">/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:241&#xA;Timed out after 300.000s.&#xA;Expected&#xA;    &lt;v1alpha1.SnapshotPhase&gt;: &#xA;to equal&#xA;    &lt;v1alpha1.SnapshotPhase&gt;: Succeeded&#xA;/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:162</failure>
-          <system-out>�[1mSTEP�[0m: Create MySQL: mysql-4ewmag&#xA;�[1mSTEP�[0m: Wait for Running mysql&#xA;�[1mSTEP�[0m: Create Secret&#xA;�[1mSTEP�[0m: Create Snapshot&#xA;�[1mSTEP�[0m: Check for Successed snapshot&#xA;</system-out>
-      </testcase>
-      <testcase name="MySQL Test Initialize With Script should run successfully" classname="e2e Suite" time="300.002897238">
-          <failure type="Failure">/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:260&#xA;Timed out after 300.000s.&#xA;Expected&#xA;    &lt;bool&gt;: false&#xA;to be true&#xA;/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:46</failure>
-          <system-out>�[1mSTEP�[0m: Create MySQL: mysql-q3c4wy&#xA;�[1mSTEP�[0m: Wait for Running mysql&#xA;</system-out>
-      </testcase>
-      <testcase name="MySQL Test Initialize With Snapshot should run successfully" classname="e2e Suite" time="300.002773361">
-          <failure type="Failure">/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:315&#xA;Timed out after 300.000s.&#xA;Expected&#xA;    &lt;bool&gt;: false&#xA;to be true&#xA;/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:46</failure>
-          <system-out>�[1mSTEP�[0m: Create MySQL: mysql-7kl7cn&#xA;�[1mSTEP�[0m: Wait for Running mysql&#xA;</system-out>
-      </testcase>
-      <testcase name="MySQL Test Resume - should resume DormantDatabase successfully" classname="e2e Suite" time="300.002847542">
-          <failure type="Failure">/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:360&#xA;Timed out after 300.000s.&#xA;Expected&#xA;    &lt;bool&gt;: false&#xA;to be true&#xA;/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:46</failure>
-          <system-out>�[1mSTEP�[0m: Create MySQL: mysql-lyde2k&#xA;�[1mSTEP�[0m: Wait for Running mysql&#xA;</system-out>
-      </testcase>
-      <testcase name="MySQL Test Resume With Init should resume DormantDatabase successfully" classname="e2e Suite" time="300.003461073">
-          <failure type="Failure">/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:378&#xA;Timed out after 300.000s.&#xA;Expected&#xA;    &lt;bool&gt;: false&#xA;to be true&#xA;/home/maruf/go/src/github.com/k8sdb/mysql/test/e2e/mysql_test.go:46</failure>
-          <system-out>�[1mSTEP�[0m: Create MySQL: mysql-mryz35&#xA;�[1mSTEP�[0m: Wait for Running mysql&#xA;</system-out>
-      </testcase>
+  <testsuite tests="7" failures="0" time="380.316272792">
+      <testcase name="MySQL Test General - should run successfully" classname="e2e Suite" time="35.03398764"></testcase>
+      <testcase name="MySQL Test General With PVC should run successfully" classname="e2e Suite" time="35.02620888"></testcase>
+      <testcase name="MySQL Test DoNotPause should work successfully" classname="e2e Suite" time="50.038809125"></testcase>
+      <testcase name="MySQL Test Initialize With Script should run successfully" classname="e2e Suite" time="45.034025055"></testcase>
+      <testcase name="MySQL Test Resume Without Init should resume DormantDatabase successfully" classname="e2e Suite" time="65.04902668"></testcase>
+      <testcase name="MySQL Test Resume With Init should resume DormantDatabase successfully" classname="e2e Suite" time="75.052985637"></testcase>
+      <testcase name="MySQL Test Resume With original MySQL should resume DormantDatabase successfully" classname="e2e Suite" time="75.047975518"></testcase>
   </testsuite>
