@@ -190,7 +190,6 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 	// Add Data volume for StatefulSet
 	addDataVolume(statefulSet, mysql.Spec.Storage)
 
-
 	if mysql.Spec.Init != nil && mysql.Spec.Init.ScriptSource != nil {
 		addInitialScript(statefulSet, mysql.Spec.Init.ScriptSource)
 	}

@@ -22,7 +22,14 @@ func EnsureSnapshot(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, trans
 func CreateOrPatchSnapshot(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *aci.Snapshot) *aci.Snapshot) (*aci.Snapshot, error) {
 	cur, err := c.Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 	if kerr.IsNotFound(err) {
-		return c.Snapshots(meta.Namespace).Create(transform(&aci.Snapshot{ObjectMeta: meta}))
+		glog.V(3).Infof("Creating Snapshot %s/%s.", meta.Namespace, meta.Name)
+		return c.Snapshots(meta.Namespace).Create(transform(&aci.Snapshot{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Snapshot",
+				APIVersion: aci.SchemeGroupVersion.String(),
+			},
+			ObjectMeta: meta,
+		}))
 	} else if err != nil {
 		return nil, err
 	}
@@ -47,7 +54,7 @@ func PatchSnapshot(c tcs.KubedbV1alpha1Interface, cur *aci.Snapshot, transform f
 	if len(patch) == 0 || string(patch) == "{}" {
 		return cur, nil
 	}
-	glog.V(5).Infof("Patching Snapshot %s@%s with %s.", cur.Name, cur.Namespace, string(patch))
+	glog.V(3).Infof("Patching Snapshot %s/%s with %s.", cur.Namespace, cur.Name, string(patch))
 	result, err := c.Snapshots(cur.Namespace).Patch(cur.Name, types.MergePatchType, patch)
 	return result, err
 }
@@ -63,12 +70,12 @@ func TryPatchSnapshot(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, tra
 			result, e2 = PatchSnapshot(c, cur, transform)
 			return e2 == nil, nil
 		}
-		glog.Errorf("Attempt %d failed to patch Snapshot %s@%s due to %v.", attempt, cur.Name, cur.Namespace, e2)
+		glog.Errorf("Attempt %d failed to patch Snapshot %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)
 		return false, nil
 	})
 
 	if err != nil {
-		err = fmt.Errorf("failed to patch Snapshot %s@%s after %d attempts due to %v", meta.Name, meta.Namespace, attempt, err)
+		err = fmt.Errorf("failed to patch Snapshot %s/%s after %d attempts due to %v", meta.Namespace, meta.Name, attempt, err)
 	}
 	return
 }
@@ -84,12 +91,12 @@ func TryUpdateSnapshot(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, tr
 			result, e2 = c.Snapshots(cur.Namespace).Update(transform(cur))
 			return e2 == nil, nil
 		}
-		glog.Errorf("Attempt %d failed to update Snapshot %s@%s due to %v.", attempt, cur.Name, cur.Namespace, e2)
+		glog.Errorf("Attempt %d failed to update Snapshot %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)
 		return false, nil
 	})
 
 	if err != nil {
-		err = fmt.Errorf("failed to update Snapshot %s@%s after %d attempts due to %v", meta.Name, meta.Namespace, attempt, err)
+		err = fmt.Errorf("failed to update Snapshot %s/%s after %d attempts due to %v", meta.Namespace, meta.Name, attempt, err)
 	}
 	return
 }

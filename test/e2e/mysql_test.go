@@ -24,7 +24,7 @@ var _ = Describe("MySQL", func() {
 		f           *framework.Invocation
 		mysql       *tapi.MySQL
 		snapshot    *tapi.Snapshot
-		_      *apiv1.Secret
+		_           *apiv1.Secret
 		skipMessage string
 	)
 
@@ -243,8 +243,6 @@ var _ = Describe("MySQL", func() {
 		//	})
 		//})
 
-
-
 		Context("Initialize", func() {
 			Context("With Script", func() {
 				BeforeEach(func() {
@@ -253,7 +251,7 @@ var _ = Describe("MySQL", func() {
 							VolumeSource: apiv1.VolumeSource{
 								GitRepo: &apiv1.GitRepoVolumeSource{
 									Repository: "https://github.com/the-redback/mysql-init-script.git",
-									Directory: ".",
+									Directory:  ".",
 								},
 							},
 						},
@@ -372,7 +370,7 @@ var _ = Describe("MySQL", func() {
 							VolumeSource: apiv1.VolumeSource{
 								GitRepo: &apiv1.GitRepoVolumeSource{
 									Repository: "https://github.com/the-redback/mysql-init-script.git",
-									Directory: ".",
+									Directory:  ".",
 								},
 							},
 						},
@@ -381,8 +379,6 @@ var _ = Describe("MySQL", func() {
 
 				It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
 			})
-
-
 
 			Context("With original MySQL", func() {
 				It("should resume DormantDatabase successfully", func() {
@@ -414,7 +410,6 @@ var _ = Describe("MySQL", func() {
 				})
 			})
 		})
-
 
 		//todo: snapshot schedule
 		//Context("SnapshotScheduler", func() {

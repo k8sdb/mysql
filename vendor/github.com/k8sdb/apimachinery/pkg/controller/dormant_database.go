@@ -20,7 +20,6 @@ import (
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
-	"github.com/TamalSaha/go-oneliners"
 )
 
 type Deleter interface {
@@ -126,7 +125,6 @@ func (c *DormantDbController) watch() {
 				kutildb.AssignTypeKind(dormantDb)
 				if dormantDb.Status.CreationTime == nil {
 					if err := c.create(dormantDb); err != nil {
-						oneliners.FILE(err)
 						log.Errorln(err)
 					}
 				}
@@ -135,7 +133,6 @@ func (c *DormantDbController) watch() {
 				dormantDb := obj.(*tapi.DormantDatabase)
 				kutildb.AssignTypeKind(dormantDb)
 				if err := c.delete(dormantDb); err != nil {
-					oneliners.FILE(err)
 					log.Errorln(err)
 				}
 			},
@@ -154,7 +151,6 @@ func (c *DormantDbController) watch() {
 				kutildb.AssignTypeKind(newDormantDb)
 				if !reflect.DeepEqual(oldDormantDb.Spec, newDormantDb.Spec) {
 					if err := c.update(oldDormantDb, newDormantDb); err != nil {
-						oneliners.FILE(err)
 						log.Errorln(err)
 					}
 				}

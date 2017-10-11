@@ -22,7 +22,14 @@ func EnsureElasticsearch(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, 
 func CreateOrPatchElasticsearch(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *aci.Elasticsearch) *aci.Elasticsearch) (*aci.Elasticsearch, error) {
 	cur, err := c.Elasticsearchs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 	if kerr.IsNotFound(err) {
-		return c.Elasticsearchs(meta.Namespace).Create(transform(&aci.Elasticsearch{ObjectMeta: meta}))
+		glog.V(3).Infof("Creating Elasticsearch %s/%s.", meta.Namespace, meta.Name)
+		return c.Elasticsearchs(meta.Namespace).Create(transform(&aci.Elasticsearch{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Elasticsearch",
+				APIVersion: aci.SchemeGroupVersion.String(),
+			},
+			ObjectMeta: meta,
+		}))
 	} else if err != nil {
 		return nil, err
 	}
@@ -47,7 +54,7 @@ func PatchElasticsearch(c tcs.KubedbV1alpha1Interface, cur *aci.Elasticsearch, t
 	if len(patch) == 0 || string(patch) == "{}" {
 		return cur, nil
 	}
-	glog.V(5).Infof("Patching Elasticsearch %s@%s with %s.", cur.Name, cur.Namespace, string(patch))
+	glog.V(3).Infof("Patching Elasticsearch %s/%s with %s.", cur.Namespace, cur.Name, string(patch))
 	result, err := c.Elasticsearchs(cur.Namespace).Patch(cur.Name, types.MergePatchType, patch)
 	return result, err
 }
@@ -63,12 +70,12 @@ func TryPatchElasticsearch(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta
 			result, e2 = PatchElasticsearch(c, cur, transform)
 			return e2 == nil, nil
 		}
-		glog.Errorf("Attempt %d failed to patch Elasticsearch %s@%s due to %v.", attempt, cur.Name, cur.Namespace, e2)
+		glog.Errorf("Attempt %d failed to patch Elasticsearch %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)
 		return false, nil
 	})
 
 	if err != nil {
-		err = fmt.Errorf("failed to patch Elasticsearch %s@%s after %d attempts due to %v", meta.Name, meta.Namespace, attempt, err)
+		err = fmt.Errorf("failed to patch Elasticsearch %s/%s after %d attempts due to %v", meta.Namespace, meta.Name, attempt, err)
 	}
 	return
 }
@@ -84,12 +91,12 @@ func TryUpdateElasticsearch(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMet
 			result, e2 = c.Elasticsearchs(cur.Namespace).Update(transform(cur))
 			return e2 == nil, nil
 		}
-		glog.Errorf("Attempt %d failed to update Elasticsearch %s@%s due to %v.", attempt, cur.Name, cur.Namespace, e2)
+		glog.Errorf("Attempt %d failed to update Elasticsearch %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)
 		return false, nil
 	})
 
 	if err != nil {
-		err = fmt.Errorf("failed to update Elasticsearch %s@%s after %d attempts due to %v", meta.Name, meta.Namespace, attempt, err)
+		err = fmt.Errorf("failed to update Elasticsearch %s/%s after %d attempts due to %v", meta.Namespace, meta.Name, attempt, err)
 	}
 	return
 }

@@ -22,7 +22,14 @@ func EnsurePostgres(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, trans
 func CreateOrPatchPostgres(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *aci.Postgres) *aci.Postgres) (*aci.Postgres, error) {
 	cur, err := c.Postgreses(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 	if kerr.IsNotFound(err) {
-		return c.Postgreses(meta.Namespace).Create(transform(&aci.Postgres{ObjectMeta: meta}))
+		glog.V(3).Infof("Creating Postgres %s/%s.", meta.Namespace, meta.Name)
+		return c.Postgreses(meta.Namespace).Create(transform(&aci.Postgres{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "Postgres",
+				APIVersion: aci.SchemeGroupVersion.String(),
+			},
+			ObjectMeta: meta,
+		}))
 	} else if err != nil {
 		return nil, err
 	}
@@ -47,7 +54,7 @@ func PatchPostgres(c tcs.KubedbV1alpha1Interface, cur *aci.Postgres, transform f
 	if len(patch) == 0 || string(patch) == "{}" {
 		return cur, nil
 	}
-	glog.V(5).Infof("Patching Postgres %s@%s with %s.", cur.Name, cur.Namespace, string(patch))
+	glog.V(3).Infof("Patching Postgres %s/%s with %s.", cur.Namespace, cur.Name, string(patch))
 	result, err := c.Postgreses(cur.Namespace).Patch(cur.Name, types.MergePatchType, patch)
 	return result, err
 }
@@ -63,12 +70,12 @@ func TryPatchPostgres(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, tra
 			result, e2 = PatchPostgres(c, cur, transform)
 			return e2 == nil, nil
 		}
-		glog.Errorf("Attempt %d failed to patch Postgres %s@%s due to %v.", attempt, cur.Name, cur.Namespace, e2)
+		glog.Errorf("Attempt %d failed to patch Postgres %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)
 		return false, nil
 	})
 
 	if err != nil {
-		err = fmt.Errorf("failed to patch Postgres %s@%s after %d attempts due to %v", meta.Name, meta.Namespace, attempt, err)
+		err = fmt.Errorf("failed to patch Postgres %s/%s after %d attempts due to %v", meta.Namespace, meta.Name, attempt, err)
 	}
 	return
 }
@@ -84,12 +91,12 @@ func TryUpdatePostgres(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, tr
 			result, e2 = c.Postgreses(cur.Namespace).Update(transform(cur))
 			return e2 == nil, nil
 		}
-		glog.Errorf("Attempt %d failed to update Postgres %s@%s due to %v.", attempt, cur.Name, cur.Namespace, e2)
+		glog.Errorf("Attempt %d failed to update Postgres %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)
 		return false, nil
 	})
 
 	if err != nil {
-		err = fmt.Errorf("failed to update Postgres %s@%s after %d attempts due to %v", meta.Name, meta.Namespace, attempt, err)
+		err = fmt.Errorf("failed to update Postgres %s/%s after %d attempts due to %v", meta.Namespace, meta.Name, attempt, err)
 	}
 	return
 }

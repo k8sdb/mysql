@@ -22,7 +22,14 @@ func EnsureMySQL(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transfor
 func CreateOrPatchMySQL(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transform func(alert *aci.MySQL) *aci.MySQL) (*aci.MySQL, error) {
 	cur, err := c.MySQLs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 	if kerr.IsNotFound(err) {
-		return c.MySQLs(meta.Namespace).Create(transform(&aci.MySQL{ObjectMeta: meta}))
+		glog.V(3).Infof("Creating MySQL %s/%s.", meta.Namespace, meta.Name)
+		return c.MySQLs(meta.Namespace).Create(transform(&aci.MySQL{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "MySQL",
+				APIVersion: aci.SchemeGroupVersion.String(),
+			},
+			ObjectMeta: meta,
+		}))
 	} else if err != nil {
 		return nil, err
 	}
@@ -47,7 +54,7 @@ func PatchMySQL(c tcs.KubedbV1alpha1Interface, cur *aci.MySQL, transform func(*a
 	if len(patch) == 0 || string(patch) == "{}" {
 		return cur, nil
 	}
-	glog.V(5).Infof("Patching MySQL %s@%s with %s.", cur.Name, cur.Namespace, string(patch))
+	glog.V(3).Infof("Patching MySQL %s/%s with %s.", cur.Namespace, cur.Name, string(patch))
 	result, err := c.MySQLs(cur.Namespace).Patch(cur.Name, types.MergePatchType, patch)
 	return result, err
 }
@@ -63,12 +70,12 @@ func TryPatchMySQL(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, transf
 			result, e2 = PatchMySQL(c, cur, transform)
 			return e2 == nil, nil
 		}
-		glog.Errorf("Attempt %d failed to patch MySQL %s@%s due to %v.", attempt, cur.Name, cur.Namespace, e2)
+		glog.Errorf("Attempt %d failed to patch MySQL %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)
 		return false, nil
 	})
 
 	if err != nil {
-		err = fmt.Errorf("failed to patch MySQL %s@%s after %d attempts due to %v", meta.Name, meta.Namespace, attempt, err)
+		err = fmt.Errorf("failed to patch MySQL %s/%s after %d attempts due to %v", meta.Namespace, meta.Name, attempt, err)
 	}
 	return
 }
@@ -84,12 +91,12 @@ func TryUpdateMySQL(c tcs.KubedbV1alpha1Interface, meta metav1.ObjectMeta, trans
 			result, e2 = c.MySQLs(cur.Namespace).Update(transform(cur))
 			return e2 == nil, nil
 		}
-		glog.Errorf("Attempt %d failed to update MySQL %s@%s due to %v.", attempt, cur.Name, cur.Namespace, e2)
+		glog.Errorf("Attempt %d failed to update MySQL %s/%s due to %v.", attempt, cur.Namespace, cur.Name, e2)
 		return false, nil
 	})
 
 	if err != nil {
-		err = fmt.Errorf("failed to update MySQL %s@%s after %d attempts due to %v", meta.Name, meta.Namespace, attempt, err)
+		err = fmt.Errorf("failed to update MySQL %s/%s after %d attempts due to %v", meta.Namespace, meta.Name, attempt, err)
 	}
 	return
 }
