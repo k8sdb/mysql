@@ -9,6 +9,7 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/resource"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
+	"github.com/appscode/go/hold"
 )
 
 const (
@@ -73,7 +74,7 @@ var _ = Describe("MySQL", func() {
 
 		// Create MySQL
 		createAndWaitForRunning()
-
+		hold.Hold()
 		// Delete test resource
 		deleteTestResouce()
 	}
@@ -83,7 +84,7 @@ var _ = Describe("MySQL", func() {
 		Context("General", func() {
 
 			Context("-", func() {
-				It("should run successfully", shouldSuccessfullyRunning)
+				FIt("should run successfully", shouldSuccessfullyRunning)
 			})
 
 			Context("With PVC", func() {
