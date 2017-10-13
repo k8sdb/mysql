@@ -425,7 +425,9 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 					Containers: []apiv1.Container{
 						{
 							Name:  SnapshotProcess_Restore,
-							Image: fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version),
+							ImagePullPolicy: "Always", //#Later #TESTING ,  todo: remove whole line
+							//Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
+							Image: "maruftuhin/mysql:8.0-util",
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),
@@ -435,6 +437,10 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 							},
 							Resources: snapshot.Spec.Resources,
 							VolumeMounts: []apiv1.VolumeMount{
+								{
+									Name:      "secret",
+									MountPath: "/srv/" + tapi.ResourceNameMySQL + "/secrets",
+								},
 								{
 									Name:      persistentVolume.Name,
 									MountPath: "/var/" + snapshotType_DumpRestore + "/",
@@ -448,6 +454,14 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 						},
 					},
 					Volumes: []apiv1.Volume{
+						{
+							Name: "secret",
+							VolumeSource: apiv1.VolumeSource{
+								Secret: &apiv1.SecretVolumeSource{
+									SecretName: mysql.Spec.DatabaseSecret.SecretName,
+								},
+							},
+						},
 						{
 							Name:         persistentVolume.Name,
 							VolumeSource: persistentVolume.VolumeSource,

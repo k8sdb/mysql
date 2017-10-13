@@ -5,7 +5,6 @@ import (
 
 	"github.com/appscode/go/log"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	amv "github.com/k8sdb/apimachinery/pkg/validator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -82,7 +81,9 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 					Containers: []apiv1.Container{
 						{
 							Name:  SnapshotProcess_Backup,
-							Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
+							ImagePullPolicy: "Always", //#Later #TESTING ,
+							//Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
+							Image: "maruftuhin/mysql:8.0-util",
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Backup),
 								fmt.Sprintf(`--host=%s`, databaseName),
@@ -92,7 +93,10 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 							},
 							Resources: snapshot.Spec.Resources,
 							VolumeMounts: []apiv1.VolumeMount{
-								//TODO: Add Secret volume if necessary
+								{
+									Name:      "secret",
+									MountPath: "/srv/" + tapi.ResourceNameMySQL + "/secrets",
+								},
 								{
 									Name:      persistentVolume.Name,
 									MountPath: "/var/" + snapshotType_DumpBackup + "/",
@@ -106,8 +110,14 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 						},
 					},
 					Volumes: []apiv1.Volume{
-						//TODO: Add secret volume if necessary
-						// Check postgres repository for example
+						{
+							Name: "secret",
+							VolumeSource: apiv1.VolumeSource{
+								Secret: &apiv1.SecretVolumeSource{
+									SecretName: mysql.Spec.DatabaseSecret.SecretName,
+								},
+							},
+						},
 						{
 							Name:         persistentVolume.Name,
 							VolumeSource: persistentVolume.VolumeSource,

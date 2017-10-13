@@ -16,7 +16,7 @@ func ValidateMySQL(client clientset.Interface, mysql *tapi.MySQL) error {
 	}
 
 	// Set Database Image version
-	version := fmt.Sprintf("%v", mysql.Spec.Version) // #Later , add -db with %v, ex: "%v-db"
+	version := fmt.Sprintf("%v", mysql.Spec.Version)
 	if err := docker.CheckDockerImageVersion(docker.ImageMySQL, version); err != nil {
 		return fmt.Errorf(`Image %v:%v not found`, docker.ImageMySQL, version)
 	}

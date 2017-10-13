@@ -7,7 +7,6 @@ FROM appscode/python:2.7
 
 ## mysql client major version
 ENV MYSQL_MAJOR 8.0
-ENV MYSQL_CLIENT 5.5
 ## osm version
 ENV OSM_VERSION 0.5.0
 
@@ -19,7 +18,7 @@ RUN echo "deb http://repo.mysql.com/apt/debian/ jessie mysql-${MYSQL_MAJOR}" > /
 RUN set -x \
   && apt-get update \
   && apt-get install -y curl ca-certificates netcat \
-  && apt-get install -y --no-install-recommends mysql-client-$MYSQL_CLIENT --force-yes \
+  && apt-get install -y --no-install-recommends mysql-client --force-yes \
   && pip install --upgrade pip \
   && pip install pyyaml \
   && rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man /tmp/*

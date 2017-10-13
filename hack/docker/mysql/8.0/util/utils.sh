@@ -1,7 +1,7 @@
 #!/bin/bash
 
-exec 1> >(logger -s -p daemon.info -t pg)
-exec 2> >(logger -s -p daemon.error -t pg)
+exec 1> >(logger -s -p daemon.info -t ms)
+exec 2> >(logger -s -p daemon.error -t ms)
 
 RETVAL=0
 
@@ -15,12 +15,11 @@ backup() {
     cd "$path"
     rm -rf "$path"/*
 
-    # Wait for postgres to start
+    # Wait for mysql to start
     # ref: http://unix.stackexchange.com/a/5279
     while ! nc -q 1 $1 3306 </dev/null; do echo "Waiting... Master pod is not ready yet"; sleep 5; done
 
-    mysqldump -u "$2" -p"$3" -h "$1" > dumpfile.sql
-
+    mysqldump -u $2 -p"$3" -h $1 --all-databases > dumpfile.sql
     retval=$?
     if [ "$retval" -ne 0 ]; then
         echo "Fail to take backup"
@@ -38,7 +37,7 @@ restore() {
     mkdir -p "$path"
     cd "$path"
 
-    # Wait for postgres to start
+    # Wait for mysql to start
     # ref: http://unix.stackexchange.com/a/5279
     while ! nc -q 1 $1 3306 </dev/null; do echo "Waiting... Master pod is not ready yet"; sleep 5; done
 
