@@ -1,6 +1,9 @@
 package e2e_test
 
 import (
+	"os"
+
+	"github.com/TamalSaha/go-oneliners"
 	"github.com/appscode/go/types"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/mysql/test/e2e/framework"
@@ -9,8 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/resource"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
-	"github.com/appscode/go/hold"
-	"os"
 )
 
 const (
@@ -75,7 +76,7 @@ var _ = Describe("MySQL", func() {
 
 		// Create MySQL
 		createAndWaitForRunning()
-		hold.Hold()
+
 		// Delete test resource
 		deleteTestResouce()
 	}
@@ -192,7 +193,6 @@ var _ = Describe("MySQL", func() {
 					}
 				})
 
-
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 
 				// Additional
@@ -212,24 +212,26 @@ var _ = Describe("MySQL", func() {
 							StorageClassName: types.StringP(f.StorageClass),
 						}
 					})
-					FIt("should run successfully", shouldTakeSnapshot)
+					It("should run successfully", shouldTakeSnapshot)
 				})
 			})
 
-			Context("In S3", func() {
-				BeforeEach(func() {
-					secret = f.SecretForS3Backend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.S3 = &tapi.S3Spec{
-						Bucket: os.Getenv(S3_BUCKET_NAME),
-					}
-				})
-
-				It("should take Snapshot successfully", shouldTakeSnapshot)
-			})
+			//Context("In S3", func() {
+			//	BeforeEach(func() {
+			//		secret = f.SecretForS3Backend()
+			//		snapshot.Spec.StorageSecretName = secret.Name
+			//		snapshot.Spec.S3 = &tapi.S3Spec{
+			//			Bucket: os.Getenv(S3_BUCKET_NAME),
+			//		}
+			//	})
+			//
+			//	It("should take Snapshot successfully", shouldTakeSnapshot)
+			//})
 
 			Context("In GCS", func() {
 				BeforeEach(func() {
+					oneliners.FILE("GET ENV >>", os.Getenv(GCS_BUCKET_NAME))
+					oneliners.FILE("GET ENV >>", string(os.Getenv(GCS_BUCKET_NAME)))
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
 					snapshot.Spec.GCS = &tapi.GCSSpec{
@@ -240,29 +242,29 @@ var _ = Describe("MySQL", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			Context("In Azure", func() {
-				BeforeEach(func() {
-					secret = f.SecretForAzureBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Azure = &tapi.AzureSpec{
-						Container: os.Getenv(AZURE_CONTAINER_NAME),
-					}
-				})
+			//Context("In Azure", func() {
+			//	BeforeEach(func() {
+			//		secret = f.SecretForAzureBackend()
+			//		snapshot.Spec.StorageSecretName = secret.Name
+			//		snapshot.Spec.Azure = &tapi.AzureSpec{
+			//			Container: os.Getenv(AZURE_CONTAINER_NAME),
+			//		}
+			//	})
+			//
+			//	It("should take Snapshot successfully", shouldTakeSnapshot)
+			//})
 
-				It("should take Snapshot successfully", shouldTakeSnapshot)
-			})
-
-			Context("In Swift", func() {
-				BeforeEach(func() {
-					secret = f.SecretForSwiftBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Swift = &tapi.SwiftSpec{
-						Container: os.Getenv(SWIFT_CONTAINER_NAME),
-					}
-				})
-
-				It("should take Snapshot successfully", shouldTakeSnapshot)
-			})
+			//Context("In Swift", func() {
+			//	BeforeEach(func() {
+			//		secret = f.SecretForSwiftBackend()
+			//		snapshot.Spec.StorageSecretName = secret.Name
+			//		snapshot.Spec.Swift = &tapi.SwiftSpec{
+			//			Container: os.Getenv(SWIFT_CONTAINER_NAME),
+			//		}
+			//	})
+			//
+			//	It("should take Snapshot successfully", shouldTakeSnapshot)
+			//})
 		})
 
 		Context("Initialize", func() {
@@ -284,59 +286,59 @@ var _ = Describe("MySQL", func() {
 			})
 
 			//todo: with snapshot
-			//Context("With Snapshot", func() {
-			//	AfterEach(func() {
-			//		f.DeleteSecret(secret.ObjectMeta)
-			//	})
-			//
-			//	BeforeEach(func() {
-			//		secret = f.SecretForS3Backend()
-			//		snapshot.Spec.StorageSecretName = secret.Name
-			//		snapshot.Spec.S3 = &tapi.S3Spec{
-			//			Bucket: os.Getenv(S3_BUCKET_NAME),
-			//		}
-			//		snapshot.Spec.DatabaseName = mysql.Name
-			//	})
-			//
-			//	It("should run successfully", func() {
-			//		// Create and wait for running MySQL
-			//		createAndWaitForRunning()
-			//
-			//		By("Create Secret")
-			//		f.CreateSecret(secret)
-			//
-			//		By("Create Snapshot")
-			//		f.CreateSnapshot(snapshot)
-			//
-			//		By("Check for Successed snapshot")
-			//		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(tapi.SnapshotPhaseSuccessed))
-			//
-			//		By("Check for snapshot data")
-			//		f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
-			//
-			//		oldMySQL, err := f.GetMySQL(mysql.ObjectMeta)
-			//		Expect(err).NotTo(HaveOccurred())
-			//
-			//		By("Create mysql from snapshot")
-			//		mysql = f.MySQL()
-			//		mysql.Spec.DatabaseSecret = oldMySQL.Spec.DatabaseSecret
-			//		mysql.Spec.Init = &tapi.InitSpec{
-			//			SnapshotSource: &tapi.SnapshotSourceSpec{
-			//				Namespace: snapshot.Namespace,
-			//				Name:      snapshot.Name,
-			//			},
-			//		}
-			//
-			//		// Create and wait for running MySQL
-			//		createAndWaitForRunning()
-			//
-			//		// Delete test resource
-			//		deleteTestResouce()
-			//		mysql = oldMySQL
-			//		// Delete test resource
-			//		deleteTestResouce()
-			//	})
-			//})
+			Context("With Snapshot", func() {
+				AfterEach(func() {
+					f.DeleteSecret(secret.ObjectMeta)
+				})
+
+				BeforeEach(func() {
+					secret = f.SecretForGCSBackend()
+					snapshot.Spec.StorageSecretName = secret.Name
+					snapshot.Spec.GCS = &tapi.GCSSpec{
+						Bucket: os.Getenv(GCS_BUCKET_NAME),
+					}
+					snapshot.Spec.DatabaseName = mysql.Name
+				})
+
+				FIt("should run successfully", func() {
+					// Create and wait for running MySQL
+					createAndWaitForRunning()
+
+					By("Create Secret")
+					f.CreateSecret(secret)
+
+					By("Create Snapshot")
+					f.CreateSnapshot(snapshot)
+
+					By("Check for Successed snapshot")
+					f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(tapi.SnapshotPhaseSuccessed))
+
+					By("Check for snapshot data")
+					f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+
+					oldMySQL, err := f.GetMySQL(mysql.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Create mysql from snapshot")
+					mysql = f.MySQL()
+					//mysql.Spec.DatabaseSecret = oldMySQL.Spec.DatabaseSecret
+					mysql.Spec.Init = &tapi.InitSpec{
+						SnapshotSource: &tapi.SnapshotSourceSpec{
+							Namespace: snapshot.Namespace,
+							Name:      snapshot.Name,
+						},
+					}
+
+					// Create and wait for running MySQL
+					createAndWaitForRunning()
+
+					// Delete test resource
+					deleteTestResouce()
+					mysql = oldMySQL
+					// Delete test resource
+					deleteTestResouce()
+				})
+			})
 
 		})
 

@@ -5,24 +5,26 @@ import (
 	"path/filepath"
 	"testing"
 
+	apiv1 "k8s.io/client-go/pkg/api/v1"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	//apiv1 "k8s.io/client-go/pkg/api/v1"
 	"encoding/json"
 	"fmt"
 
 	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
+	"github.com/k8sdb/mysql/pkg/controller"
 	"github.com/mitchellh/go-homedir"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	clientset "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	"github.com/k8sdb/mysql/pkg/controller"
+	"github.com/appscode/go/hold"
 )
 
 func TestController_Run(t *testing.T) {
 	ctrl := GetNewController()
 	ctrl.Run()
+	hold.Hold()
 }
 
 func TestGetMS(t *testing.T) {
@@ -44,6 +46,32 @@ func TestGetMS(t *testing.T) {
 	my, _ := c.ExtClient.MySQLs("default").Get("t1", metav1.GetOptions{})
 
 	data, _ := json.MarshalIndent(my.Spec, "", "  ")
+	fmt.Println(string(data))
+}
+
+func TestGetSecretName(t *testing.T)  {
+	c := GetNewController()
+	_, _ = c.ExtClient.MySQLs("default").Create(&tapi.MySQL{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "t2",
+		},
+		Spec: tapi.MySQLSpec{
+			Init: &tapi.InitSpec{
+				ScriptSource: &tapi.ScriptSourceSpec{
+					ScriptPath: "/var/var",
+				},
+			},
+			DatabaseSecret: &apiv1.SecretVolumeSource{
+				SecretName: "t1-admin-auth",
+			},
+
+		},
+	},
+	)
+
+	my, _ := c.ExtClient.MySQLs("default").Get("t2", metav1.GetOptions{})
+
+	data, _ := json.MarshalIndent(my, "", "  ")
 	fmt.Println(string(data))
 }
 

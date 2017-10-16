@@ -80,7 +80,7 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 				Spec: apiv1.PodSpec{
 					Containers: []apiv1.Container{
 						{
-							Name:  SnapshotProcess_Backup,
+							Name:            SnapshotProcess_Backup,
 							ImagePullPolicy: "Always", //#Later #TESTING ,
 							//Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
 							Image: "maruftuhin/mysql:8.0-util",

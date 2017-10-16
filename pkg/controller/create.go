@@ -19,6 +19,7 @@ import (
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	apps "k8s.io/client-go/pkg/apis/apps/v1beta1"
 	batch "k8s.io/client-go/pkg/apis/batch/v1"
+	ll "log"
 )
 
 const (
@@ -390,6 +391,12 @@ const (
 )
 
 func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot) (*batch.Job, error) {
+	data,_:=json.MarshalIndent(mysql,"","   ")
+	data2,_:=json.MarshalIndent(snapshot,"","   ")
+
+	ll.Println("================================\nMysql",string(data))
+	ll.Println("================================\nsnapshot",string(data2))
+	ll.Println("secret>>",mysql.Spec.DatabaseSecret.SecretName)
 	databaseName := mysql.Name
 	jobName := snapshot.OffshootName()
 	jobLabel := map[string]string{
@@ -424,7 +431,7 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 				Spec: apiv1.PodSpec{
 					Containers: []apiv1.Container{
 						{
-							Name:  SnapshotProcess_Restore,
+							Name:            SnapshotProcess_Restore,
 							ImagePullPolicy: "Always", //#Later #TESTING ,  todo: remove whole line
 							//Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
 							Image: "maruftuhin/mysql:8.0-util",
