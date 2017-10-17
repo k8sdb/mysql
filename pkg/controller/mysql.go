@@ -243,6 +243,12 @@ func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
 		return err
 	}
 
+	_mysql, err := c.ExtClient.MySQLs(mysql.Namespace).Get(mysql.Name, metav1.GetOptions{});
+	if err != nil {
+		return err
+	}
+	mysql=_mysql
+
 	// Check StatefulSet Pod status
 	if err := c.CheckStatefulSetPodStatus(statefulSet, durationCheckStatefulSet); err != nil {
 		c.recorder.Eventf(

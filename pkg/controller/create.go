@@ -19,7 +19,7 @@ import (
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	apps "k8s.io/client-go/pkg/apis/apps/v1beta1"
 	batch "k8s.io/client-go/pkg/apis/batch/v1"
-	ll "log"
+	"github.com/appscode/errors"
 )
 
 const (
@@ -99,6 +99,7 @@ func (c *Controller) findStatefulSet(mysql *tapi.MySQL) (bool, error) {
 }
 
 func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, error) {
+
 	// SatatefulSet for MySQL database
 	statefulSet := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -168,10 +169,21 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 		statefulSet.Spec.Template.Spec.Containers = append(statefulSet.Spec.Template.Spec.Containers, exporter)
 	}
 
+	var secretVolumeSource *apiv1.SecretVolumeSource
 	if mysql.Spec.DatabaseSecret == nil {
-		secretVolumeSource, err := c.createDatabaseSecret(mysql)
-		if err != nil {
-			return nil, err
+		if mysql.Spec.Init != nil &&
+			mysql.Spec.Init.SnapshotSource != nil {
+			secretVolume, err := c.findRestoreSecret(mysql)
+			if err != nil {
+				return nil, err
+			}
+			secretVolumeSource = secretVolume
+		} else {
+			secretVolume, err := c.createDatabaseSecret(mysql)
+			if err != nil {
+				return nil, err
+			}
+			secretVolumeSource = secretVolume
 		}
 
 		_mysql, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
@@ -183,6 +195,7 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 			return nil, err
 		}
 		mysql = _mysql
+
 	}
 
 	//Set root user password from Secret
@@ -242,6 +255,27 @@ func (c *Controller) findSecret(secretName, namespace string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (c *Controller) findRestoreSecret(mysql *tapi.MySQL) (*apiv1.SecretVolumeSource, error) {
+	snapshot, err := c.ExtClient.Snapshots(mysql.Namespace).Get(mysql.Spec.Init.SnapshotSource.Name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	srcMySQL, err := c.ExtClient.MySQLs(mysql.Namespace).Get(snapshot.Spec.DatabaseName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	exists, err := c.findSecret(srcMySQL.Spec.DatabaseSecret.SecretName, mysql.Namespace)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, errors.New(srcMySQL.Spec.DatabaseSecret.SecretName, "secret not found")
+	}
+	return &apiv1.SecretVolumeSource{
+		SecretName: srcMySQL.Spec.DatabaseSecret.SecretName,
+	}, nil
 }
 
 func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*apiv1.SecretVolumeSource, error) {
@@ -391,12 +425,7 @@ const (
 )
 
 func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot) (*batch.Job, error) {
-	data,_:=json.MarshalIndent(mysql,"","   ")
-	data2,_:=json.MarshalIndent(snapshot,"","   ")
 
-	ll.Println("================================\nMysql",string(data))
-	ll.Println("================================\nsnapshot",string(data2))
-	ll.Println("secret>>",mysql.Spec.DatabaseSecret.SecretName)
 	databaseName := mysql.Name
 	jobName := snapshot.OffshootName()
 	jobLabel := map[string]string{

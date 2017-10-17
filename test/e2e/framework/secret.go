@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/TamalSaha/go-oneliners"
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
@@ -44,7 +43,6 @@ func (fi *Invocation) SecretForS3Backend() *apiv1.Secret {
 }
 
 func (fi *Invocation) SecretForGCSBackend() *apiv1.Secret {
-	oneliners.FILE(">>>>>", string(os.Getenv(tapi.GOOGLE_PROJECT_ID)))
 	if os.Getenv(tapi.GOOGLE_PROJECT_ID) == "" ||
 		(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS") == "" && os.Getenv(tapi.GOOGLE_SERVICE_ACCOUNT_JSON_KEY) == "") {
 		return &apiv1.Secret{}

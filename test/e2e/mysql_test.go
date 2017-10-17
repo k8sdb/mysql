@@ -3,7 +3,6 @@ package e2e_test
 import (
 	"os"
 
-	"github.com/TamalSaha/go-oneliners"
 	"github.com/appscode/go/types"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/mysql/test/e2e/framework"
@@ -230,8 +229,6 @@ var _ = Describe("MySQL", func() {
 
 			Context("In GCS", func() {
 				BeforeEach(func() {
-					oneliners.FILE("GET ENV >>", os.Getenv(GCS_BUCKET_NAME))
-					oneliners.FILE("GET ENV >>", string(os.Getenv(GCS_BUCKET_NAME)))
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
 					snapshot.Spec.GCS = &tapi.GCSSpec{
@@ -291,16 +288,7 @@ var _ = Describe("MySQL", func() {
 					f.DeleteSecret(secret.ObjectMeta)
 				})
 
-				BeforeEach(func() {
-					secret = f.SecretForGCSBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &tapi.GCSSpec{
-						Bucket: os.Getenv(GCS_BUCKET_NAME),
-					}
-					snapshot.Spec.DatabaseName = mysql.Name
-				})
-
-				FIt("should run successfully", func() {
+				var shouldRestoreSnapshot = func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
@@ -321,7 +309,6 @@ var _ = Describe("MySQL", func() {
 
 					By("Create mysql from snapshot")
 					mysql = f.MySQL()
-					//mysql.Spec.DatabaseSecret = oldMySQL.Spec.DatabaseSecret
 					mysql.Spec.Init = &tapi.InitSpec{
 						SnapshotSource: &tapi.SnapshotSourceSpec{
 							Namespace: snapshot.Namespace,
@@ -332,11 +319,45 @@ var _ = Describe("MySQL", func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
+					//dataOldMysql, _ :=json.MarshalIndent(oldMySQL,"","  ")
+					//dataMysql, _ :=json.MarshalIndent(mysql,"","  ")
+					//dataSnapshot, _ :=json.MarshalIndent(snapshot,"","  ")
+					//
+					//oneliners.FILE("======================[ Snapshot ]========================\n",string(dataSnapshot))
+					//oneliners.FILE("======================[ Old Mysql ]=======================\n",string(dataOldMysql))
+					//oneliners.FILE("======================[ New Mysql ]=======================\n",string(dataMysql))
+
 					// Delete test resource
 					deleteTestResouce()
 					mysql = oldMySQL
 					// Delete test resource
 					deleteTestResouce()
+				}
+
+				Context("with S3",func() {
+					BeforeEach(func() {
+						secret = f.SecretForS3Backend()
+						snapshot.Spec.StorageSecretName = secret.Name
+						snapshot.Spec.S3 = &tapi.S3Spec{
+							Bucket: os.Getenv(S3_BUCKET_NAME),
+						}
+						snapshot.Spec.DatabaseName = mysql.Name
+					})
+
+					It("should run successfully",shouldRestoreSnapshot)
+				})
+
+				Context("with GCS",func() {
+					BeforeEach(func() {
+						secret = f.SecretForGCSBackend()
+						snapshot.Spec.StorageSecretName = secret.Name
+						snapshot.Spec.GCS = &tapi.GCSSpec{
+							Bucket: os.Getenv(GCS_BUCKET_NAME),
+						}
+						snapshot.Spec.DatabaseName = mysql.Name
+					})
+
+					FIt("should run successfully",shouldRestoreSnapshot)
 				})
 			})
 
