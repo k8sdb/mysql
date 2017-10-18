@@ -316,7 +316,6 @@ func (c *Controller) ensureBackupScheduler(mysql *tapi.MySQL) {
 			)
 			log.Errorln(err)
 		}
-
 	} else {
 		c.cronController.StopBackupScheduling(mysql.ObjectMeta)
 	}

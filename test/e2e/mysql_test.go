@@ -11,8 +11,6 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/resource"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
-	"gopkg.in/square/go-jose.v1/json"
-	"github.com/TamalSaha/go-oneliners"
 )
 
 const (
@@ -40,8 +38,6 @@ var _ = Describe("MySQL", func() {
 	})
 
 	var createAndWaitForRunning = func() {
-		data, _ := json.MarshalIndent(mysql,"","    ")
-		oneliners.FILE("===============================MYSQL=======================\n",string(data))
 		By("Create MySQL: " + mysql.Name)
 		err = f.CreateMySQL(mysql)
 		Expect(err).NotTo(HaveOccurred())
@@ -330,18 +326,18 @@ var _ = Describe("MySQL", func() {
 					deleteTestResouce()
 				}
 
-				Context("with S3", func() {
-					BeforeEach(func() {
-						secret = f.SecretForS3Backend()
-						snapshot.Spec.StorageSecretName = secret.Name
-						snapshot.Spec.S3 = &tapi.S3Spec{
-							Bucket: os.Getenv(S3_BUCKET_NAME),
-						}
-						snapshot.Spec.DatabaseName = mysql.Name
-					})
-
-					It("should run successfully", shouldRestoreSnapshot)
-				})
+				//Context("with S3", func() {
+				//	BeforeEach(func() {
+				//		secret = f.SecretForS3Backend()
+				//		snapshot.Spec.StorageSecretName = secret.Name
+				//		snapshot.Spec.S3 = &tapi.S3Spec{
+				//			Bucket: os.Getenv(S3_BUCKET_NAME),
+				//		}
+				//		snapshot.Spec.DatabaseName = mysql.Name
+				//	})
+				//
+				//	It("should run successfully", shouldRestoreSnapshot)
+				//})
 
 				Context("with GCS", func() {
 					BeforeEach(func() {
@@ -528,7 +524,7 @@ var _ = Describe("MySQL", func() {
 				BeforeEach(func() {
 					secret = f.SecretForLocalBackend()
 				})
-				FIt("should run schedular successfully", func() {
+				It("should run schedular successfully", func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 

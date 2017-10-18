@@ -169,13 +169,11 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 		statefulSet.Spec.Template.Spec.Containers = append(statefulSet.Spec.Template.Spec.Containers, exporter)
 	}
 
-	var secretVolumeSource *apiv1.SecretVolumeSource
 	if mysql.Spec.DatabaseSecret == nil {
-		secretVolume, err := c.createDatabaseSecret(mysql)
+		secretVolumeSource, err := c.createDatabaseSecret(mysql)
 		if err != nil {
 			return nil, err
 		}
-		secretVolumeSource = secretVolume
 
 		_mysql, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
 			in.Spec.DatabaseSecret = secretVolumeSource
@@ -275,9 +273,7 @@ func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*apiv1.SecretVolum
 	if err != nil {
 		return nil, err
 	}
-
 	if !found {
-
 		MYSQL_PASSWORD := fmt.Sprintf("%s", rand.GeneratePassword())
 		data := map[string][]byte{
 			".admin": []byte(MYSQL_PASSWORD),
@@ -297,7 +293,6 @@ func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*apiv1.SecretVolum
 			return nil, err
 		}
 	}
-
 	return &apiv1.SecretVolumeSource{
 		SecretName: authSecretName,
 	}, nil
@@ -415,7 +410,6 @@ const (
 )
 
 func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot) (*batch.Job, error) {
-
 	databaseName := mysql.Name
 	jobName := snapshot.OffshootName()
 	jobLabel := map[string]string{
