@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/appscode/errors"
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
@@ -19,7 +20,6 @@ import (
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	apps "k8s.io/client-go/pkg/apis/apps/v1beta1"
 	batch "k8s.io/client-go/pkg/apis/batch/v1"
-	"github.com/appscode/errors"
 )
 
 const (
@@ -171,20 +171,11 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 
 	var secretVolumeSource *apiv1.SecretVolumeSource
 	if mysql.Spec.DatabaseSecret == nil {
-		if mysql.Spec.Init != nil &&
-			mysql.Spec.Init.SnapshotSource != nil {
-			secretVolume, err := c.findRestoreSecret(mysql)
-			if err != nil {
-				return nil, err
-			}
-			secretVolumeSource = secretVolume
-		} else {
-			secretVolume, err := c.createDatabaseSecret(mysql)
-			if err != nil {
-				return nil, err
-			}
-			secretVolumeSource = secretVolume
+		secretVolume, err := c.createDatabaseSecret(mysql)
+		if err != nil {
+			return nil, err
 		}
+		secretVolumeSource = secretVolume
 
 		_mysql, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
 			in.Spec.DatabaseSecret = secretVolumeSource
@@ -195,7 +186,6 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 			return nil, err
 		}
 		mysql = _mysql
-
 	}
 
 	//Set root user password from Secret

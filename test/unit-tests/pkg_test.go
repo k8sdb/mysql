@@ -1,24 +1,23 @@
 package unit_tests
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"path/filepath"
 	"testing"
 
-	apiv1 "k8s.io/client-go/pkg/api/v1"
+	"github.com/appscode/go/hold"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"encoding/json"
-	"fmt"
-
 	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/mysql/pkg/controller"
 	"github.com/mitchellh/go-homedir"
 	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clientset "k8s.io/client-go/kubernetes"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/tools/clientcmd"
-	"github.com/appscode/go/hold"
 )
 
 func TestController_Run(t *testing.T) {
@@ -49,7 +48,7 @@ func TestGetMS(t *testing.T) {
 	fmt.Println(string(data))
 }
 
-func TestGetSecretName(t *testing.T)  {
+func TestGetSecretName(t *testing.T) {
 	c := GetNewController()
 	_, _ = c.ExtClient.MySQLs("default").Create(&tapi.MySQL{
 		ObjectMeta: metav1.ObjectMeta{
@@ -64,7 +63,6 @@ func TestGetSecretName(t *testing.T)  {
 			DatabaseSecret: &apiv1.SecretVolumeSource{
 				SecretName: "t1-admin-auth",
 			},
-
 		},
 	},
 	)

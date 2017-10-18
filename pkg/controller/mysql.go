@@ -41,6 +41,7 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 		eventer.EventReasonSuccessfulValidate,
 		"Successfully validate MySQL",
 	)
+
 	// Check DormantDatabase
 	matched, err := c.matchDormantDatabase(mysql)
 	if err != nil {
@@ -108,6 +109,7 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 
 	// Ensure Schedule backup
 	c.ensureBackupScheduler(mysql)
+
 	if mysql.Spec.Monitor != nil {
 		if err := c.addMonitor(mysql); err != nil {
 			c.recorder.Eventf(
@@ -243,11 +245,11 @@ func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
 		return err
 	}
 
-	_mysql, err := c.ExtClient.MySQLs(mysql.Namespace).Get(mysql.Name, metav1.GetOptions{});
+	_mysql, err := c.ExtClient.MySQLs(mysql.Namespace).Get(mysql.Name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	mysql=_mysql
+	mysql = _mysql
 
 	// Check StatefulSet Pod status
 	if err := c.CheckStatefulSetPodStatus(statefulSet, durationCheckStatefulSet); err != nil {
@@ -314,6 +316,7 @@ func (c *Controller) ensureBackupScheduler(mysql *tapi.MySQL) {
 			)
 			log.Errorln(err)
 		}
+
 	} else {
 		c.cronController.StopBackupScheduling(mysql.ObjectMeta)
 	}

@@ -19,6 +19,7 @@ import (
 	clientset "k8s.io/client-go/kubernetes"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/tools/record"
+	"github.com/TamalSaha/go-oneliners"
 )
 
 type CronControllerInterface interface {
@@ -76,6 +77,7 @@ func (c *cronController) ScheduleBackup(
 		c.cron.Remove(id.(cron.EntryID))
 	}
 
+
 	invoker := &snapshotInvoker{
 		extClient:     c.extClient,
 		runtimeObject: runtimeObj,
@@ -96,6 +98,7 @@ func (c *cronController) ScheduleBackup(
 
 	// Add job entryID
 	c.cronEntryIDs.Set(cronEntryName, entryID)
+
 	return nil
 }
 
@@ -163,6 +166,8 @@ func (s *snapshotInvoker) validateScheduler(checkDuration time.Duration) error {
 }
 
 func (s *snapshotInvoker) createScheduledSnapshot() {
+	oneliners.FILE(">>>>>>>>",time.Now())
+
 	kind := s.runtimeObject.GetObjectKind().GroupVersionKind().Kind
 	name := s.om.Name
 

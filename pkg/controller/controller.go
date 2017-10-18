@@ -86,8 +86,6 @@ func (c *Controller) Run() {
 
 	// Start Cron
 	c.cronController.StartCron()
-	// Stop Cron
-	defer c.cronController.StopCron()
 
 	// Watch x  TPR objects
 	go c.watchMySQL()
@@ -95,8 +93,6 @@ func (c *Controller) Run() {
 	go c.watchDatabaseSnapshot()
 	// Watch DeletedDatabase with labelSelector only for MySQL
 	go c.watchDeletedDatabase()
-	// hold
-	//hold.Hold()
 }
 
 // Blocks caller. Intended to be called as a Go routine.
