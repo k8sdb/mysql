@@ -1,6 +1,7 @@
 package e2e_test
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/appscode/go/types"
@@ -11,7 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/resource"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
-	"fmt"
 )
 
 const (
@@ -465,7 +465,7 @@ var _ = Describe("MySQL", func() {
 						createAndWaitForRunning()
 
 						for i := 0; i < 3; i++ {
-							By(">>>>>>>>>>>>>> "+fmt.Sprintf("%v", i) + " times running <<<<<<<<<<<")
+							By(fmt.Sprintf("%v-th", i+1) + " time running.")
 							By("Delete mysql")
 							f.DeleteMySQL(mysql.ObjectMeta)
 
