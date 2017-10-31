@@ -374,7 +374,7 @@ func (c *Controller) createDormantDatabase(mysql *tapi.MySQL) (*tapi.DormantData
 	}
 
 	initSpec, _ := json.Marshal(mysql.Spec.Init)
-	if initSpec != nil {
+	if mysql.Spec.Init != nil {
 		dormantDb.Annotations = map[string]string{
 			tapi.MySQLInitSpec: string(initSpec),
 		}

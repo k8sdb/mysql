@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/resource"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
+	"fmt"
 )
 
 const (
@@ -46,7 +47,7 @@ var _ = Describe("MySQL", func() {
 		f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 	}
 
-	var deleteTestResouce = func() {
+	var deleteTestResource = func() {
 		By("Delete mysql")
 		err = f.DeleteMySQL(mysql.ObjectMeta)
 		Expect(err).NotTo(HaveOccurred())
@@ -77,7 +78,7 @@ var _ = Describe("MySQL", func() {
 		createAndWaitForRunning()
 
 		// Delete test resource
-		deleteTestResouce()
+		deleteTestResource()
 	}
 
 	Describe("Test", func() {
@@ -134,7 +135,7 @@ var _ = Describe("MySQL", func() {
 				})
 
 				// Delete test resource
-				deleteTestResouce()
+				deleteTestResource()
 			})
 		})
 
@@ -169,7 +170,7 @@ var _ = Describe("MySQL", func() {
 				}
 
 				// Delete test resource
-				deleteTestResouce()
+				deleteTestResource()
 
 				if !skipDataCheck {
 					By("Check for snapshot data")
@@ -319,10 +320,10 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					// Delete test resource
-					deleteTestResouce()
+					deleteTestResource()
 					mysql = oldMySQL
 					// Delete test resource
-					deleteTestResouce()
+					deleteTestResource()
 				}
 
 				Context("with S3", func() {
@@ -391,7 +392,7 @@ var _ = Describe("MySQL", func() {
 				}
 
 				// Delete test resource
-				deleteTestResouce()
+				deleteTestResource()
 			}
 
 			Context("Without Init", func() {
@@ -442,7 +443,53 @@ var _ = Describe("MySQL", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					// Delete test resource
-					deleteTestResouce()
+					deleteTestResource()
+				})
+				Context("with init", func() {
+					BeforeEach(func() {
+						usedInitSpec = true
+						mysql.Spec.Init = &tapi.InitSpec{
+							ScriptSource: &tapi.ScriptSourceSpec{
+								VolumeSource: apiv1.VolumeSource{
+									GitRepo: &apiv1.GitRepoVolumeSource{
+										Repository: "https://github.com/the-redback/mysql-init-script.git",
+										Directory:  ".",
+									},
+								},
+							},
+						}
+					})
+
+					FIt("should resume DormantDatabase successfully", func() {
+						// Create and wait for running MySQL
+						createAndWaitForRunning()
+
+						for i := 0; i < 3; i++ {
+							By(">>>>>>>>>>>>>> "+fmt.Sprintf("%v", i) + " times running <<<<<<<<<<<")
+							By("Delete mysql")
+							f.DeleteMySQL(mysql.ObjectMeta)
+
+							By("Wait for mysql to be paused")
+							f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+
+							// Create MySQL object again to resume it
+							By("Create MySQL: " + mysql.Name)
+							err = f.CreateMySQL(mysql)
+							Expect(err).NotTo(HaveOccurred())
+
+							By("Wait for DormantDatabase to be deleted")
+							f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
+
+							By("Wait for Running mysql")
+							f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+
+							_, err := f.GetMySQL(mysql.ObjectMeta)
+							Expect(err).NotTo(HaveOccurred())
+						}
+
+						// Delete test resource
+						deleteTestResource()
+					})
 				})
 			})
 		})
@@ -464,7 +511,7 @@ var _ = Describe("MySQL", func() {
 					By("Count multiple Snapshot")
 					f.EventuallySnapshotCount(mysql.ObjectMeta).Should(matcher.MoreThan(3))
 
-					deleteTestResouce()
+					deleteTestResource()
 				}
 
 				Context("with local", func() {
@@ -552,7 +599,7 @@ var _ = Describe("MySQL", func() {
 					By("Count multiple Snapshot")
 					f.EventuallySnapshotCount(mysql.ObjectMeta).Should(matcher.MoreThan(3))
 
-					deleteTestResouce()
+					deleteTestResource()
 				})
 			})
 		})
