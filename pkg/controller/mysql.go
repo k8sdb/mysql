@@ -7,15 +7,15 @@ import (
 	"reflect"
 	"time"
 
-	kutildb "github.com/appscode/kutil/kubedb/v1alpha1"
 	"github.com/appscode/log"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	"github.com/k8sdb/mysql/pkg/validator"
+	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func (c *Controller) create(mysql *tapi.MySQL) error {
@@ -26,18 +26,18 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 		return in
 	})
 	if err != nil {
-		c.recorder.Eventf(mysql.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 
 	if err := validator.ValidateMySQL(c.Client, mysql); err != nil {
-		c.recorder.Event(mysql.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
+		c.recorder.Event(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err
 	}
 	// Event for successful validation
 	c.recorder.Event(
 		mysql.ObjectReference(),
-		apiv1.EventTypeNormal,
+		core.EventTypeNormal,
 		eventer.EventReasonSuccessfulValidate,
 		"Successfully validate MySQL",
 	)
@@ -66,7 +66,7 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 			return in
 		})
 		if err != nil {
-			c.recorder.Eventf(mysql.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 			return err
 		}
 
@@ -74,14 +74,14 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 	}
 
 	// Event for notification that kubernetes objects are creating
-	c.recorder.Event(mysql.ObjectReference(), apiv1.EventTypeNormal, eventer.EventReasonCreating, "Creating Kubernetes objects")
+	c.recorder.Event(mysql.ObjectReference(), core.EventTypeNormal, eventer.EventReasonCreating, "Creating Kubernetes objects")
 
 	// create Governing Service
 	governingService := c.opt.GoverningService
 	if err := c.CreateGoverningService(governingService, mysql.Namespace); err != nil {
 		c.recorder.Eventf(
 			mysql.ObjectReference(),
-			apiv1.EventTypeWarning,
+			core.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
 			`Failed to create Service: "%v". Reason: %v`,
 			governingService,
@@ -102,7 +102,7 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 
 	c.recorder.Event(
 		mysql.ObjectReference(),
-		apiv1.EventTypeNormal,
+		core.EventTypeNormal,
 		eventer.EventReasonSuccessfulCreate,
 		"Successfully created MySQL",
 	)
@@ -114,7 +114,7 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 		if err := c.addMonitor(mysql); err != nil {
 			c.recorder.Eventf(
 				mysql.ObjectReference(),
-				apiv1.EventTypeWarning,
+				core.EventTypeWarning,
 				eventer.EventReasonFailedToCreate,
 				"Failed to add monitoring system. Reason: %v",
 				err,
@@ -124,7 +124,7 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 		}
 		c.recorder.Event(
 			mysql.ObjectReference(),
-			apiv1.EventTypeNormal,
+			core.EventTypeNormal,
 			eventer.EventReasonSuccessfulCreate,
 			"Successfully added monitoring system.",
 		)
@@ -139,7 +139,7 @@ func (c *Controller) matchDormantDatabase(mysql *tapi.MySQL) (bool, error) {
 		if !kerr.IsNotFound(err) {
 			c.recorder.Eventf(
 				mysql.ObjectReference(),
-				apiv1.EventTypeWarning,
+				core.EventTypeWarning,
 				eventer.EventReasonFailedToGet,
 				`Fail to get DormantDatabase: "%v". Reason: %v`,
 				mysql.Name,
@@ -153,7 +153,7 @@ func (c *Controller) matchDormantDatabase(mysql *tapi.MySQL) (bool, error) {
 	var sendEvent = func(message string) (bool, error) {
 		c.recorder.Event(
 			mysql.ObjectReference(),
-			apiv1.EventTypeWarning,
+			core.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
 			message,
 		)
@@ -187,7 +187,7 @@ func (c *Controller) matchDormantDatabase(mysql *tapi.MySQL) (bool, error) {
 	originalSpec.Init = nil
 
 	if originalSpec.DatabaseSecret == nil {
-		originalSpec.DatabaseSecret = &apiv1.SecretVolumeSource{
+		originalSpec.DatabaseSecret = &core.SecretVolumeSource{
 			SecretName: mysql.Name + "-admin-auth",
 		}
 	}
@@ -213,7 +213,7 @@ func (c *Controller) ensureService(mysql *tapi.MySQL) error {
 	if err := c.createService(mysql); err != nil {
 		c.recorder.Eventf(
 			mysql.ObjectReference(),
-			apiv1.EventTypeWarning,
+			core.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
 			"Failed to create Service. Reason: %v",
 			err,
@@ -237,7 +237,7 @@ func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
 	if err != nil {
 		c.recorder.Eventf(
 			mysql.ObjectReference(),
-			apiv1.EventTypeWarning,
+			core.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
 			"Failed to create StatefulSet. Reason: %v",
 			err,
@@ -255,7 +255,7 @@ func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
 	if err := c.CheckStatefulSetPodStatus(statefulSet, durationCheckStatefulSet); err != nil {
 		c.recorder.Eventf(
 			mysql.ObjectReference(),
-			apiv1.EventTypeWarning,
+			core.EventTypeWarning,
 			eventer.EventReasonFailedToStart,
 			`Failed to create StatefulSet. Reason: %v`,
 			err,
@@ -264,7 +264,7 @@ func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
 	} else {
 		c.recorder.Event(
 			mysql.ObjectReference(),
-			apiv1.EventTypeNormal,
+			core.EventTypeNormal,
 			eventer.EventReasonSuccessfulCreate,
 			"Successfully created StatefulSet",
 		)
@@ -276,14 +276,14 @@ func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
 			return in
 		})
 		if err != nil {
-			c.recorder.Eventf(mysql, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			c.recorder.Eventf(mysql, core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 			return err
 		}
 
 		if err := c.initialize(mysql); err != nil {
 			c.recorder.Eventf(
 				mysql.ObjectReference(),
-				apiv1.EventTypeWarning,
+				core.EventTypeWarning,
 				eventer.EventReasonFailedToInitialize,
 				"Failed to initialize. Reason: %v",
 				err,
@@ -296,7 +296,7 @@ func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
 		return in
 	})
 	if err != nil {
-		c.recorder.Eventf(mysql, apiv1.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.recorder.Eventf(mysql, core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
 	return nil
@@ -309,7 +309,7 @@ func (c *Controller) ensureBackupScheduler(mysql *tapi.MySQL) {
 		if err != nil {
 			c.recorder.Eventf(
 				mysql.ObjectReference(),
-				apiv1.EventTypeWarning,
+				core.EventTypeWarning,
 				eventer.EventReasonFailedToSchedule,
 				"Failed to schedule snapshot. Reason: %v",
 				err,
@@ -330,7 +330,7 @@ func (c *Controller) initialize(mysql *tapi.MySQL) error {
 	// Event for notification that kubernetes objects are creating
 	c.recorder.Eventf(
 		mysql.ObjectReference(),
-		apiv1.EventTypeNormal,
+		core.EventTypeNormal,
 		eventer.EventReasonInitializing,
 		`Initializing from Snapshot: "%v"`,
 		snapshotSource.Name,
@@ -363,14 +363,14 @@ func (c *Controller) initialize(mysql *tapi.MySQL) error {
 	if jobSuccess {
 		c.recorder.Event(
 			mysql.ObjectReference(),
-			apiv1.EventTypeNormal,
+			core.EventTypeNormal,
 			eventer.EventReasonSuccessfulInitialize,
 			"Successfully completed initialization",
 		)
 	} else {
 		c.recorder.Event(
 			mysql.ObjectReference(),
-			apiv1.EventTypeWarning,
+			core.EventTypeWarning,
 			eventer.EventReasonFailedToInitialize,
 			"Failed to complete initialization",
 		)
@@ -381,17 +381,17 @@ func (c *Controller) initialize(mysql *tapi.MySQL) error {
 func (c *Controller) pause(mysql *tapi.MySQL) error {
 	if mysql.Annotations != nil {
 		if val, found := mysql.Annotations["kubedb.com/ignore"]; found {
-			c.recorder.Event(mysql.ObjectReference(), apiv1.EventTypeNormal, "Ignored", val)
+			c.recorder.Event(mysql.ObjectReference(), core.EventTypeNormal, "Ignored", val)
 			return nil
 		}
 	}
 
-	c.recorder.Event(mysql.ObjectReference(), apiv1.EventTypeNormal, eventer.EventReasonPausing, "Pausing MySQL")
+	c.recorder.Event(mysql.ObjectReference(), core.EventTypeNormal, eventer.EventReasonPausing, "Pausing MySQL")
 
 	if mysql.Spec.DoNotPause {
 		c.recorder.Eventf(
 			mysql.ObjectReference(),
-			apiv1.EventTypeWarning,
+			core.EventTypeWarning,
 			eventer.EventReasonFailedToPause,
 			`MySQL "%v" is locked.`,
 			mysql.Name,
@@ -400,7 +400,7 @@ func (c *Controller) pause(mysql *tapi.MySQL) error {
 		if err := c.reCreateMySQL(mysql); err != nil {
 			c.recorder.Eventf(
 				mysql.ObjectReference(),
-				apiv1.EventTypeWarning,
+				core.EventTypeWarning,
 				eventer.EventReasonFailedToCreate,
 				`Failed to recreate MySQL: "%v". Reason: %v`,
 				mysql.Name,
@@ -414,7 +414,7 @@ func (c *Controller) pause(mysql *tapi.MySQL) error {
 	if _, err := c.createDormantDatabase(mysql); err != nil {
 		c.recorder.Eventf(
 			mysql.ObjectReference(),
-			apiv1.EventTypeWarning,
+			core.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
 			`Failed to create DormantDatabase: "%v". Reason: %v`,
 			mysql.Name,
@@ -424,7 +424,7 @@ func (c *Controller) pause(mysql *tapi.MySQL) error {
 	}
 	c.recorder.Eventf(
 		mysql.ObjectReference(),
-		apiv1.EventTypeNormal,
+		core.EventTypeNormal,
 		eventer.EventReasonSuccessfulCreate,
 		`Successfully created DormantDatabase: "%v"`,
 		mysql.Name,
@@ -436,7 +436,7 @@ func (c *Controller) pause(mysql *tapi.MySQL) error {
 		if err := c.deleteMonitor(mysql); err != nil {
 			c.recorder.Eventf(
 				mysql.ObjectReference(),
-				apiv1.EventTypeWarning,
+				core.EventTypeWarning,
 				eventer.EventReasonFailedToDelete,
 				"Failed to delete monitoring system. Reason: %v",
 				err,
@@ -446,7 +446,7 @@ func (c *Controller) pause(mysql *tapi.MySQL) error {
 		}
 		c.recorder.Event(
 			mysql.ObjectReference(),
-			apiv1.EventTypeNormal,
+			core.EventTypeNormal,
 			eventer.EventReasonSuccessfulMonitorDelete,
 			"Successfully deleted monitoring system.",
 		)
@@ -456,13 +456,13 @@ func (c *Controller) pause(mysql *tapi.MySQL) error {
 
 func (c *Controller) update(oldMySQL, updatedMySQL *tapi.MySQL) error {
 	if err := validator.ValidateMySQL(c.Client, updatedMySQL); err != nil {
-		c.recorder.Event(updatedMySQL.ObjectReference(), apiv1.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
+		c.recorder.Event(updatedMySQL.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err
 	}
 	// Event for successful validation
 	c.recorder.Event(
 		updatedMySQL.ObjectReference(),
-		apiv1.EventTypeNormal,
+		core.EventTypeNormal,
 		eventer.EventReasonSuccessfulValidate,
 		"Successfully validate MySQL",
 	)
@@ -482,7 +482,7 @@ func (c *Controller) update(oldMySQL, updatedMySQL *tapi.MySQL) error {
 		if err := c.updateMonitor(oldMySQL, updatedMySQL); err != nil {
 			c.recorder.Eventf(
 				updatedMySQL.ObjectReference(),
-				apiv1.EventTypeWarning,
+				core.EventTypeWarning,
 				eventer.EventReasonFailedToUpdate,
 				"Failed to update monitoring system. Reason: %v",
 				err,
@@ -492,7 +492,7 @@ func (c *Controller) update(oldMySQL, updatedMySQL *tapi.MySQL) error {
 		}
 		c.recorder.Event(
 			updatedMySQL.ObjectReference(),
-			apiv1.EventTypeNormal,
+			core.EventTypeNormal,
 			eventer.EventReasonSuccessfulMonitorUpdate,
 			"Successfully updated monitoring system.",
 		)

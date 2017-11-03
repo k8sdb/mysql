@@ -10,8 +10,8 @@ import (
 	"github.com/k8sdb/mysql/test/e2e/matcher"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	core "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const (
@@ -27,7 +27,7 @@ var _ = Describe("MySQL", func() {
 		f           *framework.Invocation
 		mysql       *tapi.MySQL
 		snapshot    *tapi.Snapshot
-		secret      *apiv1.Secret
+		secret      *core.Secret
 		skipMessage string
 	)
 
@@ -96,10 +96,10 @@ var _ = Describe("MySQL", func() {
 					if f.StorageClass == "" {
 						skipMessage = "Missing StorageClassName. Provide as flag to test this."
 					}
-					mysql.Spec.Storage = &apiv1.PersistentVolumeClaimSpec{
-						Resources: apiv1.ResourceRequirements{
-							Requests: apiv1.ResourceList{
-								apiv1.ResourceStorage: resource.MustParse("50Mi"),
+					mysql.Spec.Storage = &core.PersistentVolumeClaimSpec{
+						Resources: core.ResourceRequirements{
+							Requests: core.ResourceList{
+								core.ResourceStorage: resource.MustParse("50Mi"),
 							},
 						},
 						StorageClassName: types.StringP(f.StorageClass),
@@ -185,8 +185,8 @@ var _ = Describe("MySQL", func() {
 					snapshot.Spec.StorageSecretName = secret.Name
 					snapshot.Spec.Local = &tapi.LocalSpec{
 						Path: "/repo",
-						VolumeSource: apiv1.VolumeSource{
-							HostPath: &apiv1.HostPathVolumeSource{
+						VolumeSource: core.VolumeSource{
+							HostPath: &core.HostPathVolumeSource{
 								Path: "/repo",
 							},
 						},
@@ -203,10 +203,10 @@ var _ = Describe("MySQL", func() {
 						if f.StorageClass == "" {
 							skipMessage = "Missing StorageClassName. Provide as flag to test this."
 						}
-						mysql.Spec.Storage = &apiv1.PersistentVolumeClaimSpec{
-							Resources: apiv1.ResourceRequirements{
-								Requests: apiv1.ResourceList{
-									apiv1.ResourceStorage: resource.MustParse("5Gi"),
+						mysql.Spec.Storage = &core.PersistentVolumeClaimSpec{
+							Resources: core.ResourceRequirements{
+								Requests: core.ResourceList{
+									core.ResourceStorage: resource.MustParse("5Gi"),
 								},
 							},
 							StorageClassName: types.StringP(f.StorageClass),
@@ -270,8 +270,8 @@ var _ = Describe("MySQL", func() {
 				BeforeEach(func() {
 					mysql.Spec.Init = &tapi.InitSpec{
 						ScriptSource: &tapi.ScriptSourceSpec{
-							VolumeSource: apiv1.VolumeSource{
-								GitRepo: &apiv1.GitRepoVolumeSource{
+							VolumeSource: core.VolumeSource{
+								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/the-redback/mysql-init-script.git",
 									Directory:  ".",
 								},
@@ -404,8 +404,8 @@ var _ = Describe("MySQL", func() {
 					usedInitSpec = true
 					mysql.Spec.Init = &tapi.InitSpec{
 						ScriptSource: &tapi.ScriptSourceSpec{
-							VolumeSource: apiv1.VolumeSource{
-								GitRepo: &apiv1.GitRepoVolumeSource{
+							VolumeSource: core.VolumeSource{
+								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/the-redback/mysql-init-script.git",
 									Directory:  ".",
 								},
@@ -450,8 +450,8 @@ var _ = Describe("MySQL", func() {
 						usedInitSpec = true
 						mysql.Spec.Init = &tapi.InitSpec{
 							ScriptSource: &tapi.ScriptSourceSpec{
-								VolumeSource: apiv1.VolumeSource{
-									GitRepo: &apiv1.GitRepoVolumeSource{
+								VolumeSource: core.VolumeSource{
+									GitRepo: &core.GitRepoVolumeSource{
 										Repository: "https://github.com/the-redback/mysql-init-script.git",
 										Directory:  ".",
 									},
@@ -523,8 +523,8 @@ var _ = Describe("MySQL", func() {
 								StorageSecretName: secret.Name,
 								Local: &tapi.LocalSpec{
 									Path: "/repo",
-									VolumeSource: apiv1.VolumeSource{
-										HostPath: &apiv1.HostPathVolumeSource{
+									VolumeSource: core.VolumeSource{
+										HostPath: &core.HostPathVolumeSource{
 											Path: "/repo",
 										},
 									},
@@ -551,10 +551,10 @@ var _ = Describe("MySQL", func() {
 						if f.StorageClass == "" {
 							skipMessage = "Missing StorageClassName. Provide as flag to test this."
 						}
-						mysql.Spec.Storage = &apiv1.PersistentVolumeClaimSpec{
-							Resources: apiv1.ResourceRequirements{
-								Requests: apiv1.ResourceList{
-									apiv1.ResourceStorage: resource.MustParse("50Mi"),
+						mysql.Spec.Storage = &core.PersistentVolumeClaimSpec{
+							Resources: core.ResourceRequirements{
+								Requests: core.ResourceList{
+									core.ResourceStorage: resource.MustParse("50Mi"),
 								},
 							},
 							StorageClassName: types.StringP(f.StorageClass),
@@ -584,8 +584,8 @@ var _ = Describe("MySQL", func() {
 								StorageSecretName: secret.Name,
 								Local: &tapi.LocalSpec{
 									Path: "/repo",
-									VolumeSource: apiv1.VolumeSource{
-										HostPath: &apiv1.HostPathVolumeSource{
+									VolumeSource: core.VolumeSource{
+										HostPath: &core.HostPathVolumeSource{
 											Path: "/repo",
 										},
 									},

@@ -7,12 +7,12 @@ import (
 	"github.com/k8sdb/apimachinery/pkg/docker"
 	amv "github.com/k8sdb/apimachinery/pkg/validator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes"
 )
 
-func ValidateMySQL(client clientset.Interface, mysql *tapi.MySQL) error {
+func ValidateMySQL(client kubernetes.Interface, mysql *tapi.MySQL) error {
 	if mysql.Spec.Version == "" {
-		return fmt.Errorf(`Object 'Version' is missing in '%v'`, mysql.Spec)
+		return fmt.Errorf(`object 'Version' is missing in '%v'`, mysql.Spec)
 	}
 
 	// Set Database Image version
