@@ -25,7 +25,6 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 		in.Status.Phase = tapi.DatabasePhaseCreating
 		return in
 	})
-
 	if err != nil {
 		c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
@@ -42,7 +41,6 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 		eventer.EventReasonSuccessfulValidate,
 		"Successfully validate MySQL",
 	)
-
 	// Check DormantDatabase
 	matched, err := c.matchDormantDatabase(mysql)
 	if err != nil {
@@ -110,7 +108,6 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 
 	// Ensure Schedule backup
 	c.ensureBackupScheduler(mysql)
-
 	if mysql.Spec.Monitor != nil {
 		if err := c.addMonitor(mysql); err != nil {
 			c.recorder.Eventf(
@@ -187,15 +184,11 @@ func (c *Controller) matchDormantDatabase(mysql *tapi.MySQL) (bool, error) {
 	originalSpec := mysql.Spec
 	originalSpec.Init = nil
 
-	// ---> Start
-	// TODO: Use following part if database secret is supported
-	// Otherwise, remove it
 	if originalSpec.DatabaseSecret == nil {
 		originalSpec.DatabaseSecret = &core.SecretVolumeSource{
 			SecretName: mysql.Name + "-admin-auth",
 		}
 	}
-	// ---> End
 
 	if !reflect.DeepEqual(drmnOriginSpec, &originalSpec) {
 		return sendEvent("MySQL spec mismatches with OriginSpec in DormantDatabases")

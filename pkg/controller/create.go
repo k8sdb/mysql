@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
@@ -53,7 +54,11 @@ func (c *Controller) createService(mysql *tapi.MySQL) error {
 		},
 		Spec: core.ServiceSpec{
 			Ports: []core.ServicePort{
-			// TODO: Use appropriate port for your service
+				{
+					Name:       "db",
+					Port:       3306,
+					TargetPort: intstr.FromString("db"),
+				},
 			},
 			Selector: mysql.OffshootLabels(),
 		},
@@ -71,7 +76,6 @@ func (c *Controller) createService(mysql *tapi.MySQL) error {
 	if _, err := c.Client.CoreV1().Services(mysql.Namespace).Create(svc); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -112,22 +116,23 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name: tapi.ResourceNameMySQL,
-							//TODO: Use correct image. Its a template
-							Image:           fmt.Sprintf("%s:%s", "", mysql.Spec.Version),
+							Name:            tapi.ResourceNameMySQL,
+							Image:           fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version),
 							ImagePullPolicy: core.PullIfNotPresent,
-							Ports:           []core.ContainerPort{
-							//TODO: Use appropriate port for your container
+							//ImagePullPolicy: "Always", //Testing
+							Ports: []core.ContainerPort{
+								{
+									Name:          "db",
+									ContainerPort: 3306,
+								},
 							},
 							Resources: mysql.Spec.Resources,
 							VolumeMounts: []core.VolumeMount{
-								//TODO: Add Secret volume if necessary
 								{
 									Name:      "data",
-									MountPath: "/var/pv",
+									MountPath: "/var/lib/mysql", //Volume path of mysql, https://github.com/docker-library/mysql/blob/86431f073b3d2f963d21e33cb8943f0bdcdf143d/8.0/Dockerfile#L48
 								},
 							},
-							Args: []string{ /*TODO Add args if necessary*/ },
 						},
 					},
 					NodeSelector:  mysql.Spec.NodeSelector,
@@ -162,9 +167,6 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 		statefulSet.Spec.Template.Spec.Containers = append(statefulSet.Spec.Template.Spec.Containers, exporter)
 	}
 
-	// ---> Start
-	//TODO: Use following if secret is necessary
-	// otherwise remove
 	if mysql.Spec.DatabaseSecret == nil {
 		secretVolumeSource, err := c.createDatabaseSecret(mysql)
 		if err != nil {
@@ -182,21 +184,15 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 		mysql = _mysql
 	}
 
-	// Add secretVolume for authentication
-	addSecretVolume(statefulSet, mysql.Spec.DatabaseSecret)
-	// --- > End
+	//Set root user password from Secret
+	setEnvFromSecret(statefulSet, mysql.Spec.DatabaseSecret)
 
 	// Add Data volume for StatefulSet
 	addDataVolume(statefulSet, mysql.Spec.Storage)
 
-	// ---> Start
-	//TODO: Use following if supported
-	// otherwise remove
-	// Add InitialScript to run at startup
 	if mysql.Spec.Init != nil && mysql.Spec.Init.ScriptSource != nil {
 		addInitialScript(statefulSet, mysql.Spec.Init.ScriptSource)
 	}
-	// ---> End
 
 	if c.opt.EnableRbac {
 		// Ensure ClusterRoles for database statefulsets
@@ -212,6 +208,23 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 	}
 
 	return statefulSet, nil
+}
+
+// Set root user password from Secret, Through Env.
+func setEnvFromSecret(statefulSet *apps.StatefulSet, secSource *core.SecretVolumeSource) {
+	statefulSet.Spec.Template.Spec.Containers[0].Env = append(statefulSet.Spec.Template.Spec.Containers[0].Env,
+		core.EnvVar{
+			Name: "MYSQL_ROOT_PASSWORD",
+			ValueFrom: &core.EnvVarSource{
+				SecretKeyRef: &core.SecretKeySelector{
+					LocalObjectReference: core.LocalObjectReference{
+						Name: secSource.SecretName,
+					},
+					Key: ".admin",
+				},
+			},
+		},
+	)
 }
 
 func (c *Controller) findSecret(secretName, namespace string) (bool, error) {
@@ -230,9 +243,6 @@ func (c *Controller) findSecret(secretName, namespace string) (bool, error) {
 	return true, nil
 }
 
-// ---> start
-//TODO: Use this method to create secret dynamically
-// otherwise remove this method
 func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*core.SecretVolumeSource, error) {
 	authSecretName := mysql.Name + "-admin-auth"
 
@@ -242,7 +252,10 @@ func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*core.SecretVolume
 	}
 
 	if !found {
-
+		MYSQL_PASSWORD := fmt.Sprintf("%s", rand.GeneratePassword())
+		data := map[string][]byte{
+			".admin": []byte(MYSQL_PASSWORD),
+		}
 		secret := &core.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: authSecretName,
@@ -251,7 +264,7 @@ func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*core.SecretVolume
 				},
 			},
 			Type: core.SecretTypeOpaque,
-			Data: make(map[string][]byte), // Add secret data
+			Data: data, // Add secret data
 		}
 		if _, err := c.Client.CoreV1().Secrets(mysql.Namespace).Create(secret); err != nil {
 			return nil, err
@@ -262,25 +275,6 @@ func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*core.SecretVolume
 		SecretName: authSecretName,
 	}, nil
 }
-
-// ---> End
-
-// ---> Start
-//TODO: Use this method to add secret volume
-// otherwise remove this method
-func addSecretVolume(statefulSet *apps.StatefulSet, secretVolume *core.SecretVolumeSource) error {
-	statefulSet.Spec.Template.Spec.Volumes = append(statefulSet.Spec.Template.Spec.Volumes,
-		core.Volume{
-			Name: "secret",
-			VolumeSource: core.VolumeSource{
-				Secret: secretVolume,
-			},
-		},
-	)
-	return nil
-}
-
-// ---> End
 
 func addDataVolume(statefulSet *apps.StatefulSet, pvcSpec *core.PersistentVolumeClaimSpec) {
 	if pvcSpec != nil {
@@ -317,20 +311,13 @@ func addDataVolume(statefulSet *apps.StatefulSet, pvcSpec *core.PersistentVolume
 	}
 }
 
-// ---> Start
-//TODO: Use this method to add initial script, if supported
-// Otherwise, remove it
 func addInitialScript(statefulSet *apps.StatefulSet, script *tapi.ScriptSourceSpec) {
 	statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
 		core.VolumeMount{
 			Name:      "initial-script",
-			MountPath: "/var/db-script",
+			MountPath: "/docker-entrypoint-initdb.d",
 		},
 	)
-	statefulSet.Spec.Template.Spec.Containers[0].Args = []string{
-		// Add additional args
-		script.ScriptPath,
-	}
 
 	statefulSet.Spec.Template.Spec.Volumes = append(statefulSet.Spec.Template.Spec.Volumes,
 		core.Volume{
@@ -339,8 +326,6 @@ func addInitialScript(statefulSet *apps.StatefulSet, script *tapi.ScriptSourceSp
 		},
 	)
 }
-
-// ---> End
 
 func (c *Controller) createDormantDatabase(mysql *tapi.MySQL) (*tapi.DormantDatabase, error) {
 	dormantDb := &tapi.DormantDatabase{
@@ -437,9 +422,8 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name: SnapshotProcess_Restore,
-							//TODO: Use appropriate image
-							Image: fmt.Sprintf("%s:%s", "", mysql.Spec.Version),
+							Name:  SnapshotProcess_Restore,
+							Image: fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version),
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),
@@ -448,8 +432,8 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 							},
 							Resources: snapshot.Spec.Resources,
+
 							VolumeMounts: []core.VolumeMount{
-								//TODO: Mount secret volume if necessary
 								{
 									Name:      persistentVolume.Name,
 									MountPath: "/var/" + snapshotType_DumpRestore + "/",
@@ -463,8 +447,6 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 						},
 					},
 					Volumes: []core.Volume{
-						//TODO: Add secret volume if necessary
-						// Check postgres repository for example
 						{
 							Name:         persistentVolume.Name,
 							VolumeSource: persistentVolume.VolumeSource,

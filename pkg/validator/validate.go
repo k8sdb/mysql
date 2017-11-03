@@ -15,11 +15,9 @@ func ValidateMySQL(client kubernetes.Interface, mysql *tapi.MySQL) error {
 		return fmt.Errorf(`object 'Version' is missing in '%v'`, mysql.Spec)
 	}
 
-	// Set Database Image version
-	version := string(mysql.Spec.Version)
-	// TODO: docker.ImageMySQL should hold correct image name
-	if err := docker.CheckDockerImageVersion("", version); err != nil {
-		return fmt.Errorf(`image %v:%v not found`, "", version)
+	version := fmt.Sprintf("%v", mysql.Spec.Version) // #Later , add -db with %v, ex: "%v-db"
+	if err := docker.CheckDockerImageVersion(docker.ImageMySQL, version); err != nil {
+		return fmt.Errorf(`Image %v:%v not found`, docker.ImageMySQL, version)
 	}
 
 	if mysql.Spec.Storage != nil {
@@ -29,16 +27,12 @@ func ValidateMySQL(client kubernetes.Interface, mysql *tapi.MySQL) error {
 		}
 	}
 
-	// ---> Start
-	// TODO: Use following if database needs/supports authentication secret
-	// otherwise, delete
 	databaseSecret := mysql.Spec.DatabaseSecret
 	if databaseSecret != nil {
 		if _, err := client.CoreV1().Secrets(mysql.Namespace).Get(databaseSecret.SecretName, metav1.GetOptions{}); err != nil {
 			return err
 		}
 	}
-	// ---> End
 
 	backupScheduleSpec := mysql.Spec.BackupSchedule
 	if backupScheduleSpec != nil {

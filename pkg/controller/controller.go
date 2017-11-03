@@ -80,9 +80,8 @@ func New(
 	}
 }
 
-// Blocks caller. Intended to be called as a Go routine.
 func (c *Controller) Run() {
-	// Ensure TPR
+	// Ensure MySQL CRD
 	c.ensureCustomResourceDefinition()
 
 	// Start Cron
@@ -97,7 +96,7 @@ func (c *Controller) Run() {
 	// Watch DeletedDatabase with labelSelector only for MySQL
 	go c.watchDeletedDatabase()
 	// hold
-	hold.Hold()
+	//hold.Hold()
 }
 
 // Blocks caller. Intended to be called as a Go routine.
