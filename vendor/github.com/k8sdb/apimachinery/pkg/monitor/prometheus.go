@@ -6,22 +6,22 @@ import (
 	"reflect"
 	"strings"
 
-	prom "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1alpha1"
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	cgerr "k8s.io/apimachinery/pkg/api/errors"
+	prom "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes"
 )
 
 type PrometheusController struct {
-	kubeClient        clientset.Interface
-	apiExtKubeClient  apiextensionsclient.Interface
-	promClient        prom.MonitoringV1alpha1Interface
+	kubeClient        kubernetes.Interface
+	apiExtKubeClient  crd_cs.ApiextensionsV1beta1Interface
+	promClient        prom.MonitoringV1Interface
 	operatorNamespace string
 }
 
-func NewPrometheusController(kubeClient clientset.Interface, apiExtKubeClient apiextensionsclient.Interface, promClient prom.MonitoringV1alpha1Interface, operatorNamespace string) Monitor {
+func NewPrometheusController(kubeClient kubernetes.Interface, apiExtKubeClient crd_cs.ApiextensionsV1beta1Interface, promClient prom.MonitoringV1Interface, operatorNamespace string) Monitor {
 	return &PrometheusController{
 		kubeClient:        kubeClient,
 		apiExtKubeClient:  apiExtKubeClient,
@@ -30,47 +30,47 @@ func NewPrometheusController(kubeClient clientset.Interface, apiExtKubeClient ap
 	}
 }
 
-func (c *PrometheusController) AddMonitor(meta metav1.ObjectMeta, spec *tapi.MonitorSpec) error {
+func (c *PrometheusController) AddMonitor(meta metav1.ObjectMeta, spec *api.MonitorSpec) error {
 	if !c.SupportsCoreOSOperator() {
-		return errors.New("Cluster does not support CoreOS Prometheus operator")
+		return errors.New("cluster does not support CoreOS Prometheus operator")
 	}
 	return c.ensureServiceMonitor(meta, spec, spec)
 }
 
-func (c *PrometheusController) UpdateMonitor(meta metav1.ObjectMeta, old, new *tapi.MonitorSpec) error {
+func (c *PrometheusController) UpdateMonitor(meta metav1.ObjectMeta, old, new *api.MonitorSpec) error {
 	if !c.SupportsCoreOSOperator() {
-		return errors.New("Cluster does not support CoreOS Prometheus operator")
+		return errors.New("cluster does not support CoreOS Prometheus operator")
 	}
 	return c.ensureServiceMonitor(meta, old, new)
 }
 
-func (c *PrometheusController) DeleteMonitor(meta metav1.ObjectMeta, spec *tapi.MonitorSpec) error {
+func (c *PrometheusController) DeleteMonitor(meta metav1.ObjectMeta, spec *api.MonitorSpec) error {
 	if !c.SupportsCoreOSOperator() {
-		return errors.New("Cluster does not support CoreOS Prometheus operator")
+		return errors.New("cluster does not support CoreOS Prometheus operator")
 	}
-	if err := c.promClient.ServiceMonitors(spec.Prometheus.Namespace).Delete(getServiceMonitorName(meta), nil); !cgerr.IsNotFound(err) {
+	if err := c.promClient.ServiceMonitors(spec.Prometheus.Namespace).Delete(getServiceMonitorName(meta), nil); !kerr.IsNotFound(err) {
 		return err
 	}
 	return nil
 }
 
 func (c *PrometheusController) SupportsCoreOSOperator() bool {
-	_, err := c.apiExtKubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(prom.PrometheusName+"."+prom.Group, metav1.GetOptions{})
+	_, err := c.apiExtKubeClient.CustomResourceDefinitions().Get(prom.PrometheusName+"."+prom.Group, metav1.GetOptions{})
 	if err != nil {
 		return false
 	}
-	_, err = c.apiExtKubeClient.ApiextensionsV1beta1().CustomResourceDefinitions().Get(prom.ServiceMonitorName+"."+prom.Group, metav1.GetOptions{})
+	_, err = c.apiExtKubeClient.CustomResourceDefinitions().Get(prom.ServiceMonitorName+"."+prom.Group, metav1.GetOptions{})
 	if err != nil {
 		return false
 	}
 	return true
 }
 
-func (c *PrometheusController) ensureServiceMonitor(meta metav1.ObjectMeta, old, new *tapi.MonitorSpec) error {
+func (c *PrometheusController) ensureServiceMonitor(meta metav1.ObjectMeta, old, new *api.MonitorSpec) error {
 	name := getServiceMonitorName(meta)
 	if old != nil && (new == nil || old.Prometheus.Namespace != new.Prometheus.Namespace) {
 		err := c.promClient.ServiceMonitors(old.Prometheus.Namespace).Delete(name, nil)
-		if err != nil && !cgerr.IsNotFound(err) {
+		if err != nil && !kerr.IsNotFound(err) {
 			return err
 		}
 		if new == nil {
@@ -79,7 +79,7 @@ func (c *PrometheusController) ensureServiceMonitor(meta metav1.ObjectMeta, old,
 	}
 
 	actual, err := c.promClient.ServiceMonitors(new.Prometheus.Namespace).Get(name, metav1.GetOptions{})
-	if cgerr.IsNotFound(err) {
+	if kerr.IsNotFound(err) {
 		return c.createServiceMonitor(meta, new)
 	} else if err != nil {
 		return err
@@ -111,14 +111,14 @@ func (c *PrometheusController) ensureServiceMonitor(meta metav1.ObjectMeta, old,
 	return nil
 }
 
-func (c *PrometheusController) createServiceMonitor(meta metav1.ObjectMeta, spec *tapi.MonitorSpec) error {
+func (c *PrometheusController) createServiceMonitor(meta metav1.ObjectMeta, spec *api.MonitorSpec) error {
 	svc, err := c.kubeClient.CoreV1().Services(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
 	ports := svc.Spec.Ports
 	if len(ports) == 0 {
-		return errors.New("No port found in database service")
+		return errors.New("no port found in database service")
 	}
 
 	sm := &prom.ServiceMonitor{
@@ -133,7 +133,7 @@ func (c *PrometheusController) createServiceMonitor(meta metav1.ObjectMeta, spec
 			},
 			Endpoints: []prom.Endpoint{
 				{
-					Port:     tapi.PrometheusExporterPortName,
+					Port:     api.PrometheusExporterPortName,
 					Interval: spec.Prometheus.Interval,
 					Path:     fmt.Sprintf("/kubedb.com/v1alpha1/namespaces/%s/%s/%s/metrics", meta.Namespace, getTypeFromSelfLink(meta.SelfLink), meta.Name),
 				},
@@ -143,7 +143,7 @@ func (c *PrometheusController) createServiceMonitor(meta metav1.ObjectMeta, spec
 			},
 		},
 	}
-	if _, err := c.promClient.ServiceMonitors(spec.Prometheus.Namespace).Create(sm); !cgerr.IsAlreadyExists(err) {
+	if _, err := c.promClient.ServiceMonitors(spec.Prometheus.Namespace).Create(sm); !kerr.IsAlreadyExists(err) {
 		return err
 	}
 	return nil

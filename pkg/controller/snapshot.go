@@ -7,10 +7,10 @@ import (
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	amv "github.com/k8sdb/apimachinery/pkg/validator"
+	batch "k8s.io/api/batch/v1"
+	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	apiv1 "k8s.io/client-go/pkg/api/v1"
-	batch "k8s.io/client-go/pkg/apis/batch/v1"
 )
 
 const (
@@ -73,14 +73,14 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 			Labels: jobLabel,
 		},
 		Spec: batch.JobSpec{
-			Template: apiv1.PodTemplateSpec{
+			Template: core.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: jobLabel,
 				},
-				Spec: apiv1.PodSpec{
-					Containers: []apiv1.Container{
+				Spec: core.PodSpec{
+					Containers: []core.Container{
 						{
-							Name:  SnapshotProcess_Backup,
+							Name:            SnapshotProcess_Backup,
 							ImagePullPolicy: "Always", //#Later #TESTING ,
 							//Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
 							Image: "maruftuhin/mysql:8.0-util",
@@ -92,7 +92,7 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 							},
 							Resources: snapshot.Spec.Resources,
-							VolumeMounts: []apiv1.VolumeMount{
+							VolumeMounts: []core.VolumeMount{
 								{
 									Name:      "secret",
 									MountPath: "/srv/" + tapi.ResourceNameMySQL + "/secrets",
@@ -109,11 +109,11 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 							},
 						},
 					},
-					Volumes: []apiv1.Volume{
+					Volumes: []core.Volume{
 						{
 							Name: "secret",
-							VolumeSource: apiv1.VolumeSource{
-								Secret: &apiv1.SecretVolumeSource{
+							VolumeSource: core.VolumeSource{
+								Secret: &core.SecretVolumeSource{
 									SecretName: mysql.Spec.DatabaseSecret.SecretName,
 								},
 							},
@@ -124,24 +124,24 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 						},
 						{
 							Name: "osmconfig",
-							VolumeSource: apiv1.VolumeSource{
-								Secret: &apiv1.SecretVolumeSource{
+							VolumeSource: core.VolumeSource{
+								Secret: &core.SecretVolumeSource{
 									SecretName: snapshot.Name,
 								},
 							},
 						},
 					},
-					RestartPolicy: apiv1.RestartPolicyNever,
+					RestartPolicy: core.RestartPolicyNever,
 				},
 			},
 		},
 	}
 	if snapshot.Spec.SnapshotStorageSpec.Local != nil {
-		job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts, apiv1.VolumeMount{
+		job.Spec.Template.Spec.Containers[0].VolumeMounts = append(job.Spec.Template.Spec.Containers[0].VolumeMounts, core.VolumeMount{
 			Name:      "local",
 			MountPath: snapshot.Spec.SnapshotStorageSpec.Local.Path,
 		})
-		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, apiv1.Volume{
+		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, core.Volume{
 			Name:         "local",
 			VolumeSource: snapshot.Spec.SnapshotStorageSpec.Local.VolumeSource,
 		})
@@ -153,19 +153,19 @@ func (c *Controller) WipeOutSnapshot(snapshot *tapi.Snapshot) error {
 	return c.DeleteSnapshotData(snapshot)
 }
 
-func (c *Controller) getVolumeForSnapshot(pvcSpec *apiv1.PersistentVolumeClaimSpec, jobName, namespace string) (*apiv1.Volume, error) {
-	volume := &apiv1.Volume{
+func (c *Controller) getVolumeForSnapshot(pvcSpec *core.PersistentVolumeClaimSpec, jobName, namespace string) (*core.Volume, error) {
+	volume := &core.Volume{
 		Name: "util-volume",
 	}
 	if pvcSpec != nil {
 		if len(pvcSpec.AccessModes) == 0 {
-			pvcSpec.AccessModes = []apiv1.PersistentVolumeAccessMode{
-				apiv1.ReadWriteOnce,
+			pvcSpec.AccessModes = []core.PersistentVolumeAccessMode{
+				core.ReadWriteOnce,
 			}
-			log.Infof(`Using "%v" as AccessModes in "%v"`, apiv1.ReadWriteOnce, *pvcSpec)
+			log.Infof(`Using "%v" as AccessModes in "%v"`, core.ReadWriteOnce, *pvcSpec)
 		}
 
-		claim := &apiv1.PersistentVolumeClaim{
+		claim := &core.PersistentVolumeClaim{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      jobName,
 				Namespace: namespace,
@@ -180,11 +180,11 @@ func (c *Controller) getVolumeForSnapshot(pvcSpec *apiv1.PersistentVolumeClaimSp
 			return nil, err
 		}
 
-		volume.PersistentVolumeClaim = &apiv1.PersistentVolumeClaimVolumeSource{
+		volume.PersistentVolumeClaim = &core.PersistentVolumeClaimVolumeSource{
 			ClaimName: claim.Name,
 		}
 	} else {
-		volume.EmptyDir = &apiv1.EmptyDirVolumeSource{}
+		volume.EmptyDir = &core.EmptyDirVolumeSource{}
 	}
 	return volume, nil
 }
