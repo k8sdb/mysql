@@ -1,2 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="0" time="39.407503631"></testsuite>
+  <testsuite tests="7" failures="0" time="676.718354155">
+      <testcase name="MySQL Test General - should run successfully" classname="e2e Suite" time="75.067235956"></testcase>
+      <testcase name="MySQL Test General With PVC should run successfully" classname="e2e Suite" time="55.060439805"></testcase>
+      <testcase name="MySQL Test DoNotPause should work successfully" classname="e2e Suite" time="65.102212211"></testcase>
+      <testcase name="MySQL Test Initialize With Script should run successfully" classname="e2e Suite" time="55.060429899"></testcase>
+      <testcase name="MySQL Test Resume Without Init should resume DormantDatabase successfully" classname="e2e Suite" time="125.118532369"></testcase>
+      <testcase name="MySQL Test Resume With Init should resume DormantDatabase successfully" classname="e2e Suite" time="125.11097451"></testcase>
+      <testcase name="MySQL Test Resume With original MySQL should resume DormantDatabase successfully" classname="e2e Suite" time="175.098912302"></testcase>
+  </testsuite>
