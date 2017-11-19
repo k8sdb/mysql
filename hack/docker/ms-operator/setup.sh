@@ -13,32 +13,32 @@ REPO_ROOT=$GOPATH/src/github.com/k8sdb/mysql
 source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 
 APPSCODE_ENV=${APPSCODE_ENV:-dev}
-IMG=mysql-operator
+IMG=ms-operator
 
 DIST=$GOPATH/src/github.com/k8sdb/mysql/dist
 mkdir -p $DIST
 if [ -f "$DIST/.tag" ]; then
-	export $(cat $DIST/.tag | xargs)
+    export $(cat $DIST/.tag | xargs)
 fi
 
 clean() {
-    pushd $REPO_ROOT/hack/docker/mysql-operator
-    rm -f mysql-operator Dockerfile
+    pushd $REPO_ROOT/hack/docker/ms-operator
+    rm -f ms-operator Dockerfile
     popd
 }
 
 build_binary() {
     pushd $REPO_ROOT
     ./hack/builddeps.sh
-    ./hack/make.py build mysql-operator
+    ./hack/make.py build ms-operator
     detect_tag $DIST/.tag
     popd
 }
 
 build_docker() {
-    pushd $REPO_ROOT/hack/docker/mysql-operator
-    cp $DIST/mysql-operator/mysql-operator-alpine-amd64 mysql-operator
-    chmod 755 mysql-operator
+    pushd $REPO_ROOT/hack/docker/ms-operator
+    cp $DIST/ms-operator/ms-operator-alpine-amd64 ms-operator
+    chmod 755 ms-operator
 
     cat >Dockerfile <<EOL
 FROM alpine
@@ -48,15 +48,15 @@ RUN set -x \
   && apk add ca-certificates \
   && rm -rf /var/cache/apk/*
 
-COPY mysql-operator /mysql-operator
+COPY ms-operator /ms-operator
 
 USER nobody:nobody
-ENTRYPOINT ["/mysql-operator"]
+ENTRYPOINT ["/ms-operator"]
 EOL
     local cmd="docker build -t kubedb/$IMG:$TAG ."
     echo $cmd; $cmd
 
-    rm mysql-operator Dockerfile
+    rm ms-operator Dockerfile
     popd
 }
 

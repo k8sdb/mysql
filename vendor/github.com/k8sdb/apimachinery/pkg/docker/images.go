@@ -13,7 +13,7 @@ const (
 	ImageMongoDB           = "library/mongo"
 	ImageRedisOperator     = "kubedb/redis-operator"
 	ImageRedis             = "library/redis"
-	ImageMemcachedOperator = "kubedb/memcached-operator"
+	ImageMemcachedOperator = "kubedb/mc-operator"
 	ImageMemcached         = "library/memcached"
 )
 
