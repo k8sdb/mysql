@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/appscode/go/types"
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/mysql/test/e2e/framework"
 	"github.com/k8sdb/mysql/test/e2e/matcher"
 	. "github.com/onsi/ginkgo"
@@ -24,8 +24,8 @@ var _ = Describe("MySQL", func() {
 	var (
 		err         error
 		f           *framework.Invocation
-		mysql       *tapi.MySQL
-		snapshot    *tapi.Snapshot
+		mysql       *api.MySQL
+		snapshot    *api.Snapshot
 		secret      *core.Secret
 		skipMessage string
 	)
@@ -55,7 +55,7 @@ var _ = Describe("MySQL", func() {
 		f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
 
 		By("WipeOut mysql")
-		_, err := f.TryPatchDormantDatabase(mysql.ObjectMeta, func(in *tapi.DormantDatabase) *tapi.DormantDatabase {
+		_, err := f.TryPatchDormantDatabase(mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
 			in.Spec.WipeOut = true
 			return in
 		})
@@ -128,7 +128,7 @@ var _ = Describe("MySQL", func() {
 				f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
 				By("Update mysql to set DoNotPause=false")
-				f.TryPatchMySQL(mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
+				f.TryPatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 					in.Spec.DoNotPause = false
 					return in
 				})
@@ -161,7 +161,7 @@ var _ = Describe("MySQL", func() {
 				f.CreateSnapshot(snapshot)
 
 				By("Check for Successed snapshot")
-				f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(tapi.SnapshotPhaseSuccessed))
+				f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSuccessed))
 
 				if !skipDataCheck {
 					By("Check for snapshot data")
@@ -182,7 +182,7 @@ var _ = Describe("MySQL", func() {
 					skipDataCheck = true
 					secret = f.SecretForLocalBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Local = &tapi.LocalSpec{
+					snapshot.Spec.Local = &api.LocalSpec{
 						Path: "/repo",
 						VolumeSource: core.VolumeSource{
 							HostPath: &core.HostPathVolumeSource{
@@ -219,7 +219,7 @@ var _ = Describe("MySQL", func() {
 				BeforeEach(func() {
 					secret = f.SecretForS3Backend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.S3 = &tapi.S3Spec{
+					snapshot.Spec.S3 = &api.S3Spec{
 						Bucket: os.Getenv(S3_BUCKET_NAME),
 					}
 				})
@@ -231,7 +231,7 @@ var _ = Describe("MySQL", func() {
 				BeforeEach(func() {
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &tapi.GCSSpec{
+					snapshot.Spec.GCS = &api.GCSSpec{
 						Bucket: os.Getenv(GCS_BUCKET_NAME),
 					}
 				})
@@ -243,7 +243,7 @@ var _ = Describe("MySQL", func() {
 				BeforeEach(func() {
 					secret = f.SecretForAzureBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Azure = &tapi.AzureSpec{
+					snapshot.Spec.Azure = &api.AzureSpec{
 						Container: os.Getenv(AZURE_CONTAINER_NAME),
 					}
 				})
@@ -255,7 +255,7 @@ var _ = Describe("MySQL", func() {
 				BeforeEach(func() {
 					secret = f.SecretForSwiftBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Swift = &tapi.SwiftSpec{
+					snapshot.Spec.Swift = &api.SwiftSpec{
 						Container: os.Getenv(SWIFT_CONTAINER_NAME),
 					}
 				})
@@ -267,8 +267,8 @@ var _ = Describe("MySQL", func() {
 		Context("Initialize", func() {
 			Context("With Script", func() {
 				BeforeEach(func() {
-					mysql.Spec.Init = &tapi.InitSpec{
-						ScriptSource: &tapi.ScriptSourceSpec{
+					mysql.Spec.Init = &api.InitSpec{
+						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/the-redback/mysql-init-script.git",
@@ -291,7 +291,7 @@ var _ = Describe("MySQL", func() {
 			//	BeforeEach(func() {
 			//		secret = f.SecretForS3Backend()
 			//		snapshot.Spec.StorageSecretName = secret.Name
-			//		snapshot.Spec.S3 = &tapi.S3Spec{
+			//		snapshot.Spec.S3 = &api.S3Spec{
 			//			Bucket: os.Getenv(S3_BUCKET_NAME),
 			//		}
 			//		snapshot.Spec.DatabaseName = mysql.Name
@@ -308,7 +308,7 @@ var _ = Describe("MySQL", func() {
 			//		f.CreateSnapshot(snapshot)
 			//
 			//		By("Check for Successed snapshot")
-			//		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(tapi.SnapshotPhaseSuccessed))
+			//		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSuccessed))
 			//
 			//		By("Check for snapshot data")
 			//		f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
@@ -319,8 +319,8 @@ var _ = Describe("MySQL", func() {
 			//		By("Create mysql from snapshot")
 			//		mysql = f.MySQL()
 			//		mysql.Spec.DatabaseSecret = oldMySQL.Spec.DatabaseSecret
-			//		mysql.Spec.Init = &tapi.InitSpec{
-			//			SnapshotSource: &tapi.SnapshotSourceSpec{
+			//		mysql.Spec.Init = &api.InitSpec{
+			//			SnapshotSource: &api.SnapshotSourceSpec{
 			//				Namespace: snapshot.Namespace,
 			//				Name:      snapshot.Name,
 			//			},
@@ -355,7 +355,7 @@ var _ = Describe("MySQL", func() {
 				By("Wait for mysql to be paused")
 				f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
 
-				_, err = f.TryPatchDormantDatabase(mysql.ObjectMeta, func(in *tapi.DormantDatabase) *tapi.DormantDatabase {
+				_, err = f.TryPatchDormantDatabase(mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
 					in.Spec.Resume = true
 					return in
 				})
@@ -372,7 +372,7 @@ var _ = Describe("MySQL", func() {
 
 				if usedInitSpec {
 					Expect(mysql.Spec.Init).Should(BeNil())
-					Expect(mysql.Annotations[tapi.MySQLInitSpec]).ShouldNot(BeEmpty())
+					Expect(mysql.Annotations[api.MySQLInitSpec]).ShouldNot(BeEmpty())
 				}
 
 				// Delete test resource
@@ -386,8 +386,8 @@ var _ = Describe("MySQL", func() {
 			Context("With Init", func() {
 				BeforeEach(func() {
 					usedInitSpec = true
-					mysql.Spec.Init = &tapi.InitSpec{
-						ScriptSource: &tapi.ScriptSourceSpec{
+					mysql.Spec.Init = &api.InitSpec{
+						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/the-redback/mysql-init-script.git",
@@ -444,11 +444,11 @@ var _ = Describe("MySQL", func() {
 		//
 		//	Context("With Startup", func() {
 		//		BeforeEach(func() {
-		//			mysql.Spec.BackupSchedule = &tapi.BackupScheduleSpec{
+		//			mysql.Spec.BackupSchedule = &api.BackupScheduleSpec{
 		//				CronExpression: "@every 1m",
-		//				SnapshotStorageSpec: tapi.SnapshotStorageSpec{
+		//				SnapshotStorageSpec: api.SnapshotStorageSpec{
 		//					StorageSecretName: secret.Name,
-		//					Local: &tapi.LocalSpec{
+		//					Local: &api.LocalSpec{
 		//						Path: "/repo",
 		//						VolumeSource: core.VolumeSource{
 		//							HostPath: &core.HostPathVolumeSource{
@@ -483,12 +483,12 @@ var _ = Describe("MySQL", func() {
 		//			f.CreateSecret(secret)
 		//
 		//			By("Update mysql")
-		//			_, err = f.TryPatchMySQL(mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
-		//				in.Spec.BackupSchedule = &tapi.BackupScheduleSpec{
+		//			_, err = f.TryPatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+		//				in.Spec.BackupSchedule = &api.BackupScheduleSpec{
 		//					CronExpression: "@every 1m",
-		//					SnapshotStorageSpec: tapi.SnapshotStorageSpec{
+		//					SnapshotStorageSpec: api.SnapshotStorageSpec{
 		//						StorageSecretName: secret.Name,
-		//						Local: &tapi.LocalSpec{
+		//						Local: &api.LocalSpec{
 		//							Path: "/repo",
 		//							VolumeSource: core.VolumeSource{
 		//								HostPath: &core.HostPathVolumeSource{

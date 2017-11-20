@@ -6,32 +6,32 @@ import (
 
 	"github.com/appscode/go/crypto/rand"
 	"github.com/graymeta/stow"
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-func (f *Invocation) Snapshot() *tapi.Snapshot {
-	return &tapi.Snapshot{
+func (f *Invocation) Snapshot() *api.Snapshot {
+	return &api.Snapshot{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      rand.WithUniqSuffix("snapshot"),
 			Namespace: f.namespace,
 			Labels: map[string]string{
 				"app": f.app,
-				tapi.LabelDatabaseKind: tapi.ResourceKindMySQL,
+				api.LabelDatabaseKind: api.ResourceKindMySQL,
 			},
 		},
 	}
 }
 
-func (f *Framework) CreateSnapshot(obj *tapi.Snapshot) error {
+func (f *Framework) CreateSnapshot(obj *api.Snapshot) error {
 	_, err := f.extClient.Snapshots(obj.Namespace).Create(obj)
 	return err
 }
 
-func (f *Framework) GetSnapshot(meta metav1.ObjectMeta) (*tapi.Snapshot, error) {
+func (f *Framework) GetSnapshot(meta metav1.ObjectMeta) (*api.Snapshot, error) {
 	return f.extClient.Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 }
 
@@ -41,10 +41,10 @@ func (f *Framework) DeleteSnapshot(meta metav1.ObjectMeta) error {
 
 func (f *Framework) EventuallySnapshotPhase(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
-		func() tapi.SnapshotPhase {
+		func() api.SnapshotPhase {
 			snapshot, err := f.extClient.Snapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
-			Expect(snapshot.Status.Phase).ToNot(Equal(tapi.SnapshotPhaseFailed))
+			Expect(snapshot.Status.Phase).ToNot(Equal(api.SnapshotPhaseFailed))
 			return snapshot.Status.Phase
 		},
 		time.Minute*5,
@@ -52,7 +52,7 @@ func (f *Framework) EventuallySnapshotPhase(meta metav1.ObjectMeta) GomegaAsyncA
 	)
 }
 
-func (f *Framework) EventuallySnapshotDataFound(snapshot *tapi.Snapshot) GomegaAsyncAssertion {
+func (f *Framework) EventuallySnapshotDataFound(snapshot *api.Snapshot) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
 			found, err := f.checkSnapshotData(snapshot)
@@ -67,8 +67,8 @@ func (f *Framework) EventuallySnapshotDataFound(snapshot *tapi.Snapshot) GomegaA
 func (f *Framework) EventuallySnapshotCount(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 
 	labelMap := map[string]string{
-		tapi.LabelDatabaseKind: tapi.ResourceKindMySQL,
-		tapi.LabelDatabaseName: meta.Name,
+		api.LabelDatabaseKind: api.ResourceKindMySQL,
+		api.LabelDatabaseName: meta.Name,
 	}
 
 	return Eventually(
@@ -85,7 +85,7 @@ func (f *Framework) EventuallySnapshotCount(meta metav1.ObjectMeta) GomegaAsyncA
 	)
 }
 
-func (f *Framework) checkSnapshotData(snapshot *tapi.Snapshot) (bool, error) {
+func (f *Framework) checkSnapshotData(snapshot *api.Snapshot) (bool, error) {
 	storageSpec := snapshot.Spec.SnapshotStorageSpec
 	cfg, err := storage.NewOSMContext(f.kubeClient, storageSpec, snapshot.Namespace)
 	if err != nil {
