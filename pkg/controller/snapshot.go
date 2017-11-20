@@ -5,6 +5,7 @@ import (
 
 	"github.com/appscode/go/log"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	amv "github.com/k8sdb/apimachinery/pkg/validator"
 	batch "k8s.io/api/batch/v1"
@@ -80,10 +81,8 @@ func (c *Controller) GetSnapshotter(snapshot *tapi.Snapshot) (*batch.Job, error)
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:            SnapshotProcess_Backup,
-							ImagePullPolicy: "Always", //#Later #TESTING ,
-							//Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
-							Image: "maruftuhin/mysql:8.0-util",
+							Name:  SnapshotProcess_Backup,
+							Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Backup),
 								fmt.Sprintf(`--host=%s`, databaseName),

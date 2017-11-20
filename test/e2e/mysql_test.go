@@ -3,7 +3,6 @@ package e2e_test
 import (
 	"os"
 
-	"github.com/appscode/go/hold"
 	"github.com/appscode/go/types"
 	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/k8sdb/mysql/test/e2e/framework"
@@ -76,7 +75,7 @@ var _ = Describe("MySQL", func() {
 
 		// Create MySQL
 		createAndWaitForRunning()
-		hold.Hold()
+
 		// Delete test resource
 		deleteTestResouce()
 	}

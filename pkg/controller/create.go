@@ -252,12 +252,10 @@ func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*core.SecretVolume
 	}
 
 	if !found {
-
 		MYSQL_PASSWORD := fmt.Sprintf("%s", rand.GeneratePassword())
 		data := map[string][]byte{
 			".admin": []byte(MYSQL_PASSWORD),
 		}
-
 		secret := &core.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: authSecretName,
@@ -424,10 +422,8 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:            SnapshotProcess_Restore,
-							ImagePullPolicy: "Always", //#Later #TESTING ,  todo: remove whole line
-							//Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
-							Image: "maruftuhin/mysql:8.0-util",
+							Name:  SnapshotProcess_Restore,
+							Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),
@@ -436,6 +432,7 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 							},
 							Resources: snapshot.Spec.Resources,
+
 							VolumeMounts: []core.VolumeMount{
 								{
 									Name:      "secret",
