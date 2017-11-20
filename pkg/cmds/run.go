@@ -6,13 +6,13 @@ import (
 	"os"
 	"strings"
 
-	"github.com/appscode/log"
+	"github.com/appscode/go/log"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
-	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
+	cs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/mysql/pkg/controller"
 	"github.com/spf13/cobra"
-	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+	apiext_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -43,8 +43,8 @@ func NewCmdRun() *cobra.Command {
 			}
 
 			client := kubernetes.NewForConfigOrDie(config)
-			apiExtKubeClient := apiextensionsclient.NewForConfigOrDie(config)
-			extClient := tcs.NewForConfigOrDie(config)
+			apiExtKubeClient := apiext_cs.NewForConfigOrDie(config)
+			extClient := cs.NewForConfigOrDie(config)
 			promClient, err := pcm.NewForConfig(config)
 			if err != nil {
 				log.Fatalln(err)

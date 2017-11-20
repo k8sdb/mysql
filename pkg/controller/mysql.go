@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/appscode/log"
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/appscode/go/log"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
@@ -18,11 +18,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (c *Controller) create(mysql *tapi.MySQL) error {
-	_, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
+func (c *Controller) create(mysql *api.MySQL) error {
+	_, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 		t := metav1.Now()
 		in.Status.CreationTime = &t
-		in.Status.Phase = tapi.DatabasePhaseCreating
+		in.Status.Phase = api.DatabasePhaseCreating
 		return in
 	})
 	if err != nil {
@@ -41,7 +41,6 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 		eventer.EventReasonSuccessfulValidate,
 		"Successfully validate MySQL",
 	)
-
 	// Check DormantDatabase
 	matched, err := c.matchDormantDatabase(mysql)
 	if err != nil {
@@ -61,7 +60,7 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 			)
 		}
 
-		_, err := kutildb.TryPatchDormantDatabase(c.ExtClient, mysql.ObjectMeta, func(in *tapi.DormantDatabase) *tapi.DormantDatabase {
+		_, err := kutildb.TryPatchDormantDatabase(c.ExtClient, mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
 			in.Spec.Resume = true
 			return in
 		})
@@ -109,7 +108,6 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 
 	// Ensure Schedule backup
 	c.ensureBackupScheduler(mysql)
-
 	if mysql.Spec.Monitor != nil {
 		if err := c.addMonitor(mysql); err != nil {
 			c.recorder.Eventf(
@@ -132,7 +130,7 @@ func (c *Controller) create(mysql *tapi.MySQL) error {
 	return nil
 }
 
-func (c *Controller) matchDormantDatabase(mysql *tapi.MySQL) (bool, error) {
+func (c *Controller) matchDormantDatabase(mysql *api.MySQL) (bool, error) {
 	// Check if DormantDatabase exists or not
 	dormantDb, err := c.ExtClient.DormantDatabases(mysql.Namespace).Get(mysql.Name, metav1.GetOptions{})
 	if err != nil {
@@ -161,15 +159,15 @@ func (c *Controller) matchDormantDatabase(mysql *tapi.MySQL) (bool, error) {
 	}
 
 	// Check DatabaseKind
-	if dormantDb.Labels[tapi.LabelDatabaseKind] != tapi.ResourceKindMySQL {
+	if dormantDb.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL {
 		return sendEvent(fmt.Sprintf(`Invalid MySQL: "%v". Exists DormantDatabase "%v" of different Kind`,
 			mysql.Name, dormantDb.Name))
 	}
 
 	// Check InitSpec
-	initSpecAnnotationStr := dormantDb.Annotations[tapi.MySQLInitSpec]
+	initSpecAnnotationStr := dormantDb.Annotations[api.MySQLInitSpec]
 	if initSpecAnnotationStr != "" {
-		var initSpecAnnotation *tapi.InitSpec
+		var initSpecAnnotation *api.InitSpec
 		if err := json.Unmarshal([]byte(initSpecAnnotationStr), &initSpecAnnotation); err != nil {
 			return sendEvent(err.Error())
 		}
@@ -199,7 +197,7 @@ func (c *Controller) matchDormantDatabase(mysql *tapi.MySQL) (bool, error) {
 	return true, nil
 }
 
-func (c *Controller) ensureService(mysql *tapi.MySQL) error {
+func (c *Controller) ensureService(mysql *api.MySQL) error {
 	// Check if service name exists
 	found, err := c.findService(mysql)
 	if err != nil {
@@ -223,7 +221,7 @@ func (c *Controller) ensureService(mysql *tapi.MySQL) error {
 	return nil
 }
 
-func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
+func (c *Controller) ensureStatefulSet(mysql *api.MySQL) error {
 	found, err := c.findStatefulSet(mysql)
 	if err != nil {
 		return err
@@ -271,8 +269,8 @@ func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
 	}
 
 	if mysql.Spec.Init != nil && mysql.Spec.Init.SnapshotSource != nil {
-		_, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
-			in.Status.Phase = tapi.DatabasePhaseInitializing
+		_, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+			in.Status.Phase = api.DatabasePhaseInitializing
 			return in
 		})
 		if err != nil {
@@ -291,8 +289,8 @@ func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
 		}
 	}
 
-	_, err = kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
-		in.Status.Phase = tapi.DatabasePhaseRunning
+	_, err = kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+		in.Status.Phase = api.DatabasePhaseRunning
 		return in
 	})
 	if err != nil {
@@ -302,7 +300,7 @@ func (c *Controller) ensureStatefulSet(mysql *tapi.MySQL) error {
 	return nil
 }
 
-func (c *Controller) ensureBackupScheduler(mysql *tapi.MySQL) {
+func (c *Controller) ensureBackupScheduler(mysql *api.MySQL) {
 	// Setup Schedule backup
 	if mysql.Spec.BackupSchedule != nil {
 		err := c.cronController.ScheduleBackup(mysql, mysql.ObjectMeta, mysql.Spec.BackupSchedule)
@@ -325,7 +323,7 @@ const (
 	durationCheckRestoreJob = time.Minute * 30
 )
 
-func (c *Controller) initialize(mysql *tapi.MySQL) error {
+func (c *Controller) initialize(mysql *api.MySQL) error {
 	snapshotSource := mysql.Spec.Init.SnapshotSource
 	// Event for notification that kubernetes objects are creating
 	c.recorder.Eventf(
@@ -378,7 +376,7 @@ func (c *Controller) initialize(mysql *tapi.MySQL) error {
 	return nil
 }
 
-func (c *Controller) pause(mysql *tapi.MySQL) error {
+func (c *Controller) pause(mysql *api.MySQL) error {
 	if mysql.Annotations != nil {
 		if val, found := mysql.Annotations["kubedb.com/ignore"]; found {
 			c.recorder.Event(mysql.ObjectReference(), core.EventTypeNormal, "Ignored", val)
@@ -454,7 +452,7 @@ func (c *Controller) pause(mysql *tapi.MySQL) error {
 	return nil
 }
 
-func (c *Controller) update(oldMySQL, updatedMySQL *tapi.MySQL) error {
+func (c *Controller) update(oldMySQL, updatedMySQL *api.MySQL) error {
 	if err := validator.ValidateMySQL(c.Client, updatedMySQL); err != nil {
 		c.recorder.Event(updatedMySQL.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
 		return err

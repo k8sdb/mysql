@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/appscode/errors"
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
@@ -29,7 +28,7 @@ const (
 	durationCheckStatefulSet = time.Minute * 30
 )
 
-func (c *Controller) findService(mysql *tapi.MySQL) (bool, error) {
+func (c *Controller) findService(mysql *api.MySQL) (bool, error) {
 	name := mysql.OffshootName()
 	service, err := c.Client.CoreV1().Services(mysql.Namespace).Get(name, metav1.GetOptions{})
 	if err != nil {
@@ -40,14 +39,14 @@ func (c *Controller) findService(mysql *tapi.MySQL) (bool, error) {
 		}
 	}
 
-	if service.Spec.Selector[tapi.LabelDatabaseName] != name {
+	if service.Spec.Selector[api.LabelDatabaseName] != name {
 		return false, fmt.Errorf(`Intended service "%v" already exists`, name)
 	}
 
 	return true, nil
 }
 
-func (c *Controller) createService(mysql *tapi.MySQL) error {
+func (c *Controller) createService(mysql *api.MySQL) error {
 	svc := &core.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   mysql.OffshootName(),
@@ -65,12 +64,12 @@ func (c *Controller) createService(mysql *tapi.MySQL) error {
 		},
 	}
 	if mysql.Spec.Monitor != nil &&
-		mysql.Spec.Monitor.Agent == tapi.AgentCoreosPrometheus &&
+		mysql.Spec.Monitor.Agent == api.AgentCoreosPrometheus &&
 		mysql.Spec.Monitor.Prometheus != nil {
 		svc.Spec.Ports = append(svc.Spec.Ports, core.ServicePort{
-			Name:       tapi.PrometheusExporterPortName,
-			Port:       tapi.PrometheusExporterPortNumber,
-			TargetPort: intstr.FromString(tapi.PrometheusExporterPortName),
+			Name:       api.PrometheusExporterPortName,
+			Port:       api.PrometheusExporterPortNumber,
+			TargetPort: intstr.FromString(api.PrometheusExporterPortName),
 		})
 	}
 
@@ -80,7 +79,7 @@ func (c *Controller) createService(mysql *tapi.MySQL) error {
 	return nil
 }
 
-func (c *Controller) findStatefulSet(mysql *tapi.MySQL) (bool, error) {
+func (c *Controller) findStatefulSet(mysql *api.MySQL) (bool, error) {
 	// SatatefulSet for MySQL database
 	statefulSet, err := c.Client.AppsV1beta1().StatefulSets(mysql.Namespace).Get(mysql.OffshootName(), metav1.GetOptions{})
 	if err != nil {
@@ -91,15 +90,14 @@ func (c *Controller) findStatefulSet(mysql *tapi.MySQL) (bool, error) {
 		}
 	}
 
-	if statefulSet.Labels[tapi.LabelDatabaseKind] != tapi.ResourceKindMySQL {
+	if statefulSet.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL {
 		return false, fmt.Errorf(`Intended statefulSet "%v" already exists`, mysql.OffshootName())
 	}
 
 	return true, nil
 }
 
-func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, error) {
-
+func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, error) {
 	// SatatefulSet for MySQL database
 	statefulSet := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -118,7 +116,7 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:            tapi.ResourceNameMySQL,
+							Name:            api.ResourceNameMySQL,
 							Image:           fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version),
 							ImagePullPolicy: core.PullIfNotPresent,
 							Ports: []core.ContainerPort{
@@ -131,7 +129,7 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 							VolumeMounts: []core.VolumeMount{
 								{
 									Name:      "data",
-									MountPath: "/var/lib/mysql", //Volume path of mysql, https://github.com/docker-library/mysql/blob/86431f073b3d2f963d21e33cb8943f0bdcdf143d/8.0/Dockerfile#L48
+									MountPath: "/var/lib/mysql", //Volume path of mysql, ref: https://github.com/docker-library/mysql/blob/86431f073b3d2f963d21e33cb8943f0bdcdf143d/8.0/Dockerfile#L48
 								},
 							},
 						},
@@ -146,22 +144,22 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 	}
 
 	if mysql.Spec.Monitor != nil &&
-		mysql.Spec.Monitor.Agent == tapi.AgentCoreosPrometheus &&
+		mysql.Spec.Monitor.Agent == api.AgentCoreosPrometheus &&
 		mysql.Spec.Monitor.Prometheus != nil {
 		exporter := core.Container{
 			Name: "exporter",
 			Args: []string{
 				"export",
-				fmt.Sprintf("--address=:%d", tapi.PrometheusExporterPortNumber),
+				fmt.Sprintf("--address=:%d", api.PrometheusExporterPortNumber),
 				"--v=3",
 			},
 			Image:           docker.ImageOperator + ":" + c.opt.ExporterTag,
 			ImagePullPolicy: core.PullIfNotPresent,
 			Ports: []core.ContainerPort{
 				{
-					Name:          tapi.PrometheusExporterPortName,
+					Name:          api.PrometheusExporterPortName,
 					Protocol:      core.ProtocolTCP,
-					ContainerPort: int32(tapi.PrometheusExporterPortNumber),
+					ContainerPort: int32(api.PrometheusExporterPortNumber),
 				},
 			},
 		}
@@ -174,7 +172,7 @@ func (c *Controller) createStatefulSet(mysql *tapi.MySQL) (*apps.StatefulSet, er
 			return nil, err
 		}
 
-		_mysql, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *tapi.MySQL) *tapi.MySQL {
+		_mysql, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 			in.Spec.DatabaseSecret = secretVolumeSource
 			return in
 		})
@@ -244,28 +242,7 @@ func (c *Controller) findSecret(secretName, namespace string) (bool, error) {
 	return true, nil
 }
 
-func (c *Controller) findRestoreSecret(mysql *tapi.MySQL) (*core.SecretVolumeSource, error) {
-	snapshot, err := c.ExtClient.Snapshots(mysql.Namespace).Get(mysql.Spec.Init.SnapshotSource.Name, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	srcMySQL, err := c.ExtClient.MySQLs(mysql.Namespace).Get(snapshot.Spec.DatabaseName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	exists, err := c.findSecret(srcMySQL.Spec.DatabaseSecret.SecretName, mysql.Namespace)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, errors.New(srcMySQL.Spec.DatabaseSecret.SecretName, "secret not found")
-	}
-	return &core.SecretVolumeSource{
-		SecretName: srcMySQL.Spec.DatabaseSecret.SecretName,
-	}, nil
-}
-
-func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*core.SecretVolumeSource, error) {
+func (c *Controller) createDatabaseSecret(mysql *api.MySQL) (*core.SecretVolumeSource, error) {
 	authSecretName := mysql.Name + "-admin-auth"
 
 	found, err := c.findSecret(authSecretName, mysql.Namespace)
@@ -277,12 +254,11 @@ func (c *Controller) createDatabaseSecret(mysql *tapi.MySQL) (*core.SecretVolume
 		data := map[string][]byte{
 			".admin": []byte(MYSQL_PASSWORD),
 		}
-
 		secret := &core.Secret{
 			ObjectMeta: metav1.ObjectMeta{
 				Name: authSecretName,
 				Labels: map[string]string{
-					tapi.LabelDatabaseKind: tapi.ResourceKindMySQL,
+					api.LabelDatabaseKind: api.ResourceKindMySQL,
 				},
 			},
 			Type: core.SecretTypeOpaque,
@@ -332,7 +308,7 @@ func addDataVolume(statefulSet *apps.StatefulSet, pvcSpec *core.PersistentVolume
 	}
 }
 
-func addInitialScript(statefulSet *apps.StatefulSet, script *tapi.ScriptSourceSpec) {
+func addInitialScript(statefulSet *apps.StatefulSet, script *api.ScriptSourceSpec) {
 	statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts = append(statefulSet.Spec.Template.Spec.Containers[0].VolumeMounts,
 		core.VolumeMount{
 			Name:      "initial-script",
@@ -348,24 +324,24 @@ func addInitialScript(statefulSet *apps.StatefulSet, script *tapi.ScriptSourceSp
 	)
 }
 
-func (c *Controller) createDormantDatabase(mysql *tapi.MySQL) (*tapi.DormantDatabase, error) {
-	dormantDb := &tapi.DormantDatabase{
+func (c *Controller) createDormantDatabase(mysql *api.MySQL) (*api.DormantDatabase, error) {
+	dormantDb := &api.DormantDatabase{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      mysql.Name,
 			Namespace: mysql.Namespace,
 			Labels: map[string]string{
-				tapi.LabelDatabaseKind: tapi.ResourceKindMySQL,
+				api.LabelDatabaseKind: api.ResourceKindMySQL,
 			},
 		},
-		Spec: tapi.DormantDatabaseSpec{
-			Origin: tapi.Origin{
+		Spec: api.DormantDatabaseSpec{
+			Origin: api.Origin{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:        mysql.Name,
 					Namespace:   mysql.Namespace,
 					Labels:      mysql.Labels,
 					Annotations: mysql.Annotations,
 				},
-				Spec: tapi.OriginSpec{
+				Spec: api.OriginSpec{
 					MySQL: &mysql.Spec,
 				},
 			},
@@ -375,7 +351,7 @@ func (c *Controller) createDormantDatabase(mysql *tapi.MySQL) (*tapi.DormantData
 	initSpec, _ := json.Marshal(mysql.Spec.Init)
 	if mysql.Spec.Init != nil {
 		dormantDb.Annotations = map[string]string{
-			tapi.MySQLInitSpec: string(initSpec),
+			api.MySQLInitSpec: string(initSpec),
 		}
 	}
 
@@ -384,8 +360,8 @@ func (c *Controller) createDormantDatabase(mysql *tapi.MySQL) (*tapi.DormantData
 	return c.ExtClient.DormantDatabases(dormantDb.Namespace).Create(dormantDb)
 }
 
-func (c *Controller) reCreateMySQL(mysql *tapi.MySQL) error {
-	_mysql := &tapi.MySQL{
+func (c *Controller) reCreateMySQL(mysql *api.MySQL) error {
+	_mysql := &api.MySQL{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        mysql.Name,
 			Namespace:   mysql.Namespace,
@@ -408,12 +384,12 @@ const (
 	snapshotType_DumpRestore = "dump-restore"
 )
 
-func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot) (*batch.Job, error) {
+func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) (*batch.Job, error) {
 	databaseName := mysql.Name
 	jobName := snapshot.OffshootName()
 	jobLabel := map[string]string{
-		tapi.LabelDatabaseName: databaseName,
-		tapi.LabelJobType:      SnapshotProcess_Restore,
+		api.LabelDatabaseName: databaseName,
+		api.LabelJobType:      SnapshotProcess_Restore,
 	}
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
 	bucket, err := backupSpec.Container()
@@ -443,10 +419,8 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:            SnapshotProcess_Restore,
-							ImagePullPolicy: "Always", //#Later #TESTING ,  todo: remove whole line
-							//Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
-							Image: "maruftuhin/mysql:8.0-util",
+							Name:  SnapshotProcess_Restore,
+							Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),
@@ -455,10 +429,11 @@ func (c *Controller) createRestoreJob(mysql *tapi.MySQL, snapshot *tapi.Snapshot
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 							},
 							Resources: snapshot.Spec.Resources,
+
 							VolumeMounts: []core.VolumeMount{
 								{
 									Name:      "secret",
-									MountPath: "/srv/" + tapi.ResourceNameMySQL + "/secrets",
+									MountPath: "/srv/" + api.ResourceNameMySQL + "/secrets",
 								},
 								{
 									Name:      persistentVolume.Name,

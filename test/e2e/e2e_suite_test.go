@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	cs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/mysql/pkg/controller"
 	"github.com/k8sdb/mysql/test/e2e/framework"
@@ -56,7 +56,7 @@ var _ = BeforeSuite(func() {
 	// Clients
 	kubeClient := clientset.NewForConfigOrDie(config)
 	apiExtKubeClient := crd_cs.NewForConfigOrDie(config)
-	extClient := tcs.NewForConfigOrDie(config)
+	extClient := cs.NewForConfigOrDie(config)
 	// Framework
 	root = framework.New(kubeClient, extClient, storageClass)
 
@@ -72,7 +72,7 @@ var _ = BeforeSuite(func() {
 
 	opt := controller.Options{
 		OperatorNamespace: root.Namespace(),
-		GoverningService:  tapi.DatabaseNamePrefix,
+		GoverningService:  api.DatabaseNamePrefix,
 	}
 
 	// Controller
