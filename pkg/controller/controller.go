@@ -9,7 +9,7 @@ import (
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
 	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
-	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
+	"github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	core "k8s.io/api/core/v1"
@@ -122,7 +122,7 @@ func (c *Controller) watchMySQL() {
 		cache.ResourceEventHandlerFuncs{
 			AddFunc: func(obj interface{}) {
 				mysql := obj.(*api.MySQL)
-				kutildb.AssignTypeKind(mysql)
+				util.AssignTypeKind(mysql)
 				if mysql.Status.CreationTime == nil {
 					if err := c.create(mysql); err != nil {
 						log.Errorln(err)
@@ -132,7 +132,7 @@ func (c *Controller) watchMySQL() {
 			},
 			DeleteFunc: func(obj interface{}) {
 				mysql := obj.(*api.MySQL)
-				kutildb.AssignTypeKind(mysql)
+				util.AssignTypeKind(mysql)
 				if err := c.pause(mysql); err != nil {
 					log.Errorln(err)
 				}
@@ -146,8 +146,8 @@ func (c *Controller) watchMySQL() {
 				if !ok {
 					return
 				}
-				kutildb.AssignTypeKind(oldObj)
-				kutildb.AssignTypeKind(newObj)
+				util.AssignTypeKind(oldObj)
+				util.AssignTypeKind(newObj)
 				if !reflect.DeepEqual(oldObj.Spec, newObj.Spec) {
 					if err := c.update(oldObj, newObj); err != nil {
 						log.Errorln(err)
@@ -251,7 +251,7 @@ func (c *Controller) pushFailureEvent(mysql *api.MySQL, reason string) {
 		reason,
 	)
 
-	_, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+	_, err := util.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 		in.Status.Phase = api.DatabasePhaseFailed
 		in.Status.Reason = reason
 		return in

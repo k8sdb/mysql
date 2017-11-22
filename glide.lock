@@ -1,5 +1,5 @@
-hash: b6c2326d3760606e0b371867158ef8acd8ac99ceddd6fdd622c45da82705cb28
-updated: 2017-11-20T15:50:49.258305456+06:00
+hash: 0b46a000c278d7ee34697c95e14f698360ecd0694991f547cf4f6987a58efcac
+updated: 2017-11-22T15:33:04.649721057+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,7 +7,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: 1cd97c853ad364376f9c792106deb0bfd197bca0
+  version: 85b510edd14fe8d6beb2ad365afd3c5b3afc8c49
   subpackages:
   - context
   - crypto/rand
@@ -123,7 +123,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
-  version: 2e44421e256d82ebbf3d4d4fcabe8930b905eff3
+  version: d3de07a94d22b4a0972deb4b96d790c2c0ce8333
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
@@ -211,7 +211,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/k8sdb/apimachinery
-  version: bd690f31a03d5206864f510dd8bd59c562bccb8d
+  version: d46ab637c1b6b52098e0501b44f736526fa7d6d3
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -352,7 +352,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: 790790d1b4a7d6b0d03d3725f980eedf80dc2707
+  version: 17b5f22a248d6d3913171c1a557552ace0d9c806
   subpackages:
   - gensupport
   - googleapi
@@ -546,3 +546,5 @@ testImports:
   - reporters/stenographer/support/go-colorable
   - reporters/stenographer/support/go-isatty
   - types
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0

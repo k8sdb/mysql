@@ -6,7 +6,7 @@ import (
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/encoding/json/types"
 	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
+	"github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -37,7 +37,7 @@ func (f *Framework) GetMySQL(meta metav1.ObjectMeta) (*api.MySQL, error) {
 }
 
 func (f *Framework) TryPatchMySQL(meta metav1.ObjectMeta, transform func(*api.MySQL) *api.MySQL) (*api.MySQL, error) {
-	return kutildb.TryPatchMySQL(f.extClient, meta, transform)
+	return util.TryPatchMySQL(f.extClient, meta, transform)
 }
 
 func (f *Framework) DeleteMySQL(meta metav1.ObjectMeta) error {

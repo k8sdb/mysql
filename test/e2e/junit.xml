@@ -1,4 +1,2 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="2" failures="0" time="63.855033656">
-      <testcase name="MySQL Test General - should run successfully" classname="e2e Suite" time="40.070241609"></testcase>
-  </testsuite>
+  <testsuite tests="1" failures="0" time="2.455235055"></testsuite>

@@ -9,7 +9,7 @@ import (
 
 	"github.com/appscode/go/log"
 	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
+	"github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	"github.com/k8sdb/mysql/pkg/validator"
@@ -19,7 +19,7 @@ import (
 )
 
 func (c *Controller) create(mysql *api.MySQL) error {
-	_, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+	_, err := util.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 		t := metav1.Now()
 		in.Status.CreationTime = &t
 		in.Status.Phase = api.DatabasePhaseCreating
@@ -60,7 +60,7 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			)
 		}
 
-		_, err := kutildb.TryPatchDormantDatabase(c.ExtClient, mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+		_, err := util.TryPatchDormantDatabase(c.ExtClient, mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
 			in.Spec.Resume = true
 			return in
 		})
@@ -243,12 +243,6 @@ func (c *Controller) ensureStatefulSet(mysql *api.MySQL) error {
 		return err
 	}
 
-	_mysql, err := c.ExtClient.MySQLs(mysql.Namespace).Get(mysql.Name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	mysql = _mysql
-
 	// Check StatefulSet Pod status
 	if err := c.CheckStatefulSetPodStatus(statefulSet, durationCheckStatefulSet); err != nil {
 		c.recorder.Eventf(
@@ -269,7 +263,7 @@ func (c *Controller) ensureStatefulSet(mysql *api.MySQL) error {
 	}
 
 	if mysql.Spec.Init != nil && mysql.Spec.Init.SnapshotSource != nil {
-		_, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+		_, err := util.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 			in.Status.Phase = api.DatabasePhaseInitializing
 			return in
 		})
@@ -289,7 +283,7 @@ func (c *Controller) ensureStatefulSet(mysql *api.MySQL) error {
 		}
 	}
 
-	_, err = kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+	_, err = util.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 		in.Status.Phase = api.DatabasePhaseRunning
 		return in
 	})
@@ -357,7 +351,7 @@ func (c *Controller) initialize(mysql *api.MySQL) error {
 		return err
 	}
 
-	jobSuccess := c.CheckDatabaseRestoreJob(job, mysql, c.recorder, durationCheckRestoreJob)
+	jobSuccess := c.CheckDatabaseRestoreJob(snapshot, job, mysql, c.recorder, durationCheckRestoreJob)
 	if jobSuccess {
 		c.recorder.Event(
 			mysql.ObjectReference(),

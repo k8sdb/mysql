@@ -9,7 +9,7 @@ import (
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
 	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
+	"github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/apimachinery/pkg/eventer"
 	"github.com/k8sdb/apimachinery/pkg/storage"
@@ -172,7 +172,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, err
 			return nil, err
 		}
 
-		_mysql, err := kutildb.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+		_mysql, err := util.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 			in.Spec.DatabaseSecret = secretVolumeSource
 			return in
 		})
@@ -180,7 +180,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, err
 			c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 			return nil, err
 		}
-		mysql = _mysql
+		mysql.Spec = _mysql.Spec
 	}
 
 	//Set root user password from Secret
@@ -419,8 +419,9 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:  SnapshotProcess_Restore,
-							Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
+							Name: SnapshotProcess_Restore,
+							//Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version), //todo
+							Image: fmt.Sprintf("kubedb/mysql:8.0-util"),
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
 								fmt.Sprintf(`--host=%s`, databaseName),
@@ -464,7 +465,7 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 							Name: "osmconfig",
 							VolumeSource: core.VolumeSource{
 								Secret: &core.SecretVolumeSource{
-									SecretName: snapshot.Name,
+									SecretName: snapshot.OSMSecretName(),
 								},
 							},
 						},

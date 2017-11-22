@@ -212,7 +212,7 @@ var _ = Describe("MySQL", func() {
 							StorageClassName: types.StringP(f.StorageClass),
 						}
 					})
-					FIt("should run successfully", shouldTakeSnapshot)
+					It("should run successfully", shouldTakeSnapshot)
 				})
 			})
 
@@ -326,19 +326,6 @@ var _ = Describe("MySQL", func() {
 					deleteTestResource()
 				}
 
-				Context("with S3", func() {
-					BeforeEach(func() {
-						secret = f.SecretForS3Backend()
-						snapshot.Spec.StorageSecretName = secret.Name
-						snapshot.Spec.S3 = &api.S3Spec{
-							Bucket: os.Getenv(S3_BUCKET_NAME),
-						}
-						snapshot.Spec.DatabaseName = mysql.Name
-					})
-
-					It("should run successfully", shouldRestoreSnapshot)
-				})
-
 				Context("with GCS", func() {
 					BeforeEach(func() {
 						secret = f.SecretForGCSBackend()
@@ -445,7 +432,7 @@ var _ = Describe("MySQL", func() {
 					// Delete test resource
 					deleteTestResource()
 				})
-				Context("with init", func() {
+				Context("Multiple times with init", func() {
 					BeforeEach(func() {
 						usedInitSpec = true
 						mysql.Spec.Init = &api.InitSpec{

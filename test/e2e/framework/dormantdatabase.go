@@ -4,7 +4,7 @@ import (
 	"time"
 
 	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	kutildb "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
+	"github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,7 +15,7 @@ func (f *Framework) GetDormantDatabase(meta metav1.ObjectMeta) (*api.DormantData
 }
 
 func (f *Framework) TryPatchDormantDatabase(meta metav1.ObjectMeta, transform func(*api.DormantDatabase) *api.DormantDatabase) (*api.DormantDatabase, error) {
-	return kutildb.TryPatchDormantDatabase(f.extClient, meta, transform)
+	return util.TryPatchDormantDatabase(f.extClient, meta, transform)
 }
 
 func (f *Framework) DeleteDormantDatabase(meta metav1.ObjectMeta) error {

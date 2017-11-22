@@ -5,7 +5,6 @@ import (
 
 	"github.com/appscode/go/log"
 	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/k8sdb/apimachinery/pkg/docker"
 	"github.com/k8sdb/apimachinery/pkg/storage"
 	amv "github.com/k8sdb/apimachinery/pkg/validator"
 	batch "k8s.io/api/batch/v1"
@@ -81,8 +80,9 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:  SnapshotProcess_Backup,
-							Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version),
+							Name: SnapshotProcess_Backup,
+							//Image: fmt.Sprintf("%s:%s-util", docker.ImageMySQL, mysql.Spec.Version), //todo
+							Image: fmt.Sprintf("kubedb/mysql:8.0-util"),
 							Args: []string{
 								fmt.Sprintf(`--process=%s`, SnapshotProcess_Backup),
 								fmt.Sprintf(`--host=%s`, databaseName),
@@ -125,7 +125,7 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 							Name: "osmconfig",
 							VolumeSource: core.VolumeSource{
 								Secret: &core.SecretVolumeSource{
-									SecretName: snapshot.Name,
+									SecretName: snapshot.OSMSecretName(),
 								},
 							},
 						},

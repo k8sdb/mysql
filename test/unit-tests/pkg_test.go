@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/appscode/go/hold"
-	tapi "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
-	tcs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
+	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
+	cs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
 	"github.com/k8sdb/mysql/pkg/controller"
 	"github.com/mitchellh/go-homedir"
@@ -37,7 +37,7 @@ func GetNewController() *controller.Controller {
 	// Clients
 	kubeClient := clientset.NewForConfigOrDie(config)
 	apiExtKubeClient := crd_cs.NewForConfigOrDie(config)
-	extClient := tcs.NewForConfigOrDie(config)
+	extClient := cs.NewForConfigOrDie(config)
 	// Framework
 
 	cronController := amc.NewCronController(kubeClient, extClient)
@@ -50,6 +50,6 @@ func GetNewController() *controller.Controller {
 	//root.EventuallyCRD().Should(Succeed())
 	//return ctrl
 	return controller.New(kubeClient, apiExtKubeClient, extClient, nil, cronController, controller.Options{
-		GoverningService: tapi.DatabaseNamePrefix,
+		GoverningService: api.DatabaseNamePrefix,
 	})
 }

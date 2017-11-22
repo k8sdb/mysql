@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	logs "github.com/appscode/go/log/golog"
 	api "github.com/k8sdb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/k8sdb/apimachinery/pkg/controller"
@@ -36,6 +37,7 @@ var (
 )
 
 func TestE2e(t *testing.T) {
+	logs.InitLogs()
 	RegisterFailHandler(Fail)
 	SetDefaultEventuallyTimeout(TIMEOUT)
 
