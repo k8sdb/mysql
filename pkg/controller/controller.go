@@ -134,6 +134,7 @@ func (c *Controller) watchMySQL() {
 			DeleteFunc: func(obj interface{}) {
 				mysql := obj.(*api.MySQL)
 				util.AssignTypeKind(mysql)
+				setMonitoringPort(mysql)
 				if err := c.pause(mysql); err != nil {
 					log.Errorln(err)
 				}
