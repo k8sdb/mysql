@@ -1,4 +1,4 @@
-package: github.com/k8sdb/mysql
+package: github.com/kubedb/mysql
 import:
 - package: github.com/appscode/go
 - package: github.com/appscode/kutil
@@ -13,7 +13,7 @@ import:
   vcs: git
   version: master
 - package: github.com/jpillora/go-ogle-analytics
-- package: github.com/k8sdb/apimachinery
+- package: github.com/kubedb/apimachinery
   version: master
 - package: github.com/prometheus/client_golang
   version: v0.8.0

@@ -2,7 +2,7 @@ package framework
 
 import (
 	"github.com/appscode/go/crypto/rand"
-	cs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
+	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
 	"k8s.io/client-go/kubernetes"
 )
 

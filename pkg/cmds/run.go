@@ -8,9 +8,9 @@ import (
 
 	"github.com/appscode/go/log"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
-	cs "github.com/k8sdb/apimachinery/client/typed/kubedb/v1alpha1"
-	amc "github.com/k8sdb/apimachinery/pkg/controller"
-	"github.com/k8sdb/mysql/pkg/controller"
+	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
+	amc "github.com/kubedb/apimachinery/pkg/controller"
+	"github.com/kubedb/mysql/pkg/controller"
 	"github.com/spf13/cobra"
 	apiext_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

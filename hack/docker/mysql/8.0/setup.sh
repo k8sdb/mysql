@@ -5,7 +5,7 @@ set -o nounset
 set -o pipefail
 
 GOPATH=$(go env GOPATH)
-REPO_ROOT=$GOPATH/src/github.com/k8sdb/mysql
+REPO_ROOT=$GOPATH/src/github.com/kubedb/mysql
 
 source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 

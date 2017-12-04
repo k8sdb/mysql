@@ -6,14 +6,14 @@ import (
 	"os"
 
 	"github.com/appscode/go/runtime"
-	"github.com/k8sdb/mysql/pkg/cmds"
+	"github.com/kubedb/mysql/pkg/cmds"
 	"github.com/spf13/cobra/doc"
 )
 
 // ref: https://github.com/spf13/cobra/blob/master/doc/md_docs.md
 func main() {
 	rootCmd := cmds.NewRootCmd("")
-	dir := runtime.GOPath() + "/src/github.com/k8sdb/mysql/docs/reference"
+	dir := runtime.GOPath() + "/src/github.com/kubedb/mysql/docs/reference"
 	fmt.Printf("Generating cli markdown tree in: %v\n", dir)
 	err := os.RemoveAll(dir)
 	if err != nil {
