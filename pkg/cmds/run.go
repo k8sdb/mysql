@@ -59,7 +59,10 @@ func NewCmdRun() *cobra.Command {
 			w := controller.New(client, apiExtKubeClient, extClient, promClient, cronController, opt)
 			defer runtime.HandleCrash()
 
-			w.Setup()
+			err = w.Setup()
+			if err != nil {
+				log.Fatalln(err)
+			}
 
 			fmt.Println("Starting operator...")
 			w.RunAndHold()
