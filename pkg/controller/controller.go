@@ -24,6 +24,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
+	apiext_util "github.com/appscode/kutil/apiextensions/v1beta1"
 )
 
 type Options struct {
@@ -80,10 +81,17 @@ func New(
 	}
 }
 
-func (c *Controller) Run() {
-	// Ensure MySQL CRD
-	c.ensureCustomResourceDefinition()
+func (c *Controller) Setup() error {
+	log.Infoln("Ensuring CustomResourceDefinition...")
+	crds := []*crd_api.CustomResourceDefinition{
+		api.MySQL{}.CustomResourceDefinition(),
+		api.DormantDatabase{}.CustomResourceDefinition(),
+		api.Snapshot{}.CustomResourceDefinition(),
+	}
+	return apiext_util.RegisterCRDs(c.ApiExtKubeClient,crds)
+}
 
+func (c *Controller) Run() {
 	// Start Cron
 	c.cronController.StartCron()
 
@@ -218,41 +226,6 @@ func (c *Controller) watchDeletedDatabase() {
 	amc.NewDormantDbController(c.Client, c.ApiExtKubeClient, c.ExtClient, c, lw, c.syncPeriod).Run()
 }
 
-func (c *Controller) ensureCustomResourceDefinition() {
-	log.Infoln("Ensuring CustomResourceDefinition...")
-
-	resourceName := api.ResourceTypeMySQL + "." + api.SchemeGroupVersion.Group
-	if _, err := c.ApiExtKubeClient.CustomResourceDefinitions().Get(resourceName, metav1.GetOptions{}); err != nil {
-		if !kerr.IsNotFound(err) {
-			log.Fatalln(err)
-		}
-	} else {
-		return
-	}
-
-	crd := &crd_api.CustomResourceDefinition{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: resourceName,
-			Labels: map[string]string{
-				"app": "kubedb",
-			},
-		},
-		Spec: crd_api.CustomResourceDefinitionSpec{
-			Group:   api.SchemeGroupVersion.Group,
-			Version: api.SchemeGroupVersion.Version,
-			Scope:   crd_api.NamespaceScoped,
-			Names: crd_api.CustomResourceDefinitionNames{
-				Plural:     api.ResourceTypeMySQL,
-				Kind:       api.ResourceKindMySQL,
-				ShortNames: []string{api.ResourceCodeMySQL},
-			},
-		},
-	}
-
-	if _, err := c.ApiExtKubeClient.CustomResourceDefinitions().Create(crd); err != nil {
-		log.Fatalln(err)
-	}
-}
 
 func (c *Controller) pushFailureEvent(mysql *api.MySQL, reason string) {
 	c.recorder.Eventf(
