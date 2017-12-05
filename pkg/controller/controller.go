@@ -80,6 +80,7 @@ func New(
 	}
 }
 
+// Ensuring Custom Resources Definitions
 func (c *Controller) Setup() error {
 	log.Infoln("Ensuring CustomResourceDefinition...")
 	crds := []*crd_api.CustomResourceDefinition{
