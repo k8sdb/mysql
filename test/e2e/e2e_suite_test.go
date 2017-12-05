@@ -7,6 +7,7 @@ import (
 	"time"
 
 	logs "github.com/appscode/go/log/golog"
+	"github.com/appscode/go/log"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
@@ -79,7 +80,10 @@ var _ = BeforeSuite(func() {
 
 	// Controller
 	ctrl = controller.New(kubeClient, apiExtKubeClient, extClient, nil, cronController, opt)
-	ctrl.Setup()
+	err=ctrl.Setup()
+	if err != nil {
+		log.Fatalln(err)
+	}
 	ctrl.Run()
 	root.EventuallyCRD().Should(Succeed())
 })
