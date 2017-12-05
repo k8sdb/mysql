@@ -59,6 +59,7 @@ func NewCmdRun() *cobra.Command {
 			w := controller.New(client, apiExtKubeClient, extClient, promClient, cronController, opt)
 			defer runtime.HandleCrash()
 
+			// Ensuring Custom Resource Definitions
 			err = w.Setup()
 			if err != nil {
 				log.Fatalln(err)
