@@ -79,6 +79,7 @@ var _ = BeforeSuite(func() {
 
 	// Controller
 	ctrl = controller.New(kubeClient, apiExtKubeClient, extClient, nil, cronController, opt)
+	ctrl.Setup()
 	ctrl.Run()
 	root.EventuallyCRD().Should(Succeed())
 })
