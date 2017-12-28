@@ -1,6 +1,6 @@
 #####################################
 #      Image for database dump      #
-#  Image: kubedb/mysql:util         #
+#  Image: kubedb/mysql-tools:8.0    #
 #####################################
 
 FROM appscode/python:2.7

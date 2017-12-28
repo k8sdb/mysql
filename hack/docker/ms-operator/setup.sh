@@ -13,6 +13,7 @@ REPO_ROOT=$GOPATH/src/github.com/kubedb/mysql
 source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 
 APPSCODE_ENV=${APPSCODE_ENV:-dev}
+DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
 IMG=ms-operator
 
 DIST=$GOPATH/src/github.com/kubedb/mysql/dist
@@ -51,7 +52,7 @@ COPY ms-operator /usr/bin/ms-operator
 USER nobody:nobody
 ENTRYPOINT ["ms-operator"]
 EOL
-    local cmd="docker build -t kubedb/$IMG:$TAG ."
+    local cmd="docker build -t $DOCKER_REGISTRY/$IMG:$TAG ."
     echo $cmd; $cmd
 
     rm ms-operator Dockerfile

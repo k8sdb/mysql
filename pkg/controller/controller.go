@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"reflect"
 	"time"
 
 	"github.com/appscode/go/hold"
@@ -15,6 +14,7 @@ import (
 	drmnc "github.com/kubedb/apimachinery/pkg/controller/dormant_database"
 	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
 	"github.com/kubedb/apimachinery/pkg/eventer"
+	"github.com/kubedb/mysql/pkg/docker"
 	core "k8s.io/api/core/v1"
 	crd_api "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
@@ -25,7 +25,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
-	"github.com/kubedb/mysql/pkg/docker"
 	"k8s.io/client-go/util/workqueue"
 )
 
@@ -79,11 +78,11 @@ func New(
 			ExtClient:        extClient,
 			ApiExtKubeClient: apiExtKubeClient,
 		},
-		promClient:       promClient,
-		cronController:   cronController,
-		recorder:         eventer.NewEventRecorder(client, "MySQL operator"),
-		opt:              opt,
-		syncPeriod:       time.Minute * 5,
+		promClient:     promClient,
+		cronController: cronController,
+		recorder:       eventer.NewEventRecorder(client, "MySQL operator"),
+		opt:            opt,
+		syncPeriod:     time.Minute * 5,
 	}
 }
 
@@ -129,7 +128,6 @@ func (c *Controller) watchMySQL() {
 	c.runWatcher(1, stop)
 	select {}
 }
-
 
 func (c *Controller) watchDatabaseSnapshot() {
 	labelMap := map[string]string{
@@ -187,13 +185,18 @@ func (c *Controller) pushFailureEvent(mysql *api.MySQL, reason string) {
 		reason,
 	)
 
-	ms,_, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+	ms, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
 		in.Status.Phase = api.DatabasePhaseFailed
 		in.Status.Reason = reason
 		return in
 	})
 	if err != nil {
-		c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		c.recorder.Eventf(
+			mysql.ObjectReference(),
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			err.Error(),
+		)
 	}
 	mysql.Status = ms.Status
 }

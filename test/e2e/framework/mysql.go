@@ -5,6 +5,7 @@ import (
 
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/encoding/json/types"
+	core_util "github.com/appscode/kutil/core/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
@@ -37,7 +38,12 @@ func (f *Framework) GetMySQL(meta metav1.ObjectMeta) (*api.MySQL, error) {
 }
 
 func (f *Framework) TryPatchMySQL(meta metav1.ObjectMeta, transform func(*api.MySQL) *api.MySQL) (*api.MySQL, error) {
-	return util.TryPatchMySQL(f.extClient, meta, transform)
+	mysql, err := f.extClient.MySQLs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	mysql, _, err = util.PatchMySQL(f.extClient, mysql, transform)
+	return mysql, err
 }
 
 func (f *Framework) DeleteMySQL(meta metav1.ObjectMeta) error {
@@ -72,4 +78,17 @@ func (f *Framework) EventuallyMySQLRunning(meta metav1.ObjectMeta) GomegaAsyncAs
 		time.Minute*5,
 		time.Second*5,
 	)
+}
+
+func (f *Framework) CleanMySQL() {
+	mysqlList, err := f.extClient.MySQLs(f.namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return
+	}
+	for _, e := range mysqlList.Items {
+		util.PatchMySQL(f.extClient, &e, func(in *api.MySQL) *api.MySQL {
+			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
+			return in
+		})
+	}
 }

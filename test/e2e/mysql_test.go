@@ -56,7 +56,7 @@ var _ = Describe("MySQL", func() {
 		f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
 
 		By("WipeOut mysql")
-		_, err := f.TryPatchDormantDatabase(mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+		_, err := f.PatchDormantDatabase(mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
 			in.Spec.WipeOut = true
 			return in
 		})
@@ -109,37 +109,38 @@ var _ = Describe("MySQL", func() {
 			})
 		})
 
-		Context("DoNotPause", func() {
-			BeforeEach(func() {
-				mysql.Spec.DoNotPause = true
-			})
+		// Currently Not Available
+		//Context("DoNotPause", func() {
+		//	BeforeEach(func() {
+		//		mysql.Spec.DoNotPause = true
+		//	})
+		//
+		//	It("should work successfully", func() {
+		//		// Create and wait for running MySQL
+		//		createAndWaitForRunning()
+		//
+		//		By("Delete mysql")
+		//		err = f.DeleteMySQL(mysql.ObjectMeta)
+		//		Expect(err).NotTo(HaveOccurred())
+		//
+		//		By("MySQL is not paused. Check for mysql")
+		//		f.EventuallyMySQL(mysql.ObjectMeta).Should(BeTrue())
+		//
+		//		By("Check for Running mysql")
+		//		f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+		//
+		//		By("Update mysql to set DoNotPause=false")
+		//		f.TryPatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+		//			in.Spec.DoNotPause = false
+		//			return in
+		//		})
+		//
+		//		// Delete test resource
+		//		deleteTestResource()
+		//	})
+		//})
 
-			It("should work successfully", func() {
-				// Create and wait for running MySQL
-				createAndWaitForRunning()
-
-				By("Delete mysql")
-				err = f.DeleteMySQL(mysql.ObjectMeta)
-				Expect(err).NotTo(HaveOccurred())
-
-				By("MySQL is not paused. Check for mysql")
-				f.EventuallyMySQL(mysql.ObjectMeta).Should(BeTrue())
-
-				By("Check for Running mysql")
-				f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
-
-				By("Update mysql to set DoNotPause=false")
-				f.TryPatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
-					in.Spec.DoNotPause = false
-					return in
-				})
-
-				// Delete test resource
-				deleteTestResource()
-			})
-		})
-
-		Context("Snapshot", func() {
+		FContext("Snapshot", func() {
 			var skipDataCheck bool
 
 			AfterEach(func() {
@@ -216,17 +217,17 @@ var _ = Describe("MySQL", func() {
 				})
 			})
 
-			Context("In S3", func() {
-				BeforeEach(func() {
-					secret = f.SecretForS3Backend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.S3 = &api.S3Spec{
-						Bucket: os.Getenv(S3_BUCKET_NAME),
-					}
-				})
-
-				It("should take Snapshot successfully", shouldTakeSnapshot)
-			})
+			//Context("In S3", func() {
+			//	BeforeEach(func() {
+			//		secret = f.SecretForS3Backend()
+			//		snapshot.Spec.StorageSecretName = secret.Name
+			//		snapshot.Spec.S3 = &api.S3Spec{
+			//			Bucket: os.Getenv(S3_BUCKET_NAME),
+			//		}
+			//	})
+			//
+			//	It("should take Snapshot successfully", shouldTakeSnapshot)
+			//})
 
 			Context("In GCS", func() {
 				BeforeEach(func() {
@@ -240,29 +241,29 @@ var _ = Describe("MySQL", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			Context("In Azure", func() {
-				BeforeEach(func() {
-					secret = f.SecretForAzureBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Azure = &api.AzureSpec{
-						Container: os.Getenv(AZURE_CONTAINER_NAME),
-					}
-				})
+			//Context("In Azure", func() {
+			//	BeforeEach(func() {
+			//		secret = f.SecretForAzureBackend()
+			//		snapshot.Spec.StorageSecretName = secret.Name
+			//		snapshot.Spec.Azure = &api.AzureSpec{
+			//			Container: os.Getenv(AZURE_CONTAINER_NAME),
+			//		}
+			//	})
+			//
+			//	It("should take Snapshot successfully", shouldTakeSnapshot)
+			//})
 
-				It("should take Snapshot successfully", shouldTakeSnapshot)
-			})
-
-			Context("In Swift", func() {
-				BeforeEach(func() {
-					secret = f.SecretForSwiftBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Swift = &api.SwiftSpec{
-						Container: os.Getenv(SWIFT_CONTAINER_NAME),
-					}
-				})
-
-				It("should take Snapshot successfully", shouldTakeSnapshot)
-			})
+			//Context("In Swift", func() {
+			//	BeforeEach(func() {
+			//		secret = f.SecretForSwiftBackend()
+			//		snapshot.Spec.StorageSecretName = secret.Name
+			//		snapshot.Spec.Swift = &api.SwiftSpec{
+			//			Container: os.Getenv(SWIFT_CONTAINER_NAME),
+			//		}
+			//	})
+			//
+			//	It("should take Snapshot successfully", shouldTakeSnapshot)
+			//})
 		})
 
 		Context("Initialize", func() {
@@ -272,7 +273,7 @@ var _ = Describe("MySQL", func() {
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
-									Repository: "https://github.com/the-redback/mysql-init-script.git",
+									Repository: "https://github.com/kubedb/mysql-init-scripts.git",
 									Directory:  ".",
 								},
 							},
@@ -283,7 +284,7 @@ var _ = Describe("MySQL", func() {
 				It("should run successfully", shouldSuccessfullyRunning)
 			})
 
-			Context("With Snapshot", func() {
+			FContext("With Snapshot", func() {
 				AfterEach(func() {
 					f.DeleteSecret(secret.ObjectMeta)
 				})
@@ -358,7 +359,7 @@ var _ = Describe("MySQL", func() {
 				By("Wait for mysql to be paused")
 				f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
 
-				_, err = f.TryPatchDormantDatabase(mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+				_, err = f.PatchDormantDatabase(mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
 					in.Spec.Resume = true
 					return in
 				})
@@ -393,7 +394,7 @@ var _ = Describe("MySQL", func() {
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
-									Repository: "https://github.com/the-redback/mysql-init-script.git",
+									Repository: "https://github.com/kubedb/mysql-init-scripts.git",
 									Directory:  ".",
 								},
 							},
@@ -439,7 +440,7 @@ var _ = Describe("MySQL", func() {
 							ScriptSource: &api.ScriptSourceSpec{
 								VolumeSource: core.VolumeSource{
 									GitRepo: &core.GitRepoVolumeSource{
-										Repository: "https://github.com/the-redback/mysql-init-script.git",
+										Repository: "https://github.com/kubedb/mysql-init-scripts.git",
 										Directory:  ".",
 									},
 								},
@@ -481,7 +482,7 @@ var _ = Describe("MySQL", func() {
 			})
 		})
 
-		Context("SnapshotScheduler", func() {
+		FContext("SnapshotScheduler", func() {
 			AfterEach(func() {
 				f.DeleteSecret(secret.ObjectMeta)
 			})

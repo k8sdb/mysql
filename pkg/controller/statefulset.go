@@ -22,43 +22,52 @@ func (c *Controller) ensureStatefulSet(mysql *api.MySQL) (kutil.VerbType, error)
 		return kutil.VerbUnchanged, err
 	}
 
-	if err := c.ensureDatabaseSecret(mysql) ; err!=nil {
+	if err := c.ensureDatabaseSecret(mysql); err != nil {
 		return kutil.VerbUnchanged, err
 	}
 
 	// Create statefulSet for MySQL database
 	statefulSet, vt, err := c.createStatefulSet(mysql)
 	if err != nil {
-		c.recorder.Eventf(
-			mysql.ObjectReference(),
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			"Failed to create StatefulSet. Reason: %v",
-			err,
-		)
-		return err
+		return kutil.VerbUnchanged, err
 	}
 
 	// Check StatefulSet Pod status
-	if err := c.CheckStatefulSetPodStatus(statefulSet, durationCheckStatefulSet); err != nil {
+	if vt != kutil.VerbUnchanged {
+		if err := c.checkStatefulSetPodStatus(statefulSet); err != nil {
+			c.recorder.Eventf(
+				mysql.ObjectReference(),
+				core.EventTypeWarning,
+				eventer.EventReasonFailedToStart,
+				`Failed to CreateOrPatch StatefulSet. Reason: %v`,
+				err,
+			)
+			return kutil.VerbUnchanged, err
+		}
 		c.recorder.Eventf(
 			mysql.ObjectReference(),
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToStart,
-			`Failed to create StatefulSet. Reason: %v`,
-			err,
-		)
-		return err
-	} else {
-		c.recorder.Event(
-			mysql.ObjectReference(),
 			core.EventTypeNormal,
-			eventer.EventReasonSuccessfulCreate,
-			"Successfully created StatefulSet",
+			eventer.EventReasonSuccessful,
+			"Successfully %v StatefulSet",
+			vt,
 		)
-	}
 
-	return nil
+		ms, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+			in.Status.Phase = api.DatabasePhaseRunning
+			return in
+		})
+		if err != nil {
+			c.recorder.Eventf(
+				mysql,
+				core.EventTypeWarning,
+				eventer.EventReasonFailedToUpdate,
+				err.Error(),
+			)
+			return kutil.VerbUnchanged, err
+		}
+		mysql.Status = ms.Status
+	}
+	return vt, nil
 }
 
 func (c *Controller) checkStatefulSet(mysql *api.MySQL) error {
@@ -66,14 +75,14 @@ func (c *Controller) checkStatefulSet(mysql *api.MySQL) error {
 	statefulSet, err := c.Client.AppsV1beta1().StatefulSets(mysql.Namespace).Get(mysql.OffshootName(), metav1.GetOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
-			return  nil
+			return nil
 		} else {
 			return err
 		}
 	}
 
 	if statefulSet.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL {
-		return  fmt.Errorf(`Intended statefulSet "%v" already exists`, mysql.OffshootName())
+		return fmt.Errorf(`Intended statefulSet "%v" already exists`, mysql.OffshootName())
 	}
 
 	return nil
@@ -84,7 +93,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		Name:      mysql.OffshootName(),
 		Namespace: mysql.Namespace,
 	}
-	st,vt,err := app_util.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
+	return app_util.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
 		in.Labels = core_util.UpsertMap(in.Labels, mysql.StatefulSetLabels())
 		in.Annotations = core_util.UpsertMap(in.Annotations, mysql.StatefulSetAnnotations())
 
@@ -129,8 +138,12 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 				},
 			})
 		}
-
+		// Set Admin Secret as MYSQL_ROOT_PASSWORD env variable
+		in = upsertEnv(in, mysql)
 		in = upsertDataVolume(in, mysql)
+		if mysql.Spec.Init != nil && mysql.Spec.Init.ScriptSource != nil {
+			in = upsertInitScript(in, mysql.Spec.Init.ScriptSource.VolumeSource)
+		}
 
 		in.Spec.Template.Spec.NodeSelector = mysql.Spec.NodeSelector
 		in.Spec.Template.Spec.Affinity = mysql.Spec.Affinity
@@ -144,118 +157,6 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 
 		return in
 	})
-	return st,vt,err
-
-
-	// SatatefulSet for MySQL database
-	statefulSet := &apps.StatefulSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        mysql.OffshootName(),
-			Namespace:   mysql.Namespace,
-			Labels:      mysql.StatefulSetLabels(),
-			Annotations: mysql.StatefulSetAnnotations(),
-		},
-		Spec: apps.StatefulSetSpec{
-			Replicas:    types.Int32P(1),
-			ServiceName: c.opt.GoverningService,
-			Template: core.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: mysql.OffshootLabels(),
-				},
-				Spec: core.PodSpec{
-					Containers: []core.Container{
-						{
-							Name:            api.ResourceNameMySQL,
-							Image:           fmt.Sprintf("%s:%s", docker.ImageMySQL, mysql.Spec.Version),
-							ImagePullPolicy: core.PullIfNotPresent,
-							Ports: []core.ContainerPort{
-								{
-									Name:          "db",
-									ContainerPort: 3306,
-								},
-							},
-							Resources: mysql.Spec.Resources,
-							VolumeMounts: []core.VolumeMount{
-								{
-									Name:      "data",
-									MountPath: "/var/lib/mysql", //Volume path of mysql, ref: https://github.com/docker-library/mysql/blob/86431f073b3d2f963d21e33cb8943f0bdcdf143d/8.0/Dockerfile#L48
-								},
-							},
-						},
-					},
-					NodeSelector:  mysql.Spec.NodeSelector,
-					Affinity:      mysql.Spec.Affinity,
-					SchedulerName: mysql.Spec.SchedulerName,
-					Tolerations:   mysql.Spec.Tolerations,
-				},
-			},
-		},
-	}
-
-	if mysql.Spec.Monitor != nil &&
-		mysql.Spec.Monitor.Agent == api.AgentCoreosPrometheus &&
-		mysql.Spec.Monitor.Prometheus != nil {
-		exporter := core.Container{
-			Name: "exporter",
-			Args: []string{
-				"export",
-				fmt.Sprintf("--address=:%d", mysql.Spec.Monitor.Prometheus.Port),
-				"--v=3",
-			},
-			Image:           docker.ImageOperator + ":" + c.opt.ExporterTag,
-			ImagePullPolicy: core.PullIfNotPresent,
-			Ports: []core.ContainerPort{
-				{
-					Name:          api.PrometheusExporterPortName,
-					Protocol:      core.ProtocolTCP,
-					ContainerPort: mysql.Spec.Monitor.Prometheus.Port,
-				},
-			},
-		}
-		statefulSet.Spec.Template.Spec.Containers = append(statefulSet.Spec.Template.Spec.Containers, exporter)
-	}
-
-	if mysql.Spec.DatabaseSecret == nil {
-		secretVolumeSource, err := c.createDatabaseSecret(mysql)
-		if err != nil {
-			return nil, err
-		}
-
-		_mysql,vt, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
-			in.Spec.DatabaseSecret = secretVolumeSource
-			return in
-		})
-		if err != nil {
-			c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			return nil, err
-		}
-		mysql.Spec.DatabaseSecret = _mysql.Spec.DatabaseSecret
-	}
-
-	//Set root user password from Secret
-	setEnvFromSecret(statefulSet, mysql.Spec.DatabaseSecret)
-
-	// Add Data volume for StatefulSet
-	addDataVolume(statefulSet, mysql.Spec.Storage)
-
-	if mysql.Spec.Init != nil && mysql.Spec.Init.ScriptSource != nil {
-		addInitialScript(statefulSet, mysql.Spec.Init.ScriptSource)
-	}
-
-	if c.opt.EnableRbac {
-		// Ensure ClusterRoles for database statefulsets
-		if err := c.ensureRBACStuff(mysql); err != nil {
-			return nil, err
-		}
-
-		statefulSet.Spec.Template.Spec.ServiceAccountName = mysql.Name
-	}
-
-	if _, err := c.Client.AppsV1beta1().StatefulSets(statefulSet.Namespace).Create(statefulSet); err != nil {
-		return nil, err
-	}
-
-	return statefulSet, nil
 }
 
 func upsertDataVolume(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {
@@ -310,31 +211,49 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.Sta
 	return statefulSet
 }
 
-func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL, envs []core.EnvVar) *apps.StatefulSet {
-	envList := []core.EnvVar{
-		{
-			Name: "MYSQL_ROOT_PASSWORD",
-			ValueFrom: &core.EnvVarSource{
-				SecretKeyRef: &core.SecretKeySelector{
-					LocalObjectReference: core.LocalObjectReference{
-						Name: mysql.Spec.DatabaseSecret.SecretName,
-					},
-					Key: ".admin",
-				},
-			},
-		},
-	}
-
-	envList = append(envList, envs...)
-
-	// To do this, Upsert Container first
+func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceNameMySQL {
-			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, envList...)
+			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, core.EnvVar{
+				Name: "MYSQL_ROOT_PASSWORD",
+				ValueFrom: &core.EnvVarSource{
+					SecretKeyRef: &core.SecretKeySelector{
+						LocalObjectReference: core.LocalObjectReference{
+							Name: mysql.Spec.DatabaseSecret.SecretName,
+						},
+						Key: ".admin",
+					},
+				},
+			})
 			return statefulSet
 		}
 	}
+	return statefulSet
+}
 
+func upsertInitScript(statefulSet *apps.StatefulSet, script core.VolumeSource) *apps.StatefulSet {
+	for i, container := range statefulSet.Spec.Template.Spec.Containers {
+		if container.Name == api.ResourceNameMySQL {
+			volumeMount := core.VolumeMount{
+				Name:      "initial-script",
+				MountPath: "/docker-entrypoint-initdb.d",
+			}
+			statefulSet.Spec.Template.Spec.Containers[i].VolumeMounts = core_util.UpsertVolumeMount(
+				container.VolumeMounts,
+				volumeMount,
+			)
+
+			volume := core.Volume{
+				Name:         "initial-script",
+				VolumeSource: script,
+			}
+			statefulSet.Spec.Template.Spec.Volumes = core_util.UpsertVolume(
+				statefulSet.Spec.Template.Spec.Volumes,
+				volume,
+			)
+			return statefulSet
+		}
+	}
 	return statefulSet
 }
 

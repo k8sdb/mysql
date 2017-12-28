@@ -23,7 +23,7 @@ func (c *Controller) deleteRole(mysql *api.MySQL) error {
 
 func (c *Controller) ensureRole(mysql *api.MySQL) error {
 	// Create new Roles
-	_, err := rbac_util.CreateOrPatchRole(
+	_, _, err := rbac_util.CreateOrPatchRole(
 		c.Client,
 		metav1.ObjectMeta{
 			Name:      mysql.OffshootName(),
@@ -62,7 +62,7 @@ func (c *Controller) deleteServiceAccount(mysql *api.MySQL) error {
 
 func (c *Controller) createServiceAccount(mysql *api.MySQL) error {
 	// Create new ServiceAccount
-	_, err := core_util.CreateOrPatchServiceAccount(
+	_, _, err := core_util.CreateOrPatchServiceAccount(
 		c.Client,
 		metav1.ObjectMeta{
 			Name:      mysql.OffshootName(),
@@ -87,7 +87,7 @@ func (c *Controller) deleteRoleBinding(mysql *api.MySQL) error {
 
 func (c *Controller) createRoleBinding(mysql *api.MySQL) error {
 	// Ensure new RoleBindings
-	_, err := rbac_util.CreateOrPatchRoleBinding(
+	_, _, err := rbac_util.CreateOrPatchRoleBinding(
 		c.Client,
 		metav1.ObjectMeta{
 			Name:      mysql.OffshootName(),
@@ -127,7 +127,7 @@ func (c *Controller) ensureRBACStuff(mysql *api.MySQL) error {
 
 	// Create New RoleBinding
 	if err := c.createRoleBinding(mysql); err != nil {
-			return err
+		return err
 	}
 	return nil
 }

@@ -11,7 +11,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func ValidateMySQL(client kubernetes.Interface, mysql *api.MySQL,docker dr.Docker) error {
+func ValidateMySQL(client kubernetes.Interface, mysql *api.MySQL, docker dr.Docker) error {
 	if mysql.Spec.Version == "" {
 		return fmt.Errorf(`object 'Version' is missing in '%v'`, mysql.Spec)
 	}

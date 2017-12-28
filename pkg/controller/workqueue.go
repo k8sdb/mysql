@@ -166,6 +166,7 @@ func (c *Controller) runMySQL(key string) error {
 		mysql := obj.(*api.MySQL).DeepCopy()
 		if mysql.DeletionTimestamp != nil {
 			if core_util.HasFinalizer(mysql.ObjectMeta, "kubedb.com") {
+				util.AssignTypeKind(mysql)
 				if err := c.pause(mysql); err != nil {
 					log.Errorln(err)
 					return err
@@ -181,6 +182,7 @@ func (c *Controller) runMySQL(key string) error {
 				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, "kubedb.com")
 				return in
 			})
+			util.AssignTypeKind(mysql)
 			if err := c.create(mysql); err != nil {
 				log.Errorln(err)
 				c.pushFailureEvent(mysql, err.Error())

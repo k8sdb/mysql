@@ -6,26 +6,32 @@ import (
 	"testing"
 	"time"
 
+	"github.com/appscode/go/homedir"
 	"github.com/appscode/go/log"
 	logs "github.com/appscode/go/log/golog"
+	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
-	amc "github.com/kubedb/apimachinery/pkg/controller"
+	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
 	"github.com/kubedb/mysql/pkg/controller"
+	"github.com/kubedb/mysql/pkg/docker"
 	"github.com/kubedb/mysql/test/e2e/framework"
-	"github.com/mitchellh/go-homedir"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
-	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 var storageClass string
+var exporterTag string
+var dockerRegistry string
 
 func init() {
 	flag.StringVar(&storageClass, "storageclass", "standard", "Kubernetes StorageClass name")
+	flag.StringVar(&exporterTag, "exporter-tag", "canary", "Tag of kubedb/operator used as exporter")
+	flag.StringVar(&dockerRegistry, "docker-registry", "kubedb", "User provided docker repository")
 }
 
 const (
@@ -48,18 +54,22 @@ func TestE2e(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 
-	userHome, err := homedir.Dir()
-	Expect(err).NotTo(HaveOccurred())
+	userHome := homedir.HomeDir()
 
 	// Kubernetes config
 	kubeconfigPath := filepath.Join(userHome, ".kube/config")
 	By("Using kubeconfig from " + kubeconfigPath)
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
 	Expect(err).NotTo(HaveOccurred())
+
 	// Clients
-	kubeClient := clientset.NewForConfigOrDie(config)
+	kubeClient := kubernetes.NewForConfigOrDie(config)
 	apiExtKubeClient := crd_cs.NewForConfigOrDie(config)
 	extClient := cs.NewForConfigOrDie(config)
+	promClient, err := pcm.NewForConfig(config)
+	if err != nil {
+		log.Fatalln(err)
+	}
 	// Framework
 	root = framework.New(kubeClient, extClient, storageClass)
 
@@ -69,17 +79,21 @@ var _ = BeforeSuite(func() {
 	err = root.CreateNamespace()
 	Expect(err).NotTo(HaveOccurred())
 
-	cronController := amc.NewCronController(kubeClient, extClient)
+	cronController := snapc.NewCronController(kubeClient, extClient)
 	// Start Cron
 	cronController.StartCron()
 
 	opt := controller.Options{
+		Docker: docker.Docker{
+			Registry:    dockerRegistry,
+			ExporterTag: exporterTag,
+		},
 		OperatorNamespace: root.Namespace(),
 		GoverningService:  api.DatabaseNamePrefix,
 	}
 
 	// Controller
-	ctrl = controller.New(kubeClient, apiExtKubeClient, extClient, nil, cronController, opt)
+	ctrl = controller.New(kubeClient, apiExtKubeClient, extClient, promClient, cronController, opt)
 	err = ctrl.Setup()
 	if err != nil {
 		log.Fatalln(err)
@@ -89,6 +103,9 @@ var _ = BeforeSuite(func() {
 })
 
 var _ = AfterSuite(func() {
+	root.CleanMySQL()
+	root.CleanDormantDatabase()
+	root.CleanSnapshot()
 	err := root.DeleteNamespace()
 	Expect(err).NotTo(HaveOccurred())
 	By("Deleted namespace")

@@ -5,8 +5,10 @@ import (
 	"time"
 
 	"github.com/appscode/go/crypto/rand"
+	core_util "github.com/appscode/kutil/core/v1"
 	"github.com/graymeta/stow"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/storage"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -124,4 +126,17 @@ func (f *Framework) checkSnapshotData(snapshot *api.Snapshot) (bool, error) {
 	}
 
 	return totalItem != 0, nil
+}
+
+func (f *Framework) CleanSnapshot() {
+	snapshotList, err := f.extClient.Snapshots(f.namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return
+	}
+	for _, s := range snapshotList.Items {
+		util.PatchSnapshot(f.extClient, &s, func(in *api.Snapshot) *api.Snapshot {
+			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
+			return in
+		})
+	}
 }

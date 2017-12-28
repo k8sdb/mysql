@@ -3,24 +3,24 @@ package controller
 import (
 	"fmt"
 
+	"github.com/appscode/kutil"
 	core_util "github.com/appscode/kutil/core/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/appscode/kutil"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func (c *Controller) ensureService(mysql *api.MySQL) (kutil.VerbType, error) {
 	// Check if service name exists
 	if err := c.checkService(mysql); err != nil {
-		return kutil.VerbUnchanged,err
+		return kutil.VerbUnchanged, err
 	}
 
 	// create database Service
-	vt, err := c.createService(mysql);
+	vt, err := c.createService(mysql)
 	if err != nil {
 		c.recorder.Eventf(
 			mysql.ObjectReference(),
@@ -54,10 +54,10 @@ func (c *Controller) checkService(mysql *api.MySQL) error {
 	}
 
 	if service.Spec.Selector[api.LabelDatabaseName] != name {
-		return  fmt.Errorf(`Intended service "%v" already exists`, name)
+		return fmt.Errorf(`Intended service "%v" already exists`, name)
 	}
 
-	return  nil
+	return nil
 }
 
 func (c *Controller) createService(mysql *api.MySQL) (kutil.VerbType, error) {
