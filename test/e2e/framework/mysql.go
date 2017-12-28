@@ -37,7 +37,7 @@ func (f *Framework) GetMySQL(meta metav1.ObjectMeta) (*api.MySQL, error) {
 	return f.extClient.MySQLs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 }
 
-func (f *Framework) TryPatchMySQL(meta metav1.ObjectMeta, transform func(*api.MySQL) *api.MySQL) (*api.MySQL, error) {
+func (f *Framework) PatchMySQL(meta metav1.ObjectMeta, transform func(*api.MySQL) *api.MySQL) (*api.MySQL, error) {
 	mysql, err := f.extClient.MySQLs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err

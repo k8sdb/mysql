@@ -130,7 +130,7 @@ var _ = Describe("MySQL", func() {
 		//		f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 		//
 		//		By("Update mysql to set DoNotPause=false")
-		//		f.TryPatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+		//		f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 		//			in.Spec.DoNotPause = false
 		//			return in
 		//		})
@@ -140,7 +140,7 @@ var _ = Describe("MySQL", func() {
 		//	})
 		//})
 
-		FContext("Snapshot", func() {
+		Context("Snapshot", func() {
 			var skipDataCheck bool
 
 			AfterEach(func() {
@@ -187,9 +187,7 @@ var _ = Describe("MySQL", func() {
 					snapshot.Spec.Local = &api.LocalSpec{
 						Path: "/repo",
 						VolumeSource: core.VolumeSource{
-							HostPath: &core.HostPathVolumeSource{
-								Path: "/repo",
-							},
+							EmptyDir: &core.EmptyDirVolumeSource{},
 						},
 					}
 				})
@@ -272,10 +270,7 @@ var _ = Describe("MySQL", func() {
 					mysql.Spec.Init = &api.InitSpec{
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
-								GitRepo: &core.GitRepoVolumeSource{
-									Repository: "https://github.com/kubedb/mysql-init-scripts.git",
-									Directory:  ".",
-								},
+								EmptyDir: &core.EmptyDirVolumeSource{},
 							},
 						},
 					}
@@ -284,7 +279,7 @@ var _ = Describe("MySQL", func() {
 				It("should run successfully", shouldSuccessfullyRunning)
 			})
 
-			FContext("With Snapshot", func() {
+			Context("With Snapshot", func() {
 				AfterEach(func() {
 					f.DeleteSecret(secret.ObjectMeta)
 				})
@@ -393,10 +388,7 @@ var _ = Describe("MySQL", func() {
 					mysql.Spec.Init = &api.InitSpec{
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
-								GitRepo: &core.GitRepoVolumeSource{
-									Repository: "https://github.com/kubedb/mysql-init-scripts.git",
-									Directory:  ".",
-								},
+								EmptyDir: &core.EmptyDirVolumeSource{},
 							},
 						},
 					}
@@ -439,10 +431,7 @@ var _ = Describe("MySQL", func() {
 						mysql.Spec.Init = &api.InitSpec{
 							ScriptSource: &api.ScriptSourceSpec{
 								VolumeSource: core.VolumeSource{
-									GitRepo: &core.GitRepoVolumeSource{
-										Repository: "https://github.com/kubedb/mysql-init-scripts.git",
-										Directory:  ".",
-									},
+									EmptyDir: &core.EmptyDirVolumeSource{},
 								},
 							},
 						}
@@ -482,7 +471,7 @@ var _ = Describe("MySQL", func() {
 			})
 		})
 
-		FContext("SnapshotScheduler", func() {
+		Context("SnapshotScheduler", func() {
 			AfterEach(func() {
 				f.DeleteSecret(secret.ObjectMeta)
 			})
@@ -512,9 +501,7 @@ var _ = Describe("MySQL", func() {
 								Local: &api.LocalSpec{
 									Path: "/repo",
 									VolumeSource: core.VolumeSource{
-										HostPath: &core.HostPathVolumeSource{
-											Path: "/repo",
-										},
+										EmptyDir: &core.EmptyDirVolumeSource{},
 									},
 								},
 							},
@@ -565,7 +552,7 @@ var _ = Describe("MySQL", func() {
 					f.CreateSecret(secret)
 
 					By("Update mysql")
-					_, err = f.TryPatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
 							CronExpression: "@every 1m",
 							SnapshotStorageSpec: api.SnapshotStorageSpec{
@@ -573,9 +560,7 @@ var _ = Describe("MySQL", func() {
 								Local: &api.LocalSpec{
 									Path: "/repo",
 									VolumeSource: core.VolumeSource{
-										HostPath: &core.HostPathVolumeSource{
-											Path: "/repo",
-										},
+										EmptyDir: &core.EmptyDirVolumeSource{},
 									},
 								},
 							},

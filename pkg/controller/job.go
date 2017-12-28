@@ -119,7 +119,7 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 	return c.Client.BatchV1().Jobs(mysql.Namespace).Create(job)
 }
 
-func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) {
+func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, error) {
 	databaseName := snapshot.Spec.DatabaseName
 	jobName := snapshot.OffshootName()
 	jobLabel := map[string]string{
@@ -144,7 +144,6 @@ func (c *Controller) GetSnapshotter(snapshot *api.Snapshot) (*batch.Job, error) 
 
 	// Folder name inside Cloud bucket where backup will be uploaded
 	folderName, _ := snapshot.Location()
-
 	job := &batch.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:   jobName,
