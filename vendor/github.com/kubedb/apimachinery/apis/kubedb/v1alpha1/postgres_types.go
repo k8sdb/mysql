@@ -2,7 +2,7 @@ package v1alpha1
 
 import (
 	"github.com/appscode/go/encoding/json/types"
-	"github.com/appscode/kutil/tools/monitoring/api"
+	"github.com/appscode/kube-mon/api"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -36,7 +36,7 @@ type PostgresSpec struct {
 	// Streaming mode
 	Streaming StreamingMode `json:"streaming,omitempty"`
 	// Archive for wal files
-	Archiver PostgresArchiverSpec `json:"archiver,omitempty"`
+	Archiver *PostgresArchiverSpec `json:"archiver,omitempty"`
 	// Database authentication secret
 	DatabaseSecret *core.SecretVolumeSource `json:"databaseSecret,omitempty"`
 	// Storage to specify how storage shall be used.

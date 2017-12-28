@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"github.com/appscode/go/log"
+	"github.com/appscode/kutil"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
+	"github.com/kubedb/apimachinery/pkg/docker"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	"github.com/kubedb/apimachinery/pkg/storage"
 	"github.com/kubedb/mysql/pkg/validator"
@@ -19,61 +21,46 @@ import (
 )
 
 func (c *Controller) create(mysql *api.MySQL) error {
-	_, err := util.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
-		t := metav1.Now()
-		in.Status.CreationTime = &t
-		in.Status.Phase = api.DatabasePhaseCreating
-		return in
-	})
-	if err != nil {
-		c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-		return err
-	}
-
-	if err := validator.ValidateMySQL(c.Client, mysql); err != nil {
-		c.recorder.Event(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
-		return err
-	}
-	// Event for successful validation
-	c.recorder.Event(
-		mysql.ObjectReference(),
-		core.EventTypeNormal,
-		eventer.EventReasonSuccessfulValidate,
-		"Successfully validate MySQL",
-	)
-	// Check DormantDatabase
-	matched, err := c.matchDormantDatabase(mysql)
-	if err != nil {
-		return err
-	}
-	if matched {
-		//TODO: Use Annotation Key
-		mysql.Annotations = map[string]string{
-			"kubedb.com/ignore": "",
-		}
-		if err := c.ExtClient.MySQLs(mysql.Namespace).Delete(mysql.Name, &metav1.DeleteOptions{}); err != nil {
-			return fmt.Errorf(
-				`Failed to resume MySQL "%v" from DormantDatabase "%v". Error: %v`,
-				mysql.Name,
-				mysql.Name,
-				err,
-			)
-		}
-
-		_, err := util.TryPatchDormantDatabase(c.ExtClient, mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
-			in.Spec.Resume = true
-			return in
-		})
-		if err != nil {
-			c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			return err
-		}
-
+	if err := validator.ValidateMySQL(c.Client, mysql, c.opt.Docker); err != nil {
+		c.recorder.Event(
+			mysql.ObjectReference(),
+			core.EventTypeWarning,
+			eventer.EventReasonInvalid,
+			err.Error())
+		log.Debugln(err)
 		return nil
 	}
 
-	// Event for notification that kubernetes objects are creating
-	c.recorder.Event(mysql.ObjectReference(), core.EventTypeNormal, eventer.EventReasonCreating, "Creating Kubernetes objects")
+	if mysql.Status.CreationTime == nil {
+		ms,_, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+			t := metav1.Now()
+			in.Status.CreationTime = &t
+			in.Status.Phase = api.DatabasePhaseCreating
+			return in
+		})
+		if err != nil {
+			c.recorder.Eventf(
+				mysql.ObjectReference(),
+				core.EventTypeWarning,
+				eventer.EventReasonFailedToUpdate,
+				err.Error(),
+			)
+			return err
+		}
+		mysql.Status=ms.Status
+	}
+
+	// Dynamic Defaulting
+	// Assign Default Monitoring Port
+	if err := c.setMonitoringPort(mysql); err != nil {
+		return err
+	}
+
+	// Check DormantDatabase
+	// It can be used as resumed
+	if err := c.matchDormantDatabase(mysql); err != nil {
+		return err
+	}
 
 	// create Governing Service
 	governingService := c.opt.GoverningService
@@ -90,21 +77,48 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	}
 
 	// ensure database Service
-	if err := c.ensureService(mysql); err != nil {
+	vt1, err := c.ensureService(mysql)
+	if err != nil {
 		return err
 	}
 
 	// ensure database StatefulSet
-	if err := c.ensureStatefulSet(mysql); err != nil {
+	vt2,err := c.ensureStatefulSet(mysql);
+	if err != nil {
 		return err
 	}
 
-	c.recorder.Event(
-		mysql.ObjectReference(),
-		core.EventTypeNormal,
-		eventer.EventReasonSuccessfulCreate,
-		"Successfully created MySQL",
-	)
+	if vt2 == kutil.VerbCreated && mysql.Spec.Init != nil && mysql.Spec.Init.SnapshotSource != nil {
+		es, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+			in.Status.Phase = api.DatabasePhaseInitializing
+			return in
+		})
+		if err != nil {
+			c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			return err
+		}
+		mysql.Status = es.Status
+
+		if err := c.initialize(mysql); err != nil {
+			c.recorder.Eventf(
+				mysql.ObjectReference(),
+				core.EventTypeWarning,
+				eventer.EventReasonFailedToInitialize,
+				"Failed to initialize. Reason: %v",
+				err,
+			)
+		}
+
+		es, _, err = util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+			in.Status.Phase = api.DatabasePhaseRunning
+			return in
+		})
+		if err != nil {
+			c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			return err
+		}
+		mysql.Status = es.Status
+	}
 
 	// Ensure Schedule backup
 	c.ensureBackupScheduler(mysql)
@@ -130,7 +144,31 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	return nil
 }
 
-func (c *Controller) matchDormantDatabase(mysql *api.MySQL) (bool, error) {
+func (c *Controller) setMonitoringPort(mysql *api.MySQL) error {
+	if mysql.Spec.Monitor != nil &&
+		mysql.Spec.Monitor.Prometheus != nil {
+		if mysql.Spec.Monitor.Prometheus.Port == 0 {
+			es, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+				in.Spec.Monitor.Prometheus.Port = api.PrometheusExporterPortNumber
+				return in
+			})
+
+			if err != nil {
+				c.recorder.Eventf(
+					mysql.ObjectReference(),
+					core.EventTypeWarning,
+					eventer.EventReasonFailedToUpdate,
+					err.Error(),
+				)
+				return err
+			}
+			mysql.Spec.Monitor = es.Spec.Monitor
+		}
+	}
+	return nil
+}
+
+func (c *Controller) matchDormantDatabase(mysql *api.MySQL)  error {
 	// Check if DormantDatabase exists or not
 	dormantDb, err := c.ExtClient.DormantDatabases(mysql.Namespace).Get(mysql.Name, metav1.GetOptions{})
 	if err != nil {
@@ -143,19 +181,20 @@ func (c *Controller) matchDormantDatabase(mysql *api.MySQL) (bool, error) {
 				mysql.Name,
 				err,
 			)
-			return false, err
+			return err
 		}
-		return false, nil
+		return nil
 	}
 
-	var sendEvent = func(message string) (bool, error) {
-		c.recorder.Event(
+	var sendEvent = func(message string, args ...interface{}) error {
+		c.recorder.Eventf(
 			mysql.ObjectReference(),
 			core.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
 			message,
+			args,
 		)
-		return false, errors.New(message)
+		return fmt.Errorf(message,args)
 	}
 
 	// Check DatabaseKind
@@ -194,105 +233,12 @@ func (c *Controller) matchDormantDatabase(mysql *api.MySQL) (bool, error) {
 		return sendEvent("MySQL spec mismatches with OriginSpec in DormantDatabases")
 	}
 
-	return true, nil
+	return util.DeleteDormantDatabase(c.ExtClient, dormantDb.ObjectMeta)
 }
 
-func (c *Controller) ensureService(mysql *api.MySQL) error {
-	// Check if service name exists
-	found, err := c.findService(mysql)
-	if err != nil {
-		return err
-	}
-	if found {
-		return nil
-	}
 
-	// create database Service
-	if err := c.createService(mysql); err != nil {
-		c.recorder.Eventf(
-			mysql.ObjectReference(),
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			"Failed to create Service. Reason: %v",
-			err,
-		)
-		return err
-	}
-	return nil
-}
 
-func (c *Controller) ensureStatefulSet(mysql *api.MySQL) error {
-	found, err := c.findStatefulSet(mysql)
-	if err != nil {
-		return err
-	}
-	if found {
-		return nil
-	}
 
-	// Create statefulSet for MySQL database
-	statefulSet, err := c.createStatefulSet(mysql)
-	if err != nil {
-		c.recorder.Eventf(
-			mysql.ObjectReference(),
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			"Failed to create StatefulSet. Reason: %v",
-			err,
-		)
-		return err
-	}
-
-	// Check StatefulSet Pod status
-	if err := c.CheckStatefulSetPodStatus(statefulSet, durationCheckStatefulSet); err != nil {
-		c.recorder.Eventf(
-			mysql.ObjectReference(),
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToStart,
-			`Failed to create StatefulSet. Reason: %v`,
-			err,
-		)
-		return err
-	} else {
-		c.recorder.Event(
-			mysql.ObjectReference(),
-			core.EventTypeNormal,
-			eventer.EventReasonSuccessfulCreate,
-			"Successfully created StatefulSet",
-		)
-	}
-
-	if mysql.Spec.Init != nil && mysql.Spec.Init.SnapshotSource != nil {
-		_, err := util.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
-			in.Status.Phase = api.DatabasePhaseInitializing
-			return in
-		})
-		if err != nil {
-			c.recorder.Eventf(mysql, core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			return err
-		}
-
-		if err := c.initialize(mysql); err != nil {
-			c.recorder.Eventf(
-				mysql.ObjectReference(),
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToInitialize,
-				"Failed to initialize. Reason: %v",
-				err,
-			)
-		}
-	}
-
-	_, err = util.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
-		in.Status.Phase = api.DatabasePhaseRunning
-		return in
-	})
-	if err != nil {
-		c.recorder.Eventf(mysql, core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-		return err
-	}
-	return nil
-}
 
 func (c *Controller) ensureBackupScheduler(mysql *api.MySQL) {
 	// Setup Schedule backup
@@ -335,6 +281,10 @@ func (c *Controller) initialize(mysql *api.MySQL) error {
 	snapshot, err := c.ExtClient.Snapshots(namespace).Get(snapshotSource.Name, metav1.GetOptions{})
 	if err != nil {
 		return err
+	}
+
+	if err := docker.CheckDockerImageVersion(c.opt.Docker.GetToolsImage(mysql), string(mysql.Spec.Version)); err != nil {
+		return fmt.Errorf(`image %s not found`, c.opt.Docker.GetToolsImageWithTag(mysql))
 	}
 
 	secret, err := storage.NewOSMSecret(c.Client, snapshot)

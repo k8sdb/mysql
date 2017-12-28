@@ -12,6 +12,8 @@ import (
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
+	drmnc "github.com/kubedb/apimachinery/pkg/controller/dormant_database"
+	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	core "k8s.io/api/core/v1"
 	crd_api "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -19,64 +21,69 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
+	"github.com/kubedb/mysql/pkg/docker"
+	"k8s.io/client-go/util/workqueue"
 )
 
 type Options struct {
-	// Operator namespace
+	Docker docker.Docker
+	// Exporter namespace
 	OperatorNamespace string
-	// Exporter tag
-	ExporterTag string
 	// Governing service
 	GoverningService string
 	// Address to listen on for web interface and telemetry.
 	Address string
 	// Enable RBAC for database workloads
 	EnableRbac bool
+	//Max number requests for retries
+	MaxNumRequeues int
 }
 
 type Controller struct {
 	*amc.Controller
-	// Api Extension Client
-	ApiExtKubeClient crd_cs.ApiextensionsV1beta1Interface
 	// Prometheus client
 	promClient pcm.MonitoringV1Interface
 	// Cron Controller
-	cronController amc.CronControllerInterface
+	cronController snapc.CronControllerInterface
 	// Event Recorder
 	recorder record.EventRecorder
 	// Flag data
 	opt Options
 	// sync time to sync the list.
 	syncPeriod time.Duration
+
+	// Workqueue
+	indexer  cache.Indexer
+	queue    workqueue.RateLimitingInterface
+	informer cache.Controller
 }
 
-var _ amc.Snapshotter = &Controller{}
-var _ amc.Deleter = &Controller{}
+var _ snapc.Snapshotter = &Controller{}
+var _ drmnc.Deleter = &Controller{}
 
 func New(
 	client kubernetes.Interface,
 	apiExtKubeClient crd_cs.ApiextensionsV1beta1Interface,
 	extClient cs.KubedbV1alpha1Interface,
 	promClient pcm.MonitoringV1Interface,
-	cronController amc.CronControllerInterface,
+	cronController snapc.CronControllerInterface,
 	opt Options,
 ) *Controller {
 	return &Controller{
 		Controller: &amc.Controller{
-			Client:    client,
-			ExtClient: extClient,
+			Client:           client,
+			ExtClient:        extClient,
+			ApiExtKubeClient: apiExtKubeClient,
 		},
-		ApiExtKubeClient: apiExtKubeClient,
 		promClient:       promClient,
 		cronController:   cronController,
-		recorder:         eventer.NewEventRecorder(client, "mysql operator"),
+		recorder:         eventer.NewEventRecorder(client, "MySQL operator"),
 		opt:              opt,
-		syncPeriod:       time.Minute * 2,
+		syncPeriod:       time.Minute * 5,
 	}
 }
 
@@ -114,71 +121,15 @@ func (c *Controller) RunAndHold() {
 }
 
 func (c *Controller) watchMySQL() {
-	lw := &cache.ListWatch{
-		ListFunc: func(opts metav1.ListOptions) (runtime.Object, error) {
-			return c.ExtClient.MySQLs(metav1.NamespaceAll).List(metav1.ListOptions{})
-		},
-		WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-			return c.ExtClient.MySQLs(metav1.NamespaceAll).Watch(metav1.ListOptions{})
-		},
-	}
+	c.initWatcher()
 
-	_, cacheController := cache.NewInformer(
-		lw,
-		&api.MySQL{},
-		c.syncPeriod,
-		cache.ResourceEventHandlerFuncs{
-			AddFunc: func(obj interface{}) {
-				mysql := obj.(*api.MySQL)
-				util.AssignTypeKind(mysql)
-				setMonitoringPort(mysql)
-				if mysql.Status.CreationTime == nil {
-					if err := c.create(mysql); err != nil {
-						log.Errorln(err)
-						c.pushFailureEvent(mysql, err.Error())
-					}
-				}
-			},
-			DeleteFunc: func(obj interface{}) {
-				mysql := obj.(*api.MySQL)
-				util.AssignTypeKind(mysql)
-				setMonitoringPort(mysql)
-				if err := c.pause(mysql); err != nil {
-					log.Errorln(err)
-				}
-			},
-			UpdateFunc: func(old, new interface{}) {
-				oldObj, ok := old.(*api.MySQL)
-				if !ok {
-					return
-				}
-				newObj, ok := new.(*api.MySQL)
-				if !ok {
-					return
-				}
-				util.AssignTypeKind(oldObj)
-				util.AssignTypeKind(newObj)
-				setMonitoringPort(oldObj)
-				setMonitoringPort(newObj)
-				if !reflect.DeepEqual(oldObj.Spec, newObj.Spec) {
-					if err := c.update(oldObj, newObj); err != nil {
-						log.Errorln(err)
-					}
-				}
-			},
-		},
-	)
-	cacheController.Run(wait.NeverStop)
+	stop := make(chan struct{})
+	defer close(stop)
+
+	c.runWatcher(1, stop)
+	select {}
 }
 
-func setMonitoringPort(mysql *api.MySQL) {
-	if mysql.Spec.Monitor != nil &&
-		mysql.Spec.Monitor.Prometheus != nil {
-		if mysql.Spec.Monitor.Prometheus.Port == 0 {
-			mysql.Spec.Monitor.Prometheus.Port = api.PrometheusExporterPortNumber
-		}
-	}
-}
 
 func (c *Controller) watchDatabaseSnapshot() {
 	labelMap := map[string]string{
@@ -200,7 +151,7 @@ func (c *Controller) watchDatabaseSnapshot() {
 		},
 	}
 
-	amc.NewSnapshotController(c.Client, c.ApiExtKubeClient, c.ExtClient, c, lw, c.syncPeriod).Run()
+	snapc.NewController(c.Controller, c, lw, c.syncPeriod).Run()
 }
 
 func (c *Controller) watchDeletedDatabase() {
@@ -223,7 +174,7 @@ func (c *Controller) watchDeletedDatabase() {
 		},
 	}
 
-	amc.NewDormantDbController(c.Client, c.ApiExtKubeClient, c.ExtClient, c, lw, c.syncPeriod).Run()
+	drmnc.NewController(c.Controller, c, lw, c.syncPeriod).Run()
 }
 
 func (c *Controller) pushFailureEvent(mysql *api.MySQL, reason string) {
@@ -236,7 +187,7 @@ func (c *Controller) pushFailureEvent(mysql *api.MySQL, reason string) {
 		reason,
 	)
 
-	_, err := util.TryPatchMySQL(c.ExtClient, mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+	ms,_, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
 		in.Status.Phase = api.DatabasePhaseFailed
 		in.Status.Reason = reason
 		return in
@@ -244,4 +195,5 @@ func (c *Controller) pushFailureEvent(mysql *api.MySQL, reason string) {
 	if err != nil {
 		c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 	}
+	mysql.Status = ms.Status
 }

@@ -7,30 +7,36 @@ import (
 	"strings"
 
 	"github.com/appscode/go/log"
+	"github.com/appscode/go/runtime"
+	stringz "github.com/appscode/go/strings"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
-	amc "github.com/kubedb/apimachinery/pkg/controller"
+	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
 	"github.com/kubedb/mysql/pkg/controller"
+	"github.com/kubedb/mysql/pkg/docker"
 	"github.com/spf13/cobra"
-	apiext_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/runtime"
+	core "k8s.io/api/core/v1"
+	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-func NewCmdRun() *cobra.Command {
+func NewCmdRun(version string) *cobra.Command {
 	var (
 		masterURL      string
 		kubeconfigPath string
 	)
 
 	opt := controller.Options{
+		Docker: docker.Docker{
+			Registry:    "kubedb",
+			ExporterTag: stringz.Val(version, "canary"),
+		},
 		OperatorNamespace: namespace(),
-		ExporterTag:       "0.6.0",
 		GoverningService:  "kubedb",
 		Address:           ":8080",
 		EnableRbac:        false,
+		MaxNumRequeues:    5,
 	}
 
 	cmd := &cobra.Command{
@@ -43,14 +49,14 @@ func NewCmdRun() *cobra.Command {
 			}
 
 			client := kubernetes.NewForConfigOrDie(config)
-			apiExtKubeClient := apiext_cs.NewForConfigOrDie(config)
+			apiExtKubeClient := crd_cs.NewForConfigOrDie(config)
 			extClient := cs.NewForConfigOrDie(config)
 			promClient, err := pcm.NewForConfig(config)
 			if err != nil {
 				log.Fatalln(err)
 			}
 
-			cronController := amc.NewCronController(client, extClient)
+			cronController := snapc.NewCronController(client, extClient)
 			// Start Cron
 			cronController.StartCron()
 			// Stop Cron
@@ -69,11 +75,13 @@ func NewCmdRun() *cobra.Command {
 			w.RunAndHold()
 		},
 	}
+
 	// operator flags
-	cmd.Flags().StringVar(&masterURL, "master", masterURL, "The address of the Kubernetes API server (overrides any value in kubeconfig)")
-	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", kubeconfigPath, "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
+	cmd.Flags().StringVar(&masterURL, "master", "", "The address of the Kubernetes API server (overrides any value in kubeconfig)")
+	cmd.Flags().StringVar(&kubeconfigPath, "kubeconfig", "", "Path to kubeconfig file with authorization information (the master location is set by the master flag).")
 	cmd.Flags().StringVar(&opt.GoverningService, "governing-service", opt.GoverningService, "Governing service for database statefulset")
-	cmd.Flags().StringVar(&opt.ExporterTag, "exporter-tag", opt.ExporterTag, "Tag of kubedb/operator used as exporter")
+	cmd.Flags().StringVar(&opt.Docker.Registry, "docker-registry", opt.Docker.Registry, "User provided docker repository")
+	cmd.Flags().StringVar(&opt.Docker.ExporterTag, "exporter-tag", opt.Docker.ExporterTag, "Tag of kubedb/operator used as exporter")
 	cmd.Flags().StringVar(&opt.Address, "address", opt.Address, "Address to listen on for web interface and telemetry.")
 	cmd.Flags().BoolVar(&opt.EnableRbac, "rbac", opt.EnableRbac, "Enable RBAC for database workloads")
 
@@ -89,5 +97,5 @@ func namespace() string {
 			return ns
 		}
 	}
-	return metav1.NamespaceDefault
+	return core.NamespaceDefault
 }

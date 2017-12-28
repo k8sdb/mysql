@@ -3,6 +3,8 @@ import:
 - package: github.com/appscode/go
 - package: github.com/appscode/kutil
   version: release-5.0
+- package: github.com/appscode/kube-mon
+  version: master
 - package: github.com/appscode/pat
 - package: github.com/coreos/prometheus-operator
   repo: https://github.com/appscode/prometheus-operator.git
@@ -14,7 +16,7 @@ import:
   version: master
 - package: github.com/jpillora/go-ogle-analytics
 - package: github.com/kubedb/apimachinery
-  version: master
+  version: work-queue-tools
 - package: github.com/prometheus/client_golang
   version: v0.8.0
 - package: github.com/prometheus/common
@@ -25,21 +27,23 @@ import:
 - package: github.com/spf13/pflag
   version: v1.0.0
 - package: k8s.io/api
-  version: release-1.8
+  version: kubernetes-1.8.3
 - package: k8s.io/apimachinery
   repo: https://github.com/tamalsaha/apimachinery.git
   version: release-1.8
   vcs: git
 - package: k8s.io/client-go
-  version: kubernetes-1.8.3-beta.0
+  version: kubernetes-1.8.3
 - package: k8s.io/apiextensions-apiserver
   version: release-1.8
 - package: k8s.io/kubernetes
   repo: https://github.com/appscode/kubernetes.git
   version: v1.8.3
   vcs: git
-- package: github.com/docker/distribution
-  version: edc3ab29cdff8694dd6feb85cfeb4b5f1b38ed9c
+- package: github.com/hashicorp/go-version
+  repo: https://github.com/appscode/go-version.git
+  vcs: git
+  version: master
 testImport:
-- package: github.com/stretchr/testify
-  version: v1.1.4
+- package: github.com/onsi/ginkgo
+  version: v1.4.0

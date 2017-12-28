@@ -3,9 +3,12 @@ package controller
 import (
 	"fmt"
 
-	"github.com/appscode/kutil/tools/monitoring/agents"
-	mona "github.com/appscode/kutil/tools/monitoring/api"
+	"github.com/appscode/kube-mon/agents"
+	mona "github.com/appscode/kube-mon/api"
+	"github.com/appscode/kutil"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/kubedb/apimachinery/pkg/eventer"
+	core "k8s.io/api/core/v1"
 )
 
 func (c *Controller) newMonitorController(mysql *api.MySQL) (mona.Agent, error) {
@@ -22,32 +25,47 @@ func (c *Controller) newMonitorController(mysql *api.MySQL) (mona.Agent, error) 
 	return nil, fmt.Errorf("monitoring controller not found for %v", monitorSpec)
 }
 
-func (c *Controller) addMonitor(mysql *api.MySQL) error {
+func (c *Controller) addOrUpdateMonitor(mysql *api.MySQL) (kutil.VerbType, error) {
 	agent, err := c.newMonitorController(mysql)
 	if err != nil {
-		return err
+		return kutil.VerbUnchanged, err
 	}
-	return agent.Add(mysql.StatsAccessor(), mysql.Spec.Monitor)
+	return agent.CreateOrUpdate(mysql.StatsAccessor(), mysql.Spec.Monitor)
 }
 
-func (c *Controller) deleteMonitor(mysql *api.MySQL) error {
+func (c *Controller) deleteMonitor(mysql *api.MySQL) (kutil.VerbType, error) {
 	agent, err := c.newMonitorController(mysql)
 	if err != nil {
-		return err
+		return kutil.VerbUnchanged, err
 	}
-	return agent.Delete(mysql.StatsAccessor(), mysql.Spec.Monitor)
+	return agent.Delete(mysql.StatsAccessor())
 }
 
-func (c *Controller) updateMonitor(oldMySQL, updatedMySQL *api.MySQL) error {
-	var err error
-	var agent mona.Agent
-	if updatedMySQL.Spec.Monitor == nil {
-		agent, err = c.newMonitorController(oldMySQL)
+// todo: needs to set on status
+func (c *Controller) manageMonitor(mysql *api.MySQL) error {
+	vt := kutil.VerbUnchanged
+	if mysql.Spec.Monitor != nil {
+		ok1, err := c.addOrUpdateMonitor(mysql)
+		if err != nil {
+			return err
+		}
+		vt = ok1
 	} else {
-		agent, err = c.newMonitorController(updatedMySQL)
+		agent := agents.New(mona.AgentCoreOSPrometheus, c.Client, c.ApiExtKubeClient, c.promClient)
+		ok1, err := agent.CreateOrUpdate(mysql.StatsAccessor(), mysql.Spec.Monitor)
+		if err != nil {
+			return err
+		}
+		vt = ok1
 	}
-	if err != nil {
-		return err
+	if vt != kutil.VerbUnchanged {
+		c.recorder.Eventf(
+			mysql.ObjectReference(),
+			core.EventTypeNormal,
+			eventer.EventReasonSuccessful,
+			"Successfully %v monitoring system.",
+			vt,
+		)
 	}
-	return agent.Update(updatedMySQL.StatsAccessor(), oldMySQL.Spec.Monitor, updatedMySQL.Spec.Monitor)
+	return nil
 }
