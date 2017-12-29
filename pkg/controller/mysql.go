@@ -335,9 +335,6 @@ func (c *Controller) initialize(mysql *api.MySQL) error {
 }
 
 func (c *Controller) pause(mysql *api.MySQL) error {
-
-	c.recorder.Event(mysql.ObjectReference(), core.EventTypeNormal, eventer.EventReasonPausing, "Pausing MySQL")
-
 	//if mysql.Spec.DoNotPause {
 	//	c.recorder.Eventf(
 	//		mysql.ObjectReference(),
