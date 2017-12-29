@@ -380,7 +380,7 @@ func (c *Controller) pause(mysql *api.MySQL) error {
 	c.cronController.StopBackupScheduling(mysql.ObjectMeta)
 
 	if mysql.Spec.Monitor != nil {
-		if vt, err := c.deleteMonitor(mysql); err != nil {
+		if _, err := c.deleteMonitor(mysql); err != nil {
 			c.recorder.Eventf(
 				mysql.ObjectReference(),
 				core.EventTypeWarning,
@@ -390,14 +390,6 @@ func (c *Controller) pause(mysql *api.MySQL) error {
 			)
 			log.Errorln(err)
 			return nil
-		} else if vt != kutil.VerbUnchanged {
-			c.recorder.Eventf(
-				mysql.ObjectReference(),
-				core.EventTypeNormal,
-				eventer.EventReasonSuccessfulMonitorDelete,
-				"Successfully %s monitoring system.",
-				vt,
-			)
 		}
 	}
 	return nil
