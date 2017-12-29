@@ -46,7 +46,7 @@ func (c *Controller) ensureDatabaseSecret(mysql *api.MySQL) error {
 }
 
 func (c *Controller) createDatabaseSecret(mysql *api.MySQL) (*core.SecretVolumeSource, error) {
-	authSecretName := mysql.Name + "-admin-auth"
+	authSecretName := mysql.Name + "-auth"
 
 	sc, err := c.checkSecret(authSecretName, mysql)
 	if err != nil {

@@ -110,35 +110,35 @@ var _ = Describe("MySQL", func() {
 		})
 
 		// Currently Not Available
-		//Context("DoNotPause", func() {
-		//	BeforeEach(func() {
-		//		mysql.Spec.DoNotPause = true
-		//	})
-		//
-		//	It("should work successfully", func() {
-		//		// Create and wait for running MySQL
-		//		createAndWaitForRunning()
-		//
-		//		By("Delete mysql")
-		//		err = f.DeleteMySQL(mysql.ObjectMeta)
-		//		Expect(err).NotTo(HaveOccurred())
-		//
-		//		By("MySQL is not paused. Check for mysql")
-		//		f.EventuallyMySQL(mysql.ObjectMeta).Should(BeTrue())
-		//
-		//		By("Check for Running mysql")
-		//		f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
-		//
-		//		By("Update mysql to set DoNotPause=false")
-		//		f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
-		//			in.Spec.DoNotPause = false
-		//			return in
-		//		})
-		//
-		//		// Delete test resource
-		//		deleteTestResource()
-		//	})
-		//})
+		XContext("DoNotPause", func() {
+			BeforeEach(func() {
+				mysql.Spec.DoNotPause = true
+			})
+
+			It("should work successfully", func() {
+				// Create and wait for running MySQL
+				createAndWaitForRunning()
+
+				By("Delete mysql")
+				err = f.DeleteMySQL(mysql.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
+				By("MySQL is not paused. Check for mysql")
+				f.EventuallyMySQL(mysql.ObjectMeta).Should(BeTrue())
+
+				By("Check for Running mysql")
+				f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+
+				By("Update mysql to set DoNotPause=false")
+				f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+					in.Spec.DoNotPause = false
+					return in
+				})
+
+				// Delete test resource
+				deleteTestResource()
+			})
+		})
 
 		Context("Snapshot", func() {
 			var skipDataCheck bool
@@ -215,7 +215,7 @@ var _ = Describe("MySQL", func() {
 				})
 			})
 
-			Context("In S3", func() {
+			XContext("In S3", func() {
 				BeforeEach(func() {
 					secret = f.SecretForS3Backend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -239,7 +239,7 @@ var _ = Describe("MySQL", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			Context("In Azure", func() {
+			XContext("In Azure", func() {
 				BeforeEach(func() {
 					secret = f.SecretForAzureBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -251,7 +251,7 @@ var _ = Describe("MySQL", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			Context("In Swift", func() {
+			XContext("In Swift", func() {
 				BeforeEach(func() {
 					secret = f.SecretForSwiftBackend()
 					snapshot.Spec.StorageSecretName = secret.Name

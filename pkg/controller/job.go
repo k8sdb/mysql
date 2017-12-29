@@ -11,8 +11,11 @@ import (
 )
 
 const (
-	SnapshotProcess_Restore  = "restore"
-	snapshotType_DumpRestore = "dump-restore"
+	snapshotProcessRestore  = "restore"
+	snapshotTypeDumpRestore = "dump-restore"
+
+	snapshotProcessBackup  = "backup"
+	snapshotTypeDumpBackup = "dump-backup"
 )
 
 func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) (*batch.Job, error) {
@@ -20,7 +23,7 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 	jobName := snapshot.OffshootName()
 	jobLabel := map[string]string{
 		api.LabelDatabaseName: databaseName,
-		api.LabelJobType:      SnapshotProcess_Restore,
+		api.LabelJobType:      snapshotProcessRestore,
 	}
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
 	bucket, err := backupSpec.Container()
@@ -50,10 +53,10 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:  SnapshotProcess_Restore,
+							Name:  snapshotProcessRestore,
 							Image: c.opt.Docker.GetToolsImageWithTag(mysql),
 							Args: []string{
-								fmt.Sprintf(`--process=%s`, SnapshotProcess_Restore),
+								fmt.Sprintf(`--process=%s`, snapshotProcessRestore),
 								fmt.Sprintf(`--host=%s`, databaseName),
 								fmt.Sprintf(`--bucket=%s`, bucket),
 								fmt.Sprintf(`--folder=%s`, folderName),
@@ -68,7 +71,7 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 								},
 								{
 									Name:      persistentVolume.Name,
-									MountPath: "/var/" + snapshotType_DumpRestore + "/",
+									MountPath: "/var/" + snapshotTypeDumpRestore + "/",
 								},
 								{
 									Name:      "osmconfig",
@@ -124,7 +127,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 	jobName := snapshot.OffshootName()
 	jobLabel := map[string]string{
 		api.LabelDatabaseName: databaseName,
-		api.LabelJobType:      SnapshotProcess_Backup,
+		api.LabelJobType:      snapshotProcessBackup,
 	}
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
 	bucket, err := backupSpec.Container()
@@ -157,10 +160,10 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:  SnapshotProcess_Backup,
+							Name:  snapshotProcessBackup,
 							Image: c.opt.Docker.GetToolsImageWithTag(mysql),
 							Args: []string{
-								fmt.Sprintf(`--process=%s`, SnapshotProcess_Backup),
+								fmt.Sprintf(`--process=%s`, snapshotProcessBackup),
 								fmt.Sprintf(`--host=%s`, databaseName),
 								fmt.Sprintf(`--bucket=%s`, bucket),
 								fmt.Sprintf(`--folder=%s`, folderName),
@@ -174,7 +177,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 								},
 								{
 									Name:      persistentVolume.Name,
-									MountPath: "/var/" + snapshotType_DumpBackup + "/",
+									MountPath: "/var/" + snapshotTypeDumpBackup + "/",
 								},
 								{
 									Name:      "osmconfig",

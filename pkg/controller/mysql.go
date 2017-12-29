@@ -243,7 +243,7 @@ func (c *Controller) matchDormantDatabase(mysql *api.MySQL) error {
 
 	if originalSpec.DatabaseSecret == nil {
 		originalSpec.DatabaseSecret = &core.SecretVolumeSource{
-			SecretName: mysql.Name + "-admin-auth",
+			SecretName: mysql.Name + "-auth",
 		}
 	}
 
