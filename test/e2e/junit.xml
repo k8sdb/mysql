@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="3" failures="0" time="534.411492085">
+  <testsuite tests="3" failures="0" time="434.411418336">
       <testcase name="MySQL Test General - should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -15,18 +15,18 @@
       <testcase name="MySQL Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test Initialize With Script should run successfully" classname="e2e Suite" time="110.068786174"></testcase>
+      <testcase name="MySQL Test Initialize With Script should run successfully" classname="e2e Suite" time="75.050344191"></testcase>
       <testcase name="MySQL Test Initialize With Snapshot with GCS should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
       <testcase name="MySQL Test Resume Without Init should resume DormantDatabase successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test Resume With Init should resume DormantDatabase successfully" classname="e2e Suite" time="120.102750117"></testcase>
+      <testcase name="MySQL Test Resume With Init should resume DormantDatabase successfully" classname="e2e Suite" time="120.096473364"></testcase>
       <testcase name="MySQL Test Resume With original MySQL should resume DormantDatabase successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test Resume With original MySQL Multiple times with init should resume DormantDatabase successfully" classname="e2e Suite" time="300.192190439"></testcase>
+      <testcase name="MySQL Test Resume With original MySQL Multiple times with init should resume DormantDatabase successfully" classname="e2e Suite" time="235.155891848"></testcase>
       <testcase name="MySQL Test SnapshotScheduler With Startup with local should run schedular successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
