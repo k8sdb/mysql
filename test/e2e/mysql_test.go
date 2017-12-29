@@ -215,17 +215,17 @@ var _ = Describe("MySQL", func() {
 				})
 			})
 
-			//Context("In S3", func() {
-			//	BeforeEach(func() {
-			//		secret = f.SecretForS3Backend()
-			//		snapshot.Spec.StorageSecretName = secret.Name
-			//		snapshot.Spec.S3 = &api.S3Spec{
-			//			Bucket: os.Getenv(S3_BUCKET_NAME),
-			//		}
-			//	})
-			//
-			//	It("should take Snapshot successfully", shouldTakeSnapshot)
-			//})
+			Context("In S3", func() {
+				BeforeEach(func() {
+					secret = f.SecretForS3Backend()
+					snapshot.Spec.StorageSecretName = secret.Name
+					snapshot.Spec.S3 = &api.S3Spec{
+						Bucket: os.Getenv(S3_BUCKET_NAME),
+					}
+				})
+
+				It("should take Snapshot successfully", shouldTakeSnapshot)
+			})
 
 			Context("In GCS", func() {
 				BeforeEach(func() {
@@ -239,29 +239,29 @@ var _ = Describe("MySQL", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			//Context("In Azure", func() {
-			//	BeforeEach(func() {
-			//		secret = f.SecretForAzureBackend()
-			//		snapshot.Spec.StorageSecretName = secret.Name
-			//		snapshot.Spec.Azure = &api.AzureSpec{
-			//			Container: os.Getenv(AZURE_CONTAINER_NAME),
-			//		}
-			//	})
-			//
-			//	It("should take Snapshot successfully", shouldTakeSnapshot)
-			//})
+			Context("In Azure", func() {
+				BeforeEach(func() {
+					secret = f.SecretForAzureBackend()
+					snapshot.Spec.StorageSecretName = secret.Name
+					snapshot.Spec.Azure = &api.AzureSpec{
+						Container: os.Getenv(AZURE_CONTAINER_NAME),
+					}
+				})
 
-			//Context("In Swift", func() {
-			//	BeforeEach(func() {
-			//		secret = f.SecretForSwiftBackend()
-			//		snapshot.Spec.StorageSecretName = secret.Name
-			//		snapshot.Spec.Swift = &api.SwiftSpec{
-			//			Container: os.Getenv(SWIFT_CONTAINER_NAME),
-			//		}
-			//	})
-			//
-			//	It("should take Snapshot successfully", shouldTakeSnapshot)
-			//})
+				It("should take Snapshot successfully", shouldTakeSnapshot)
+			})
+
+			Context("In Swift", func() {
+				BeforeEach(func() {
+					secret = f.SecretForSwiftBackend()
+					snapshot.Spec.StorageSecretName = secret.Name
+					snapshot.Spec.Swift = &api.SwiftSpec{
+						Container: os.Getenv(SWIFT_CONTAINER_NAME),
+					}
+				})
+
+				It("should take Snapshot successfully", shouldTakeSnapshot)
+			})
 		})
 
 		Context("Initialize", func() {
@@ -279,7 +279,7 @@ var _ = Describe("MySQL", func() {
 					}
 				})
 
-				FIt("should run successfully", shouldSuccessfullyRunning)
+				It("should run successfully", shouldSuccessfullyRunning)
 			})
 
 			Context("With Snapshot", func() {
@@ -400,7 +400,7 @@ var _ = Describe("MySQL", func() {
 					}
 				})
 
-				FIt("should resume DormantDatabase successfully", shouldResumeSuccessfully)
+				It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
 			})
 
 			Context("With original MySQL", func() {
@@ -446,7 +446,7 @@ var _ = Describe("MySQL", func() {
 						}
 					})
 
-					FIt("should resume DormantDatabase successfully", func() {
+					It("should resume DormantDatabase successfully", func() {
 						// Create and wait for running MySQL
 						createAndWaitForRunning()
 
