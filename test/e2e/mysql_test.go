@@ -270,13 +270,16 @@ var _ = Describe("MySQL", func() {
 					mysql.Spec.Init = &api.InitSpec{
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
-								EmptyDir: &core.EmptyDirVolumeSource{},
+								GitRepo: &core.GitRepoVolumeSource{
+									Repository: "https://github.com/kubedb/mysql-init-scripts",
+									Directory:  ".",
+								},
 							},
 						},
 					}
 				})
 
-				It("should run successfully", shouldSuccessfullyRunning)
+				FIt("should run successfully", shouldSuccessfullyRunning)
 			})
 
 			Context("With Snapshot", func() {
@@ -388,13 +391,16 @@ var _ = Describe("MySQL", func() {
 					mysql.Spec.Init = &api.InitSpec{
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
-								EmptyDir: &core.EmptyDirVolumeSource{},
+								GitRepo: &core.GitRepoVolumeSource{
+									Repository: "https://github.com/kubedb/mysql-init-scripts",
+									Directory:  ".",
+								},
 							},
 						},
 					}
 				})
 
-				It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
+				FIt("should resume DormantDatabase successfully", shouldResumeSuccessfully)
 			})
 
 			Context("With original MySQL", func() {
@@ -431,13 +437,16 @@ var _ = Describe("MySQL", func() {
 						mysql.Spec.Init = &api.InitSpec{
 							ScriptSource: &api.ScriptSourceSpec{
 								VolumeSource: core.VolumeSource{
-									EmptyDir: &core.EmptyDirVolumeSource{},
+									GitRepo: &core.GitRepoVolumeSource{
+										Repository: "https://github.com/kubedb/mysql-init-scripts",
+										Directory:  ".",
+									},
 								},
 							},
 						}
 					})
 
-					It("should resume DormantDatabase successfully", func() {
+					FIt("should resume DormantDatabase successfully", func() {
 						// Create and wait for running MySQL
 						createAndWaitForRunning()
 

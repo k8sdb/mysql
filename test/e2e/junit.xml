@@ -1,17 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="14" failures="0" time="1568.135112101">
-      <testcase name="MySQL Test General - should run successfully" classname="e2e Suite" time="65.043339068"></testcase>
-      <testcase name="MySQL Test General With PVC should run successfully" classname="e2e Suite" time="60.056241572"></testcase>
-      <testcase name="MySQL Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="60.271744471"></testcase>
-      <testcase name="MySQL Test Snapshot In Local With PVC should run successfully" classname="e2e Suite" time="60.05648588"></testcase>
-      <testcase name="MySQL Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="61.381990029"></testcase>
-      <testcase name="MySQL Test Initialize With Script should run successfully" classname="e2e Suite" time="60.04242026"></testcase>
-      <testcase name="MySQL Test Initialize With Snapshot with GCS should run successfully" classname="e2e Suite" time="181.028918717"></testcase>
-      <testcase name="MySQL Test Resume Without Init should resume DormantDatabase successfully" classname="e2e Suite" time="120.080131271"></testcase>
-      <testcase name="MySQL Test Resume With Init should resume DormantDatabase successfully" classname="e2e Suite" time="120.082690197"></testcase>
-      <testcase name="MySQL Test Resume With original MySQL should resume DormantDatabase successfully" classname="e2e Suite" time="120.108171602"></testcase>
-      <testcase name="MySQL Test Resume With original MySQL Multiple times with init should resume DormantDatabase successfully" classname="e2e Suite" time="240.16171596"></testcase>
-      <testcase name="MySQL Test SnapshotScheduler With Startup with local should run schedular successfully" classname="e2e Suite" time="120.088072795"></testcase>
-      <testcase name="MySQL Test SnapshotScheduler With Startup with GCS and PVC should run schedular successfully" classname="e2e Suite" time="120.131077169"></testcase>
-      <testcase name="MySQL Test SnapshotScheduler With Update should run schedular successfully" classname="e2e Suite" time="175.505198903"></testcase>
+  <testsuite tests="3" failures="0" time="534.411492085">
+      <testcase name="MySQL Test General - should run successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test General With PVC should run successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test Snapshot In Local With PVC should run successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test Initialize With Script should run successfully" classname="e2e Suite" time="110.068786174"></testcase>
+      <testcase name="MySQL Test Initialize With Snapshot with GCS should run successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test Resume Without Init should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test Resume With Init should resume DormantDatabase successfully" classname="e2e Suite" time="120.102750117"></testcase>
+      <testcase name="MySQL Test Resume With original MySQL should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test Resume With original MySQL Multiple times with init should resume DormantDatabase successfully" classname="e2e Suite" time="300.192190439"></testcase>
+      <testcase name="MySQL Test SnapshotScheduler With Startup with local should run schedular successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test SnapshotScheduler With Startup with GCS and PVC should run schedular successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test SnapshotScheduler With Update should run schedular successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
   </testsuite>
