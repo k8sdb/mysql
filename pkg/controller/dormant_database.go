@@ -139,7 +139,6 @@ func (c *Controller) createDormantDatabase(mysql *api.MySQL) (*api.DormantDataba
 				api.MySQLInitSpec: string(initSpec),
 			}
 		}
-
 	}
 
 	dormantDb.Spec.Origin.Spec.MySQL.Init = nil

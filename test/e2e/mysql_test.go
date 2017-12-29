@@ -215,7 +215,7 @@ var _ = Describe("MySQL", func() {
 				})
 			})
 
-			XContext("In S3", func() {
+			Context("In S3", func() {
 				BeforeEach(func() {
 					secret = f.SecretForS3Backend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -239,7 +239,7 @@ var _ = Describe("MySQL", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			XContext("In Azure", func() {
+			Context("In Azure", func() {
 				BeforeEach(func() {
 					secret = f.SecretForAzureBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -251,7 +251,7 @@ var _ = Describe("MySQL", func() {
 				It("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
-			XContext("In Swift", func() {
+			Context("In Swift", func() {
 				BeforeEach(func() {
 					secret = f.SecretForSwiftBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
@@ -271,7 +271,7 @@ var _ = Describe("MySQL", func() {
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
-									Repository: "https://github.com/kubedb/mysql-init-scripts",
+									Repository: "https://github.com/kubedb/mysql-init-scripts.git",
 									Directory:  ".",
 								},
 							},
@@ -392,7 +392,7 @@ var _ = Describe("MySQL", func() {
 						ScriptSource: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
-									Repository: "https://github.com/kubedb/mysql-init-scripts",
+									Repository: "https://github.com/kubedb/mysql-init-scripts.git",
 									Directory:  ".",
 								},
 							},
@@ -438,7 +438,7 @@ var _ = Describe("MySQL", func() {
 							ScriptSource: &api.ScriptSourceSpec{
 								VolumeSource: core.VolumeSource{
 									GitRepo: &core.GitRepoVolumeSource{
-										Repository: "https://github.com/kubedb/mysql-init-scripts",
+										Repository: "https://github.com/kubedb/mysql-init-scripts.git",
 										Directory:  ".",
 									},
 								},
