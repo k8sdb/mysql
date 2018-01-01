@@ -17,8 +17,8 @@ func ValidateMySQL(client kubernetes.Interface, mysql *api.MySQL, docker *dr.Doc
 	}
 
 	if docker != nil {
-		if err := adr.CheckDockerImageVersion(docker.GetImage(mysql), fmt.Sprintf("%v", mysql.Spec.Version)); err != nil {
-			return fmt.Errorf(`Image %s not found`, docker.GetImageWithTag(mysql))
+		if err := adr.CheckDockerImageVersion(docker.GetImage(mysql), string(mysql.Spec.Version)); err != nil {
+			return fmt.Errorf(`image %s not found`, docker.GetImageWithTag(mysql))
 		}
 	}
 
