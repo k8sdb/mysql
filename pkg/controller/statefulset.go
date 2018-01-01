@@ -149,6 +149,8 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		in.Spec.Template.Spec.Affinity = mysql.Spec.Affinity
 		in.Spec.Template.Spec.SchedulerName = mysql.Spec.SchedulerName
 		in.Spec.Template.Spec.Tolerations = mysql.Spec.Tolerations
+		in.Spec.Template.Spec.ImagePullSecrets = mysql.Spec.ImagePullSecrets
+
 		if c.opt.EnableRbac {
 			in.Spec.Template.Spec.ServiceAccountName = mysql.Name
 		}

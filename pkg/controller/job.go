@@ -81,6 +81,7 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 							},
 						},
 					},
+					ImagePullSecrets: mysql.Spec.ImagePullSecrets,
 					Volumes: []core.Volume{
 						{
 							Name: "secret",
@@ -188,6 +189,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 							},
 						},
 					},
+					ImagePullSecrets: mysql.Spec.ImagePullSecrets,
 					Volumes: []core.Volume{
 						{
 							Name: "secret",

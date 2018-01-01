@@ -185,7 +185,7 @@ var _ = Describe("MySQL", func() {
 					secret = f.SecretForLocalBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
 					snapshot.Spec.Local = &api.LocalSpec{
-						Path: "/repo",
+						MountPath: "/repo",
 						VolumeSource: core.VolumeSource{
 							EmptyDir: &core.EmptyDirVolumeSource{},
 						},
@@ -374,7 +374,7 @@ var _ = Describe("MySQL", func() {
 
 				if usedInitSpec {
 					Expect(mysql.Spec.Init).Should(BeNil())
-					Expect(mysql.Annotations[api.MySQLInitSpec]).ShouldNot(BeEmpty())
+					Expect(mysql.Annotations[api.GenericInitSpec]).ShouldNot(BeEmpty())
 				}
 
 				// Delete test resource
@@ -508,7 +508,7 @@ var _ = Describe("MySQL", func() {
 							SnapshotStorageSpec: api.SnapshotStorageSpec{
 								StorageSecretName: secret.Name,
 								Local: &api.LocalSpec{
-									Path: "/repo",
+									MountPath: "/repo",
 									VolumeSource: core.VolumeSource{
 										EmptyDir: &core.EmptyDirVolumeSource{},
 									},
@@ -567,7 +567,7 @@ var _ = Describe("MySQL", func() {
 							SnapshotStorageSpec: api.SnapshotStorageSpec{
 								StorageSecretName: secret.Name,
 								Local: &api.LocalSpec{
-									Path: "/repo",
+									MountPath: "/repo",
 									VolumeSource: core.VolumeSource{
 										EmptyDir: &core.EmptyDirVolumeSource{},
 									},
