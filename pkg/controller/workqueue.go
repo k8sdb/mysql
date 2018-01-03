@@ -151,7 +151,7 @@ func (c *Controller) processNextItem() bool {
 }
 
 func (c *Controller) runMySQL(key string) error {
-	log.Debugln("started processing, key: %v", key)
+	log.Debugln("started processing, key:", key)
 	obj, exists, err := c.indexer.GetByKey(key)
 	if err != nil {
 		log.Errorf("Fetching object with key %s from store failed with %v", key, err)
