@@ -127,7 +127,7 @@ func (c *Controller) processNextItem() bool {
 		// This ensures that future processing of updates for this key is not delayed because of
 		// an outdated error history.
 		c.queue.Forget(key)
-		log.Debugln("Finished Processing key: %v", key)
+		log.Debugln("Finished Processing key:", key)
 		return true
 	}
 	log.Errorf("Failed to process MySQL %v. Reason: %s", key, err)
@@ -143,7 +143,7 @@ func (c *Controller) processNextItem() bool {
 	}
 
 	c.queue.Forget(key)
-	log.Debugln("Finished Processing key: %v", key)
+	log.Debugln("Finished Processing key:", key)
 	// Report to an external entity that, even after several retries, we could not successfully process this key
 	runtime.HandleError(err)
 	log.Infof("Dropping deployment %q out of the queue: %v", key, err)
