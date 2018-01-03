@@ -338,7 +338,6 @@ var _ = Describe("MySQL", func() {
 					It("should run successfully", shouldRestoreSnapshot)
 				})
 			})
-
 		})
 
 		Context("Resume", func() {

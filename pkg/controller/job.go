@@ -62,8 +62,13 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 								fmt.Sprintf(`--folder=%s`, folderName),
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 							},
+							Env: []core.EnvVar{
+								{
+									Name:  "APPSCODE_ANALYTICS_CLIENT_ID",
+									Value: c.opt.AnalyticsClientID,
+								},
+							},
 							Resources: snapshot.Spec.Resources,
-
 							VolumeMounts: []core.VolumeMount{
 								{
 									Name:      "secret",
@@ -170,6 +175,12 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 								fmt.Sprintf(`--bucket=%s`, bucket),
 								fmt.Sprintf(`--folder=%s`, folderName),
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
+							},
+							Env: []core.EnvVar{
+								{
+									Name:  "APPSCODE_ANALYTICS_CLIENT_ID",
+									Value: c.opt.AnalyticsClientID,
+								},
 							},
 							Resources: snapshot.Spec.Resources,
 							VolumeMounts: []core.VolumeMount{

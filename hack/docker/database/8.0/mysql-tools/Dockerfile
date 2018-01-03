@@ -8,7 +8,7 @@ FROM appscode/python:2.7
 ## mysql client major version
 ENV MYSQL_MAJOR 8.0
 ## osm version
-ENV OSM_VERSION 0.6.0
+ENV OSM_VERSION 0.6.2
 
 RUN groupadd -r mysql && useradd -r -g mysql mysql
 RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys A4A9406876FCBD3C456770C88C718D3B5072E1F5

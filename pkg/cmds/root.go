@@ -17,6 +17,8 @@ const (
 	gaTrackingCode = "UA-62096468-20"
 )
 
+var analyticsClientID = analytics.ClientID()
+
 func NewRootCmd(version string) *cobra.Command {
 	var (
 		enableAnalytics = true
@@ -30,7 +32,7 @@ func NewRootCmd(version string) *cobra.Command {
 			})
 			if enableAnalytics && gaTrackingCode != "" {
 				if client, err := ga.NewClient(gaTrackingCode); err == nil {
-					client.ClientID(analytics.ClientID())
+					client.ClientID(analyticsClientID)
 					parts := strings.Split(c.CommandPath(), " ")
 					client.Send(ga.NewEvent(parts[0], strings.Join(parts[1:], "/")).Label(version))
 				}

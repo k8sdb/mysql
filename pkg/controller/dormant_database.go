@@ -45,10 +45,6 @@ func (c *Controller) PauseDatabase(dormantDb *api.DormantDatabase) error {
 		return err
 	}
 
-	if err := c.deleteRBACStuff(mysql); err != nil {
-		log.Errorln(err)
-		return err
-	}
 	return nil
 }
 

@@ -37,6 +37,7 @@ func NewCmdRun(version string) *cobra.Command {
 		Address:           ":8080",
 		EnableRbac:        false,
 		MaxNumRequeues:    5,
+		AnalyticsClientID: analyticsClientID,
 	}
 
 	cmd := &cobra.Command{
