@@ -17,7 +17,9 @@ const (
 	gaTrackingCode = "UA-62096468-20"
 )
 
-var analyticsClientID = analytics.ClientID()
+var (
+	analyticsClientID = analytics.ClientID()
+)
 
 func NewRootCmd(version string) *cobra.Command {
 	var (

@@ -9,7 +9,6 @@ import (
 	"github.com/appscode/go/homedir"
 	"github.com/appscode/go/log"
 	logs "github.com/appscode/go/log/golog"
-	"github.com/appscode/kutil/tools/analytics"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
@@ -26,13 +25,11 @@ import (
 )
 
 var storageClass, exporterTag, dockerRegistry string
-var enableRbac bool
 
 func init() {
 	flag.StringVar(&storageClass, "storageclass", "standard", "Kubernetes StorageClass name")
 	flag.StringVar(&exporterTag, "exporter-tag", "canary", "Tag of kubedb/operator used as exporter")
 	flag.StringVar(&dockerRegistry, "docker-registry", "kubedb", "User provided docker repository")
-	flag.BoolVar(&enableRbac, "rbac", false, "Enable RBAC for database workloads")
 }
 
 const (
@@ -91,8 +88,7 @@ var _ = BeforeSuite(func() {
 		},
 		OperatorNamespace: root.Namespace(),
 		GoverningService:  api.DatabaseNamePrefix,
-		EnableRbac:        enableRbac,
-		AnalyticsClientID: analytics.ClientID(),
+		AnalyticsClientID: "$kubedb$mysql$e2e",
 	}
 
 	// Controller

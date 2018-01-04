@@ -20,7 +20,6 @@ ms-operator run [flags]
   -h, --help                       help for run
       --kubeconfig string          Path to kubeconfig file with authorization information (the master location is set by the master flag).
       --master string              The address of the Kubernetes API server (overrides any value in kubeconfig)
-      --rbac                       Enable RBAC for database workloads
 ```
 
 ### Options inherited from parent commands
