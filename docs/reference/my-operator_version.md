@@ -1,4 +1,4 @@
-## ms-operator version
+## my-operator version
 
 Prints binary version number.
 
@@ -7,7 +7,7 @@ Prints binary version number.
 Prints binary version number.
 
 ```
-ms-operator version [flags]
+my-operator version [flags]
 ```
 
 ### Options
@@ -33,5 +33,5 @@ ms-operator version [flags]
 
 ### SEE ALSO
 
-* [ms-operator](ms-operator.md)	 - 
+* [my-operator](my-operator.md)	 - 
 

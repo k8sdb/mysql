@@ -38,7 +38,7 @@ from os.path import expandvars, join, dirname
 libbuild.REPO_ROOT = expandvars('$GOPATH') + '/src/github.com/kubedb/mysql'
 BUILD_METADATA = libbuild.metadata(libbuild.REPO_ROOT)
 libbuild.BIN_MATRIX = {
-    'ms-operator': {
+    'my-operator': {
         'type': 'go',
         'go_version': True,
         'use_cgo': False,

@@ -14,7 +14,7 @@ source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 
 APPSCODE_ENV=${APPSCODE_ENV:-dev}
 DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
-IMG=ms-operator
+IMG=my-operator
 
 DIST=$GOPATH/src/github.com/kubedb/mysql/dist
 mkdir -p $DIST
@@ -23,23 +23,23 @@ if [ -f "$DIST/.tag" ]; then
 fi
 
 clean() {
-    pushd $REPO_ROOT/hack/docker/ms-operator
-    rm -f ms-operator Dockerfile
+    pushd $REPO_ROOT/hack/docker/my-operator
+    rm -f my-operator Dockerfile
     popd
 }
 
 build_binary() {
     pushd $REPO_ROOT
     ./hack/builddeps.sh
-    ./hack/make.py build ms-operator
+    ./hack/make.py build my-operator
     detect_tag $DIST/.tag
     popd
 }
 
 build_docker() {
-    pushd $REPO_ROOT/hack/docker/ms-operator
-    cp $DIST/ms-operator/ms-operator-alpine-amd64 ms-operator
-    chmod 755 ms-operator
+    pushd $REPO_ROOT/hack/docker/my-operator
+    cp $DIST/my-operator/my-operator-alpine-amd64 my-operator
+    chmod 755 my-operator
 
     cat >Dockerfile <<EOL
 FROM alpine
@@ -47,15 +47,15 @@ FROM alpine
 RUN set -x \
   && apk add --update --no-cache ca-certificates
 
-COPY ms-operator /usr/bin/ms-operator
+COPY my-operator /usr/bin/my-operator
 
 USER nobody:nobody
-ENTRYPOINT ["ms-operator"]
+ENTRYPOINT ["my-operator"]
 EOL
     local cmd="docker build -t $DOCKER_REGISTRY/$IMG:$TAG ."
     echo $cmd; $cmd
 
-    rm ms-operator Dockerfile
+    rm my-operator Dockerfile
     popd
 }
 
