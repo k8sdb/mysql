@@ -52,8 +52,8 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:            snapshotProcessRestore,
-							Image:           c.opt.Docker.GetToolsImageWithTag(mysql),
+							Name:  snapshotProcessRestore,
+							Image: c.opt.Docker.GetToolsImageWithTag(mysql),
 							Args: []string{
 								snapshotProcessRestore,
 								fmt.Sprintf(`--host=%s`, databaseName),
@@ -167,8 +167,8 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:            snapshotProcessBackup,
-							Image:           c.opt.Docker.GetToolsImageWithTag(mysql),
+							Name:  snapshotProcessBackup,
+							Image: c.opt.Docker.GetToolsImageWithTag(mysql),
 							Args: []string{
 								snapshotProcessBackup,
 								fmt.Sprintf(`--host=%s`, databaseName),
