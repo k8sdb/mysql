@@ -1,5 +1,5 @@
 hash: 0b9820be66917574c867b497a5d1e15643a62b49373878db3f54541d5d4a6c65
-updated: 2018-01-10T11:05:59.140969375+06:00
+updated: 2018-01-10T16:50:09.037450942+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -7,7 +7,7 @@ imports:
   - compute/metadata
   - internal
 - name: github.com/appscode/go
-  version: 5986240e1838a8a6147d77417b8321af0e07496d
+  version: e731bc60d873562a50f77ff809308ef53baee17f
   subpackages:
   - analytics
   - context
@@ -130,7 +130,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
-  version: 2e44421e256d82ebbf3d4d4fcabe8930b905eff3
+  version: d3de07a94d22b4a0972deb4b96d790c2c0ce8333
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
