@@ -11,6 +11,7 @@ import (
 	"github.com/kubedb/apimachinery/client/scheme"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
 )
 
 const (
@@ -39,7 +40,7 @@ func NewRootCmd(version string) *cobra.Command {
 					client.Send(ga.NewEvent(parts[0], strings.Join(parts[1:], "/")).Label(version))
 				}
 			}
-			scheme.AddToScheme(scheme.Scheme)
+			scheme.AddToScheme(clientsetscheme.Scheme)
 		},
 	}
 	rootCmd.PersistentFlags().AddGoFlagSet(flag.CommandLine)
