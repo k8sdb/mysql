@@ -16,8 +16,8 @@ import (
 const (
 	mysqlUser = "root"
 
-	KeyMysqlUser     = "user"
-	KeyMysqlPassword = "password"
+	KeyMySQLUser     = "user"
+	KeyMySQLPassword = "password"
 )
 
 func (c *Controller) ensureDatabaseSecret(mysql *api.MySQL) error {
@@ -70,8 +70,8 @@ func (c *Controller) createDatabaseSecret(mysql *api.MySQL) (*core.SecretVolumeS
 			},
 			Type: core.SecretTypeOpaque,
 			StringData: map[string]string{
-				KeyMysqlUser:     mysqlUser,
-				KeyMysqlPassword: rand.GeneratePassword(),
+				KeyMySQLUser:     mysqlUser,
+				KeyMySQLPassword: rand.GeneratePassword(),
 			},
 		}
 		if _, err := c.Client.CoreV1().Secrets(mysql.Namespace).Create(secret); err != nil {

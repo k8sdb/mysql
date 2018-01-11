@@ -75,7 +75,7 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 											LocalObjectReference: core.LocalObjectReference{
 												Name: mysql.Spec.DatabaseSecret.SecretName,
 											},
-											Key: KeyMysqlPassword,
+											Key: KeyMySQLPassword,
 										},
 									},
 								},
@@ -190,7 +190,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 											LocalObjectReference: core.LocalObjectReference{
 												Name: mysql.Spec.DatabaseSecret.SecretName,
 											},
-											Key: KeyMysqlPassword,
+											Key: KeyMySQLPassword,
 										},
 									},
 								},
