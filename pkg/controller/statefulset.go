@@ -26,6 +26,12 @@ func (c *Controller) ensureStatefulSet(mysql *api.MySQL) (kutil.VerbType, error)
 		return kutil.VerbUnchanged, err
 	}
 
+	if isMonitoringCoreOSOperator(mysql) && c.opt.EnableRbac {
+		if err := c.ensureRBACStuff(mysql); err != nil {
+			return kutil.VerbUnchanged, err
+		}
+	}
+
 	// Create statefulSet for MySQL database
 	statefulSet, vt, err := c.createStatefulSet(mysql)
 	if err != nil {
@@ -117,9 +123,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			},
 			Resources: mysql.Spec.Resources,
 		})
-		if mysql.Spec.Monitor != nil &&
-			mysql.Spec.Monitor.Agent == api.AgentCoreosPrometheus &&
-			mysql.Spec.Monitor.Prometheus != nil {
+		if isMonitoringCoreOSOperator(mysql) {
 			in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
 				Name: "exporter",
 				Args: []string{
@@ -155,6 +159,10 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 					},
 				},
 			)
+
+			if c.opt.EnableRbac {
+				in.Spec.Template.Spec.ServiceAccountName = mysql.Name
+			}
 		}
 		// Set Admin Secret as MYSQL_ROOT_PASSWORD env variable
 		in = upsertEnv(in, mysql)

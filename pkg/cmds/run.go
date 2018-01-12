@@ -35,6 +35,7 @@ func NewCmdRun(version string) *cobra.Command {
 		OperatorNamespace: namespace(),
 		GoverningService:  "kubedb",
 		Address:           ":8080",
+		EnableRbac:        false,
 		MaxNumRequeues:    5,
 		AnalyticsClientID: analyticsClientID,
 	}
@@ -83,6 +84,7 @@ func NewCmdRun(version string) *cobra.Command {
 	cmd.Flags().StringVar(&opt.Docker.Registry, "docker-registry", opt.Docker.Registry, "User provided docker repository")
 	cmd.Flags().StringVar(&opt.Docker.ExporterTag, "exporter-tag", opt.Docker.ExporterTag, "Tag of kubedb/operator used as exporter")
 	cmd.Flags().StringVar(&opt.Address, "address", opt.Address, "Address to listen on for web interface and telemetry.")
+	cmd.Flags().BoolVar(&opt.EnableRbac, "rbac", opt.EnableRbac, "Enable RBAC for database workloads")
 
 	return cmd
 }

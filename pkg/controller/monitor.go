@@ -89,3 +89,12 @@ func (c *Controller) manageMonitor(mysql *api.MySQL) error {
 	}
 	return nil
 }
+
+func isMonitoringCoreOSOperator(mysql *api.MySQL) bool {
+	if mysql.Spec.Monitor != nil &&
+		mysql.Spec.Monitor.Agent == api.AgentCoreosPrometheus &&
+		mysql.Spec.Monitor.Prometheus != nil {
+		return true
+	}
+	return false
+}
