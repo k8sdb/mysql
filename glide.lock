@@ -1,5 +1,5 @@
-hash: 0b9820be66917574c867b497a5d1e15643a62b49373878db3f54541d5d4a6c65
-updated: 2018-01-15T10:39:35.996515218+06:00
+hash: ead449bfa036333c9edaf8c3fbe85fa91df23713edb2f0b1882dff53b9ccd3c1
+updated: 2018-01-16T16:14:45.323412052+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -25,7 +25,7 @@ imports:
   - types
   - version
 - name: github.com/appscode/kube-mon
-  version: bb1241cf66767ebcca781fef3bdd2c2769e11658
+  version: bbf9306e9c161e411f0ddc5d946e67a3685530ee
   subpackages:
   - agents
   - agents/coreosprometheusoperator
@@ -94,9 +94,7 @@ imports:
   subpackages:
   - quantile
 - name: github.com/coreos/prometheus-operator
-  version: cbdd1b519796673cd02d53b0e21999acbcbfe6e4
-  repo: https://github.com/appscode/prometheus-operator.git
-  vcs: git
+  version: 0b87bfa150cf57bdc7b081d9b48ef48a9350b47b
   subpackages:
   - pkg/client/monitoring/v1
 - name: github.com/cpuguy83/go-md2man
@@ -225,7 +223,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: 0fbe2f9c300e9af33fb64b4edc11ea9de226ce6d
+  version: 24379249fa2d9264fd5115e40b9419c77aea5bbc
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -240,7 +238,7 @@ imports:
   - pkg/storage
   - pkg/validator
 - name: github.com/kubernetes/apimachinery
-  version: d40b72863885248607ceac2631cd78de166f51c3
+  version: d0c8c1c78cacdef77dfcc0ff70d9b7b01faeaf08
   subpackages:
   - pkg/conversion
 - name: github.com/mailru/easyjson
@@ -260,7 +258,7 @@ imports:
   - idgen
   - signal
 - name: github.com/ncw/swift
-  version: 067578e41c8dd06bf557d02a92a77bd35e97c05a
+  version: ae9f0ea1605b9aa6434ed5c731ca35d83ba67c55
 - name: github.com/onsi/gomega
   version: c893efa28eb45626cdaa76c9f653b62488858837
   subpackages:
@@ -316,7 +314,7 @@ imports:
 - name: github.com/sirupsen/logrus
   version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
 - name: github.com/spf13/cobra
-  version: b95ab734e27d33e0d8fbabf71ca990568d4e2020
+  version: 0c34d16c3123764e413b9ed982ada58b1c3d53ea
   subpackages:
   - doc
 - name: github.com/spf13/pflag
@@ -377,7 +375,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: 8124d1ac69f14d76f852b3c28a59418989a4bdbe
+  version: de3aa2cfa7f1c18dcb7f91738099bad280117b8e
   subpackages:
   - gensupport
   - googleapi
