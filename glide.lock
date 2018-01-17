@@ -1,5 +1,5 @@
 hash: 391471b832da51d8158ade4aebde239f52c287bd4048d7acabb34828cc3816b9
-updated: 2018-01-17T14:20:00.764516584+06:00
+updated: 2018-01-17T16:57:47.73869172+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -38,7 +38,7 @@ imports:
   - apps/v1beta1
   - core/v1
   - meta
-  - rbac/v1beta1
+  - rbac/v1
   - tools/analytics
 - name: github.com/appscode/mergo
   version: e3000cb3d28c72b837601cac94debd91032d19fe
@@ -130,7 +130,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
-  version: 2e44421e256d82ebbf3d4d4fcabe8930b905eff3
+  version: d3de07a94d22b4a0972deb4b96d790c2c0ce8333
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
