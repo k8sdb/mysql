@@ -169,9 +169,7 @@ func (c *Controller) setMonitoringPort(mysql *api.MySQL) error {
 	if mysql.Spec.Monitor != nil &&
 		mysql.GetMonitoringVendor() == mon_api.VendorPrometheus {
 		if mysql.Spec.Monitor.Prometheus == nil {
-			mysql.Spec.Monitor.Prometheus = &mon_api.PrometheusSpec{
-				Port: 0,
-			}
+			mysql.Spec.Monitor.Prometheus = &mon_api.PrometheusSpec{}
 		}
 		if mysql.Spec.Monitor.Prometheus.Port == 0 {
 			ms, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
