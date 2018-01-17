@@ -1,7 +1,6 @@
 package validator
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -74,17 +73,17 @@ func ValidateSnapshotSpec(client kubernetes.Interface, spec api.SnapshotStorageS
 }
 
 func ValidateMonitorSpec(monitorSpec *mona.AgentSpec) error {
-	specData, err := json.Marshal(monitorSpec)
-	if err != nil {
-		return err
+	if monitorSpec.Agent == "" {
+		return fmt.Errorf(`object 'Agent' is missing in '%v'`, *monitorSpec)
 	}
 
-	if monitorSpec.Agent == "" {
-		return fmt.Errorf(`object 'Agent' is missing in '%v'`, string(specData))
-	}
-	if monitorSpec.Prometheus != nil {
-		if monitorSpec.Agent != mona.AgentCoreOSPrometheus {
-			return fmt.Errorf(`invalid 'Agent' in '%v'`, string(specData))
+	if monitorSpec.Agent.Vendor() == mona.VendorPrometheus {
+		if monitorSpec.Agent == mona.AgentCoreOSPrometheus {
+			if monitorSpec.Prometheus == nil {
+				return fmt.Errorf(`invalid 'Agent' in '%v'`, *monitorSpec)
+			}
+		} else if monitorSpec.Agent != mona.AgentPrometheusBuiltin {
+			return fmt.Errorf(`invalid 'Agent' in '%v'`, *monitorSpec)
 		}
 	}
 

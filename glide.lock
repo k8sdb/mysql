@@ -1,5 +1,5 @@
 hash: ead449bfa036333c9edaf8c3fbe85fa91df23713edb2f0b1882dff53b9ccd3c1
-updated: 2018-01-16T17:21:32.972938501+06:00
+updated: 2018-01-17T12:22:09.486870648+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -130,7 +130,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
-  version: 2e44421e256d82ebbf3d4d4fcabe8930b905eff3
+  version: d3de07a94d22b4a0972deb4b96d790c2c0ce8333
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
@@ -223,7 +223,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: dd6752738b2b2db05e6d7b5810d5b1e88dc3872f
+  version: 7304935d6d09a264a82f3bb6d3c51ef44990fe07
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -238,7 +238,7 @@ imports:
   - pkg/storage
   - pkg/validator
 - name: github.com/kubernetes/apimachinery
-  version: d0c8c1c78cacdef77dfcc0ff70d9b7b01faeaf08
+  version: bc918d4f73e11cb3110730ec8e8ee02c58d6267c
   subpackages:
   - pkg/conversion
 - name: github.com/mailru/easyjson
@@ -319,6 +319,8 @@ imports:
   - doc
 - name: github.com/spf13/pflag
   version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
+- name: github.com/the-redback/go-oneliners
+  version: 4eb973e833cf954a0556647cc87e1a586cbe68dd
 - name: golang.org/x/crypto
   version: 81e90905daefcd6fd217b62423c0908922eadb30
   subpackages:
@@ -375,7 +377,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: de3aa2cfa7f1c18dcb7f91738099bad280117b8e
+  version: 373a4c220f5c90e5b7ff7101779c5be385d171be
   subpackages:
   - gensupport
   - googleapi

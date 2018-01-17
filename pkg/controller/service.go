@@ -85,8 +85,7 @@ func upsertServicePort(service *core.Service, mysql *api.MySQL) []core.ServicePo
 			TargetPort: intstr.FromString("db"),
 		},
 	}
-	if mysql.GetMonitoringVendor() == mon_api.VendorPrometheus &&
-		mysql.Spec.Monitor.Prometheus != nil {
+	if mysql.GetMonitoringVendor() == mon_api.VendorPrometheus {
 		desiredPorts = append(desiredPorts, core.ServicePort{
 			Name:       api.PrometheusExporterPortName,
 			Protocol:   core.ProtocolTCP,
