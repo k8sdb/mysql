@@ -23,23 +23,21 @@ import (
 )
 
 var (
-	PrometheusCrdGroup = pcm.Group
-	PrometheusCrdKinds = pcm.DefaultCrdKinds
+	prometheusCrdGroup = pcm.Group
+	prometheusCrdKinds = pcm.DefaultCrdKinds
 )
 
-func init() {
-	flagset := flag.CommandLine
-	flagset.StringVar(&PrometheusCrdGroup, "prometheus-crd-apigroup", PrometheusCrdGroup, "prometheus CRD  API group name")
-	flagset.Var(&PrometheusCrdKinds, "prometheus-crd-kinds", " - EXPERIMENTAL (could be removed in future releases) - customize CRD kind names")
+func getPrometheusFlags() *flag.FlagSet {
+	fs := flag.NewFlagSet("prometheus", flag.ExitOnError)
+	fs.StringVar(&prometheusCrdGroup, "prometheus-crd-apigroup", prometheusCrdGroup, "prometheus CRD  API group name")
+	fs.Var(&prometheusCrdKinds, "prometheus-crd-kinds", " - EXPERIMENTAL (could be removed in future releases) - customize CRD kind names")
+	return fs
 }
 
 func NewCmdRun(version string) *cobra.Command {
 	var (
 		masterURL      string
 		kubeconfigPath string
-
-		PrometheusCrdGroup = pcm.Group
-		PrometheusCrdKinds = pcm.DefaultCrdKinds
 	)
 
 	opt := controller.Options{
@@ -67,7 +65,7 @@ func NewCmdRun(version string) *cobra.Command {
 			client := kubernetes.NewForConfigOrDie(config)
 			apiExtKubeClient := crd_cs.NewForConfigOrDie(config)
 			extClient := cs.NewForConfigOrDie(config)
-			promClient, err := pcm.NewForConfig(&PrometheusCrdKinds, PrometheusCrdGroup, config)
+			promClient, err := pcm.NewForConfig(&prometheusCrdKinds, prometheusCrdGroup, config)
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -100,6 +98,8 @@ func NewCmdRun(version string) *cobra.Command {
 	cmd.Flags().StringVar(&opt.Docker.ExporterTag, "exporter-tag", opt.Docker.ExporterTag, "Tag of kubedb/operator used as exporter")
 	cmd.Flags().StringVar(&opt.Address, "address", opt.Address, "Address to listen on for web interface and telemetry.")
 	cmd.Flags().BoolVar(&opt.EnableRbac, "rbac", opt.EnableRbac, "Enable RBAC for database workloads")
+
+	cmd.Flags().AddGoFlagSet(getPrometheusFlags())
 
 	return cmd
 }

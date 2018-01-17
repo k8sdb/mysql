@@ -27,6 +27,9 @@ import (
 var (
 	storageClass   string
 	dockerRegistry string
+
+	prometheusCrdGroup = pcm.Group
+	prometheusCrdKinds = pcm.DefaultCrdKinds
 )
 
 func init() {
@@ -66,7 +69,7 @@ var _ = BeforeSuite(func() {
 	kubeClient := kubernetes.NewForConfigOrDie(config)
 	apiExtKubeClient := crd_cs.NewForConfigOrDie(config)
 	extClient := cs.NewForConfigOrDie(config)
-	promClient, err := pcm.NewForConfig(config)
+	promClient, err := pcm.NewForConfig(&prometheusCrdKinds, prometheusCrdGroup, config)
 	if err != nil {
 		log.Fatalln(err)
 	}
