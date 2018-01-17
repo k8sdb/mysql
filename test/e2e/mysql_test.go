@@ -236,7 +236,7 @@ var _ = Describe("MySQL", func() {
 					}
 				})
 
-				It("should take Snapshot successfully", shouldTakeSnapshot)
+				FIt("should take Snapshot successfully", shouldTakeSnapshot)
 			})
 
 			Context("In Azure", func() {
