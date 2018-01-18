@@ -90,6 +90,7 @@ var _ = BeforeSuite(func() {
 		Docker: docker.Docker{
 			Registry: dockerRegistry,
 		},
+		EnableAnalytics:   true,
 		OperatorNamespace: root.Namespace(),
 		GoverningService:  api.DatabaseNamePrefix,
 		AnalyticsClientID: "$kubedb$mysql$e2e",
