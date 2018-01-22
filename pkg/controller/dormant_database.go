@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/appscode/go/log"
@@ -128,16 +127,6 @@ func (c *Controller) createDormantDatabase(mysql *api.MySQL) (*api.DormantDataba
 			},
 		},
 	}
-
-	if mysql.Spec.Init != nil {
-		if initSpec, err := json.Marshal(mysql.Spec.Init); err == nil {
-			dormantDb.Annotations = map[string]string{
-				api.GenericInitSpec: string(initSpec),
-			}
-		}
-	}
-
-	dormantDb.Spec.Origin.Spec.MySQL.Init = nil
 
 	return c.ExtClient.DormantDatabases(dormantDb.Namespace).Create(dormantDb)
 }

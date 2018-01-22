@@ -430,6 +430,78 @@ var _ = Describe("MySQL", func() {
 					// Delete test resource
 					deleteTestResource()
 				})
+
+				Context("With Snapshot Init", func() {
+					AfterEach(func() {
+						f.DeleteSecret(secret.ObjectMeta)
+					})
+					BeforeEach(func() {
+						secret = f.SecretForGCSBackend()
+						snapshot.Spec.StorageSecretName = secret.Name
+						snapshot.Spec.GCS = &api.GCSSpec{
+							Bucket: os.Getenv(GCS_BUCKET_NAME),
+						}
+						snapshot.Spec.DatabaseName = mysql.Name
+					})
+					FIt("should resume successfully", func() {
+						// Create and wait for running MySQL
+						createAndWaitForRunning()
+
+						By("Create Secret")
+						f.CreateSecret(secret)
+
+						By("Create Snapshot")
+						f.CreateSnapshot(snapshot)
+
+						By("Check for Successed snapshot")
+						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSuccessed))
+
+						By("Check for snapshot data")
+						f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+
+						oldMySQL, err := f.GetMySQL(mysql.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Create mysql from snapshot")
+						mysql = f.MySQL()
+						mysql.Spec.Init = &api.InitSpec{
+							SnapshotSource: &api.SnapshotSourceSpec{
+								Namespace: snapshot.Namespace,
+								Name:      snapshot.Name,
+							},
+						}
+
+						// Create and wait for running MySQL
+						createAndWaitForRunning()
+
+						By("Delete mysql")
+						f.DeleteMySQL(mysql.ObjectMeta)
+
+						By("Wait for mysql to be paused")
+						f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+
+						// Create MySQL object again to resume it
+						By("Create MySQL: " + mysql.Name)
+						err = f.CreateMySQL(mysql)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Wait for DormantDatabase to be deleted")
+						f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
+
+						By("Wait for Running mysql")
+						f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+
+						mysql, err = f.GetMySQL(mysql.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						// Delete test resource
+						deleteTestResource()
+						mysql = oldMySQL
+						// Delete test resource
+						deleteTestResource()
+					})
+				})
+
 				Context("Multiple times with init", func() {
 					BeforeEach(func() {
 						usedInitSpec = true

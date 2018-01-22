@@ -9,12 +9,14 @@ import (
 	"github.com/appscode/go/log"
 	mon_api "github.com/appscode/kube-mon/api"
 	"github.com/appscode/kutil"
+	core_util "github.com/appscode/kutil/core/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/docker"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	"github.com/kubedb/apimachinery/pkg/storage"
 	"github.com/kubedb/mysql/pkg/validator"
+	"github.com/the-redback/go-oneliners"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -93,19 +95,21 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			mysql.ObjectReference(),
 			core.EventTypeNormal,
 			eventer.EventReasonSuccessful,
-			"Successfully created Elasticsearch",
+			"Successfully created MySQL",
 		)
 	} else if vt1 == kutil.VerbPatched || vt2 == kutil.VerbPatched {
 		c.recorder.Event(
 			mysql.ObjectReference(),
 			core.EventTypeNormal,
 			eventer.EventReasonSuccessful,
-			"Successfully patched Elasticsearch",
+			"Successfully patched MySQL",
 		)
 	}
 
-	if vt2 == kutil.VerbCreated && mysql.Spec.Init != nil && mysql.Spec.Init.SnapshotSource != nil {
-		es, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+	initSpec := mysql.Annotations[api.GenericInitSpec]
+	if initSpec == "" && mysql.Spec.Init != nil && mysql.Spec.Init.SnapshotSource != nil {
+		fmt.Println(">>>>>>>>>>>>>>>>>> Initialize!!!!!!!!!!!!")
+		ms, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
 			in.Status.Phase = api.DatabasePhaseInitializing
 			return in
 		})
@@ -118,7 +122,7 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			)
 			return err
 		}
-		mysql.Status = es.Status
+		mysql.Status = ms.Status
 
 		if err := c.initialize(mysql); err != nil {
 			c.recorder.Eventf(
@@ -130,7 +134,7 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			)
 		}
 
-		es, _, err = util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+		ms, _, err = util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
 			in.Status.Phase = api.DatabasePhaseRunning
 			return in
 		})
@@ -143,7 +147,26 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			)
 			return err
 		}
-		mysql.Status = es.Status
+		mysql.Status = ms.Status
+	}
+
+	if mysql.Spec.Init != nil {
+		ms, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+			initSpec, err := json.Marshal(mysql.Spec.Init)
+			if err == nil {
+				in.Annotations = core_util.UpsertMap(in.Annotations, map[string]string{
+					api.GenericInitSpec: string(initSpec),
+				})
+			}
+			in.Spec.Init = nil
+			return in
+		})
+		if err != nil {
+			c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			return err
+		}
+		mysql.Annotations = ms.Annotations
+		mysql.Spec.Init = ms.Spec.Init
 	}
 
 	// Ensure Schedule backup
@@ -221,6 +244,9 @@ func (c *Controller) matchDormantDatabase(mysql *api.MySQL) error {
 		return fmt.Errorf(message, args)
 	}
 
+	oneliners.PrettyJson(mysql, "Original Mysql")
+	oneliners.PrettyJson(dormantDb, "Dormant DB")
+
 	// Check DatabaseKind
 	if dormantDb.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL {
 		return sendEvent(fmt.Sprintf(`Invalid MySQL: "%v". Exists DormantDatabase "%v" of different Kind`,
@@ -228,8 +254,10 @@ func (c *Controller) matchDormantDatabase(mysql *api.MySQL) error {
 	}
 
 	// Check InitSpec
-	initSpecAnnotationStr := dormantDb.Annotations[api.GenericInitSpec]
+	initSpecAnnotationStr := dormantDb.Spec.Origin.Annotations[api.GenericInitSpec]
 	if initSpecAnnotationStr != "" {
+		fmt.Println(">>>>>>>>>>>>>>>>>1")
+		oneliners.PrettyJson(initSpecAnnotationStr, "initSpecAnnotationStr")
 		var initSpecAnnotation *api.InitSpec
 		if err := json.Unmarshal([]byte(initSpecAnnotationStr), &initSpecAnnotation); err != nil {
 			return sendEvent(err.Error())
@@ -239,6 +267,21 @@ func (c *Controller) matchDormantDatabase(mysql *api.MySQL) error {
 			if !reflect.DeepEqual(initSpecAnnotation, mysql.Spec.Init) {
 				return sendEvent("InitSpec mismatches with DormantDatabase annotation")
 			}
+
+			//// Patch original Init to Annotations,
+			//ms, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+			//	in.Annotations = core_util.UpsertMap(in.Annotations, map[string]string{
+			//		api.GenericInitSpec: initSpecAnnotationStr,
+			//	})
+			//	in.Spec.Init = nil
+			//	return in
+			//})
+			//if err != nil {
+			//	c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			//	return err
+			//}
+			//mysql.Annotations = ms.Annotations
+			//mysql.Spec.Init = ms.Spec.Init
 		}
 	}
 
@@ -256,6 +299,8 @@ func (c *Controller) matchDormantDatabase(mysql *api.MySQL) error {
 	if !reflect.DeepEqual(drmnOriginSpec, &originalSpec) {
 		return sendEvent("MySQL spec mismatches with OriginSpec in DormantDatabases")
 	}
+
+	oneliners.PrettyJson(mysql, "New Mysql")
 
 	return util.DeleteDormantDatabase(c.ExtClient, dormantDb.ObjectMeta)
 }
