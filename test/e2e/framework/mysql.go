@@ -75,7 +75,7 @@ func (f *Framework) EventuallyMySQLRunning(meta metav1.ObjectMeta) GomegaAsyncAs
 			Expect(err).NotTo(HaveOccurred())
 			return mysql.Status.Phase == api.DatabasePhaseRunning
 		},
-		time.Minute*5,
+		time.Minute*15,
 		time.Second*5,
 	)
 }

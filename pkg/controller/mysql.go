@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"time"
@@ -10,13 +9,13 @@ import (
 	mon_api "github.com/appscode/kube-mon/api"
 	"github.com/appscode/kutil"
 	core_util "github.com/appscode/kutil/core/v1"
+	meta_util "github.com/appscode/kutil/meta"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/docker"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	"github.com/kubedb/apimachinery/pkg/storage"
 	"github.com/kubedb/mysql/pkg/validator"
-	"github.com/the-redback/go-oneliners"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -106,9 +105,8 @@ func (c *Controller) create(mysql *api.MySQL) error {
 		)
 	}
 
-	initSpec := mysql.Annotations[api.GenericInitSpec]
-	if initSpec == "" && mysql.Spec.Init != nil && mysql.Spec.Init.SnapshotSource != nil {
-		fmt.Println(">>>>>>>>>>>>>>>>>> Initialize!!!!!!!!!!!!")
+	if _, err := meta_util.GetString(mysql.Annotations, api.GenericInitSpec); err == kutil.ErrNotFound &&
+		mysql.Spec.Init != nil && mysql.Spec.Init.SnapshotSource != nil {
 		ms, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
 			in.Status.Phase = api.DatabasePhaseInitializing
 			return in
@@ -150,23 +148,9 @@ func (c *Controller) create(mysql *api.MySQL) error {
 		mysql.Status = ms.Status
 	}
 
-	if mysql.Spec.Init != nil {
-		ms, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
-			initSpec, err := json.Marshal(mysql.Spec.Init)
-			if err == nil {
-				in.Annotations = core_util.UpsertMap(in.Annotations, map[string]string{
-					api.GenericInitSpec: string(initSpec),
-				})
-			}
-			in.Spec.Init = nil
-			return in
-		})
-		if err != nil {
-			c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			return err
-		}
-		mysql.Annotations = ms.Annotations
-		mysql.Spec.Init = ms.Spec.Init
+	if err := c.setInitAnnotation(mysql); err != nil {
+		c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		return err
 	}
 
 	// Ensure Schedule backup
@@ -215,6 +199,22 @@ func (c *Controller) setMonitoringPort(mysql *api.MySQL) error {
 	return nil
 }
 
+func (c *Controller) setInitAnnotation(mysql *api.MySQL) error {
+	if _, err := meta_util.GetString(mysql.Annotations, api.GenericInitSpec); err == kutil.ErrNotFound && mysql.Spec.Init != nil {
+		mg, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+			in.Annotations = core_util.UpsertMap(in.Annotations, map[string]string{
+				api.GenericInitSpec: "",
+			})
+			return in
+		})
+		if err != nil {
+			return err
+		}
+		mysql.Annotations = mg.Annotations
+	}
+	return nil
+}
+
 func (c *Controller) matchDormantDatabase(mysql *api.MySQL) error {
 	// Check if DormantDatabase exists or not
 	dormantDb, err := c.ExtClient.DormantDatabases(mysql.Namespace).Get(mysql.Name, metav1.GetOptions{})
@@ -244,51 +244,15 @@ func (c *Controller) matchDormantDatabase(mysql *api.MySQL) error {
 		return fmt.Errorf(message, args)
 	}
 
-	oneliners.PrettyJson(mysql, "Original Mysql")
-	oneliners.PrettyJson(dormantDb, "Dormant DB")
-
 	// Check DatabaseKind
 	if dormantDb.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL {
 		return sendEvent(fmt.Sprintf(`Invalid MySQL: "%v". Exists DormantDatabase "%v" of different Kind`,
 			mysql.Name, dormantDb.Name))
 	}
 
-	// Check InitSpec
-	initSpecAnnotationStr := dormantDb.Spec.Origin.Annotations[api.GenericInitSpec]
-	if initSpecAnnotationStr != "" {
-		fmt.Println(">>>>>>>>>>>>>>>>>1")
-		oneliners.PrettyJson(initSpecAnnotationStr, "initSpecAnnotationStr")
-		var initSpecAnnotation *api.InitSpec
-		if err := json.Unmarshal([]byte(initSpecAnnotationStr), &initSpecAnnotation); err != nil {
-			return sendEvent(err.Error())
-		}
-
-		if mysql.Spec.Init != nil {
-			if !reflect.DeepEqual(initSpecAnnotation, mysql.Spec.Init) {
-				return sendEvent("InitSpec mismatches with DormantDatabase annotation")
-			}
-
-			//// Patch original Init to Annotations,
-			//ms, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
-			//	in.Annotations = core_util.UpsertMap(in.Annotations, map[string]string{
-			//		api.GenericInitSpec: initSpecAnnotationStr,
-			//	})
-			//	in.Spec.Init = nil
-			//	return in
-			//})
-			//if err != nil {
-			//	c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			//	return err
-			//}
-			//mysql.Annotations = ms.Annotations
-			//mysql.Spec.Init = ms.Spec.Init
-		}
-	}
-
 	// Check Origin Spec
 	drmnOriginSpec := dormantDb.Spec.Origin.Spec.MySQL
 	originalSpec := mysql.Spec
-	originalSpec.Init = nil
 
 	if originalSpec.DatabaseSecret == nil {
 		originalSpec.DatabaseSecret = &core.SecretVolumeSource{
@@ -300,7 +264,10 @@ func (c *Controller) matchDormantDatabase(mysql *api.MySQL) error {
 		return sendEvent("MySQL spec mismatches with OriginSpec in DormantDatabases")
 	}
 
-	oneliners.PrettyJson(mysql, "New Mysql")
+	if err := c.setInitAnnotation(mysql); err != nil {
+		c.recorder.Eventf(mysql.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+		return err
+	}
 
 	return util.DeleteDormantDatabase(c.ExtClient, dormantDb.ObjectMeta)
 }
@@ -386,29 +353,6 @@ func (c *Controller) initialize(mysql *api.MySQL) error {
 }
 
 func (c *Controller) pause(mysql *api.MySQL) error {
-	//if mysql.Spec.DoNotPause {
-	//	c.recorder.Eventf(
-	//		mysql.ObjectReference(),
-	//		core.EventTypeWarning,
-	//		eventer.EventReasonFailedToPause,
-	//		`MySQL "%v" is locked.`,
-	//		mysql.Name,
-	//	)
-	//
-	//	if err := c.reCreateMySQL(mysql); err != nil {
-	//		c.recorder.Eventf(
-	//			mysql.ObjectReference(),
-	//			core.EventTypeWarning,
-	//			eventer.EventReasonFailedToCreate,
-	//			`Failed to recreate MySQL: "%v". Reason: %v`,
-	//			mysql.Name,
-	//			err,
-	//		)
-	//		return err
-	//	}
-	//	return nil
-	//}
-
 	if _, err := c.createDormantDatabase(mysql); err != nil {
 		c.recorder.Eventf(
 			mysql.ObjectReference(),

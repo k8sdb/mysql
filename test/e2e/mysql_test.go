@@ -432,10 +432,12 @@ var _ = Describe("MySQL", func() {
 				})
 
 				Context("With Snapshot Init", func() {
+					var skipDataCheck bool
 					AfterEach(func() {
 						f.DeleteSecret(secret.ObjectMeta)
 					})
 					BeforeEach(func() {
+						skipDataCheck = false
 						secret = f.SecretForGCSBackend()
 						snapshot.Spec.StorageSecretName = secret.Name
 						snapshot.Spec.GCS = &api.GCSSpec{
@@ -499,6 +501,10 @@ var _ = Describe("MySQL", func() {
 						mysql = oldMySQL
 						// Delete test resource
 						deleteTestResource()
+						if !skipDataCheck {
+							By("Check for snapshot data")
+							f.EventuallySnapshotDataFound(snapshot).Should(BeFalse())
+						}
 					})
 				})
 
