@@ -105,7 +105,44 @@ var _ = Describe("MySQL", func() {
 						StorageClassName: types.StringP(f.StorageClass),
 					}
 				})
-				It("should run successfully", shouldSuccessfullyRunning)
+				It("should run successfully", func() {
+					if skipMessage != "" {
+						Skip(skipMessage)
+					}
+					// Create MySQL
+					createAndWaitForRunning()
+
+					By("Creating Table")
+					f.EventuallyCreateTable(mysql.ObjectMeta).Should(BeTrue())
+
+					By("Inserting Rows")
+					f.EventuallyInsertRow(mysql.ObjectMeta, 3).Should(BeTrue())
+
+					By("Checking Row Count of Table")
+					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+
+					By("Delete mysql")
+					err = f.DeleteMySQL(mysql.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for mysql to be paused")
+					f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+
+					_, err = f.PatchDormantDatabase(mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+						in.Spec.Resume = true
+						return in
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for DormantDatabase to be deleted")
+					f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
+
+					By("Wait for Running mysql")
+					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+
+					By("Checking Row Count of Table")
+					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+				})
 			})
 		})
 
@@ -163,7 +200,7 @@ var _ = Describe("MySQL", func() {
 				f.CreateSnapshot(snapshot)
 
 				By("Check for Successed snapshot")
-				f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSuccessed))
+				f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
 
 				if !skipDataCheck {
 					By("Check for snapshot data")
@@ -279,7 +316,17 @@ var _ = Describe("MySQL", func() {
 					}
 				})
 
-				It("should run successfully", shouldSuccessfullyRunning)
+				FIt("should run successfully", func() {
+					// Create Postgres
+					createAndWaitForRunning()
+
+					By("Checking Row Count of Table")
+					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+
+					// Delete test resource
+					deleteTestResource()
+				})
+
 			})
 
 			Context("With Snapshot", func() {
@@ -291,6 +338,15 @@ var _ = Describe("MySQL", func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
+					By("Creating Table")
+					f.EventuallyCreateTable(mysql.ObjectMeta).Should(BeTrue())
+
+					By("Inserting Row")
+					f.EventuallyInsertRow(mysql.ObjectMeta, 3).Should(BeTrue())
+
+					By("Checking Row Count of Table")
+					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+
 					By("Create Secret")
 					f.CreateSecret(secret)
 
@@ -298,7 +354,7 @@ var _ = Describe("MySQL", func() {
 					f.CreateSnapshot(snapshot)
 
 					By("Check for Successed snapshot")
-					f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSuccessed))
+					f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
 
 					By("Check for snapshot data")
 					f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
@@ -317,6 +373,9 @@ var _ = Describe("MySQL", func() {
 
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
+
+					By("Checking Row Count of Table")
+					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
 
 					// Delete test resource
 					deleteTestResource()
@@ -373,7 +432,7 @@ var _ = Describe("MySQL", func() {
 
 				if usedInitSpec {
 					Expect(mysql.Spec.Init).Should(BeNil())
-					Expect(mysql.Annotations[api.GenericInitSpec]).ShouldNot(BeEmpty())
+					Expect(mysql.Annotations[api.AnnotationInitialized]).ShouldNot(BeEmpty())
 				}
 
 				// Delete test resource
@@ -445,7 +504,7 @@ var _ = Describe("MySQL", func() {
 						}
 						snapshot.Spec.DatabaseName = mysql.Name
 					})
-					FIt("should resume successfully", func() {
+					It("should resume successfully", func() {
 						// Create and wait for running MySQL
 						createAndWaitForRunning()
 
@@ -456,7 +515,7 @@ var _ = Describe("MySQL", func() {
 						f.CreateSnapshot(snapshot)
 
 						By("Check for Successed snapshot")
-						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSuccessed))
+						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
 
 						By("Check for snapshot data")
 						f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())

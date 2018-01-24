@@ -9,6 +9,7 @@ import (
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/kubedb/mysql/pkg/controller"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -133,6 +134,15 @@ func (f *Framework) UpdateSecret(meta metav1.ObjectMeta, transformer func(core.S
 		time.Sleep(updateRetryInterval)
 	}
 	return fmt.Errorf("Failed to update Secret %s@%s after %d attempts.", meta.Name, meta.Namespace, attempt)
+}
+
+func (f *Framework) GetMySQLRootPassword(mysql *api.MySQL) (string, error) {
+	secret, err := f.kubeClient.CoreV1().Secrets(mysql.Namespace).Get(mysql.Spec.DatabaseSecret.SecretName, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	password := string(secret.Data[controller.KeyMySQLPassword])
+	return password, nil
 }
 
 func (f *Framework) DeleteSecret(meta metav1.ObjectMeta) error {

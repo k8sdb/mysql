@@ -74,7 +74,7 @@ var _ = BeforeSuite(func() {
 		log.Fatalln(err)
 	}
 	// Framework
-	root = framework.New(kubeClient, extClient, storageClass)
+	root = framework.New(config, kubeClient, extClient, storageClass)
 
 	By("Using namespace " + root.Namespace())
 

@@ -3,7 +3,6 @@ package controller
 import (
 	"fmt"
 	"reflect"
-	"time"
 
 	"github.com/appscode/go/log"
 	mon_api "github.com/appscode/kube-mon/api"
@@ -105,7 +104,7 @@ func (c *Controller) create(mysql *api.MySQL) error {
 		)
 	}
 
-	if _, err := meta_util.GetString(mysql.Annotations, api.GenericInitSpec); err == kutil.ErrNotFound &&
+	if _, err := meta_util.GetString(mysql.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
 		mysql.Spec.Init != nil && mysql.Spec.Init.SnapshotSource != nil {
 		ms, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
 			in.Status.Phase = api.DatabasePhaseInitializing
@@ -200,10 +199,10 @@ func (c *Controller) setMonitoringPort(mysql *api.MySQL) error {
 }
 
 func (c *Controller) setInitAnnotation(mysql *api.MySQL) error {
-	if _, err := meta_util.GetString(mysql.Annotations, api.GenericInitSpec); err == kutil.ErrNotFound && mysql.Spec.Init != nil {
+	if _, err := meta_util.GetString(mysql.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound && mysql.Spec.Init != nil {
 		mg, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
 			in.Annotations = core_util.UpsertMap(in.Annotations, map[string]string{
-				api.GenericInitSpec: "",
+				api.AnnotationInitialized: "",
 			})
 			return in
 		})
@@ -291,10 +290,6 @@ func (c *Controller) ensureBackupScheduler(mysql *api.MySQL) {
 	}
 }
 
-const (
-	durationCheckRestoreJob = time.Minute * 30
-)
-
 func (c *Controller) initialize(mysql *api.MySQL) error {
 	snapshotSource := mysql.Spec.Init.SnapshotSource
 	// Event for notification that kubernetes objects are creating
@@ -333,8 +328,17 @@ func (c *Controller) initialize(mysql *api.MySQL) error {
 		return err
 	}
 
-	jobSuccess := c.CheckDatabaseRestoreJob(snapshot, job, mysql, c.recorder, durationCheckRestoreJob)
-	if jobSuccess {
+	if err := c.SetJobOwnerReference(snapshot, job); err != nil {
+		return err
+	}
+
+	// todo: something better
+	snap, err := util.WaitUntilSnapshotCompletion(c.ExtClient, snapshot.ObjectMeta)
+	if err != nil {
+		return err
+	}
+
+	if snap.Status.Phase == api.SnapshotPhaseSucceeded {
 		c.recorder.Event(
 			mysql.ObjectReference(),
 			core.EventTypeNormal,

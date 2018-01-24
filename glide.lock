@@ -1,5 +1,5 @@
 hash: 391471b832da51d8158ade4aebde239f52c287bd4048d7acabb34828cc3816b9
-updated: 2018-01-18T17:48:40.480602903+06:00
+updated: 2018-01-24T15:13:52.953638251+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -25,20 +25,21 @@ imports:
   - types
   - version
 - name: github.com/appscode/kube-mon
-  version: bbf9306e9c161e411f0ddc5d946e67a3685530ee
+  version: fcafde645b3a37f2f99edd8c93abfa64c880df28
   subpackages:
   - agents
   - agents/coreosprometheusoperator
   - agents/prometheusbuiltin
   - api
 - name: github.com/appscode/kutil
-  version: de69f2e242cc9e4df5dcf41d0d314e5fce818154
+  version: e5498017a554e4d6c848eaef0d2f29c4b59e31b9
   subpackages:
   - apiextensions/v1beta1
   - apps/v1beta1
   - core/v1
   - meta
   - tools/analytics
+  - tools/portforward
 - name: github.com/appscode/mergo
   version: e3000cb3d28c72b837601cac94debd91032d19fe
 - name: github.com/appscode/osm
@@ -97,7 +98,7 @@ imports:
   subpackages:
   - pkg/client/monitoring/v1
 - name: github.com/cpuguy83/go-md2man
-  version: 8d868be6e9bf9d5350910bab97a050e49887600f
+  version: 20f5889cbdc3c73dbd2862796665e7c465ade7d1
   subpackages:
   - md2man
 - name: github.com/davecgh/go-spew
@@ -118,6 +119,10 @@ imports:
   - uuid
 - name: github.com/docker/libtrust
   version: aabc10ec26b754e797f9028f4589c5b7bd90dc20
+- name: github.com/docker/spdystream
+  version: 449fdfce4d962303d702fec724ef0ad181c92528
+  subpackages:
+  - spdy
 - name: github.com/emicklei/go-restful
   version: ff4f55a206334ef123e4f79bbf348980da81ca46
   subpackages:
@@ -138,6 +143,14 @@ imports:
   version: 6aced65f8501fe1217321abf0749d354824ba2ff
 - name: github.com/go-openapi/swag
   version: 1d0bd113de87027671077d3c71eb3ac5d7dbba72
+- name: github.com/go-sql-driver/mysql
+  version: 2cc627ac8defc45d65066ae98f898166f580f9a4
+- name: github.com/go-xorm/builder
+  version: 488224409dd8aa2ce7a5baf8d10d55764a913738
+- name: github.com/go-xorm/core
+  version: 5bf745d7d163f4380e6c2bba8c4afa60534dd087
+- name: github.com/go-xorm/xorm
+  version: 3c8314e91603f0bfa6a228c1a0fea8a9e298f6d9
 - name: github.com/gogo/protobuf
   version: c0656edd0d9eab7c66d1eb0c568f9039345796f7
   subpackages:
@@ -222,7 +235,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: 2d0777c52da98b5efaa6fbfcfd45dcbdabb2fa84
+  version: a76ad4331cea306b6996c488e0855f79552b2f2a
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -231,13 +244,14 @@ imports:
   - client/typed/kubedb/v1alpha1/util
   - pkg/controller
   - pkg/controller/dormant_database
+  - pkg/controller/job
   - pkg/controller/snapshot
   - pkg/docker
   - pkg/eventer
   - pkg/storage
   - pkg/validator
 - name: github.com/kubernetes/apimachinery
-  version: bc918d4f73e11cb3110730ec8e8ee02c58d6267c
+  version: 2f1e02d3e57b8fb5206c5326bcb65217edc63a8e
   subpackages:
   - pkg/conversion
 - name: github.com/mailru/easyjson
@@ -313,7 +327,7 @@ imports:
 - name: github.com/sirupsen/logrus
   version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
 - name: github.com/spf13/cobra
-  version: 0c34d16c3123764e413b9ed982ada58b1c3d53ea
+  version: f91529fc609202eededff4de2dc0ba2f662240a3
   subpackages:
   - doc
 - name: github.com/spf13/pflag
@@ -374,7 +388,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: fa74edab4387514996aa08b9bc287882c18cb79a
+  version: adc96e7cd85a1474b9ffb0c47dbc327d0e7ce5fb
   subpackages:
   - gensupport
   - googleapi
@@ -383,6 +397,7 @@ imports:
 - name: google.golang.org/appengine
   version: 4f7eeb5305a4ba1966344836ba4af9996b7b4e05
   subpackages:
+  - cloudsql
   - internal
   - internal/app_identity
   - internal/base
@@ -472,6 +487,8 @@ imports:
   - pkg/util/diff
   - pkg/util/errors
   - pkg/util/framer
+  - pkg/util/httpstream
+  - pkg/util/httpstream/spdy
   - pkg/util/intstr
   - pkg/util/json
   - pkg/util/jsonmergepatch
@@ -487,6 +504,7 @@ imports:
   - pkg/version
   - pkg/watch
   - third_party/forked/golang/json
+  - third_party/forked/golang/netutil
   - third_party/forked/golang/reflect
 - name: k8s.io/client-go
   version: 7656f45ccb3db63d177f734a9e5f6a116f08ad4f
@@ -530,9 +548,11 @@ imports:
   - tools/clientcmd/api/v1
   - tools/metrics
   - tools/pager
+  - tools/portforward
   - tools/record
   - tools/reference
   - transport
+  - transport/spdy
   - util/cert
   - util/flowcontrol
   - util/homedir
