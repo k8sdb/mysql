@@ -1,7 +1,6 @@
 package framework
 
 import (
-	"crypto/rand"
 	"fmt"
 	"time"
 
@@ -38,19 +37,6 @@ func (f *Framework) GetMySQLClient(meta metav1.ObjectMeta) (*xorm.Engine, error)
 
 	cnnstr := fmt.Sprintf("root:%v@tcp(127.0.0.1:%v)/mysql", pass, tunnel.Local)
 	return xorm.NewEngine("mysql", cnnstr)
-}
-
-var randChars = []rune("abcdefghijklmnopqrstuvwxyzabcdef")
-
-// Use this for generating random pat of a ID. Do not use this for generating short passwords or secrets.
-func characters(len int) string {
-	bytes := make([]byte, len)
-	rand.Read(bytes)
-	r := make([]rune, len)
-	for i, b := range bytes {
-		r[i] = randChars[b>>3]
-	}
-	return string(r)
 }
 
 func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta) GomegaAsyncAssertion {
@@ -93,7 +79,7 @@ func (f *Framework) EventuallyInsertRow(meta metav1.ObjectMeta, total int) Gomeg
 
 			for i := count; i < total; i++ {
 				if _, err := en.Insert(&KubedbTable{
-					Name: characters(5),
+					Name: fmt.Sprintf("KubedbName-%v", i),
 				}); err != nil {
 					return false
 				}

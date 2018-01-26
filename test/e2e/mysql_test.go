@@ -217,7 +217,7 @@ var _ = Describe("MySQL", func() {
 				}
 			}
 
-			FContext("In Local", func() {
+			Context("In Local", func() {
 				BeforeEach(func() {
 					skipDataCheck = true
 					secret = f.SecretForLocalBackend()
@@ -331,6 +331,18 @@ var _ = Describe("MySQL", func() {
 			})
 
 			Context("With Snapshot", func() {
+				BeforeEach(func() {
+					if f.StorageClass != "" {
+						mysql.Spec.Storage = &core.PersistentVolumeClaimSpec{
+							Resources: core.ResourceRequirements{
+								Requests: core.ResourceList{
+									core.ResourceStorage: resource.MustParse("50Mi"),
+								},
+							},
+							StorageClassName: types.StringP(f.StorageClass),
+						}
+					}
+				})
 				AfterEach(func() {
 					f.DeleteSecret(secret.ObjectMeta)
 				})
@@ -365,6 +377,16 @@ var _ = Describe("MySQL", func() {
 
 					By("Create mysql from snapshot")
 					mysql = f.MySQL()
+					if f.StorageClass != "" {
+						mysql.Spec.Storage = &core.PersistentVolumeClaimSpec{
+							Resources: core.ResourceRequirements{
+								Requests: core.ResourceList{
+									core.ResourceStorage: resource.MustParse("50Mi"),
+								},
+							},
+							StorageClassName: types.StringP(f.StorageClass),
+						}
+					}
 					mysql.Spec.Init = &api.InitSpec{
 						SnapshotSource: &api.SnapshotSourceSpec{
 							Namespace: snapshot.Namespace,
@@ -385,7 +407,7 @@ var _ = Describe("MySQL", func() {
 					deleteTestResource()
 				}
 
-				Context("with GCS", func() {
+				FContext("with GCS", func() {
 					BeforeEach(func() {
 						secret = f.SecretForGCSBackend()
 						snapshot.Spec.StorageSecretName = secret.Name
@@ -406,11 +428,27 @@ var _ = Describe("MySQL", func() {
 			BeforeEach(func() {
 				usedInitScript = false
 				usedInitSnapshot = false
+				if f.StorageClass == "" {
+					skipMessage = "Missing StorageClassName. Provide as flag to test this."
+				}
+				mysql.Spec.Storage = &core.PersistentVolumeClaimSpec{
+					Resources: core.ResourceRequirements{
+						Requests: core.ResourceList{
+							core.ResourceStorage: resource.MustParse("50Mi"),
+						},
+					},
+					StorageClassName: types.StringP(f.StorageClass),
+				}
 			})
 
 			var shouldResumeSuccessfully = func() {
 				// Create and wait for running MySQL
 				createAndWaitForRunning()
+
+				if usedInitScript {
+					By("Checking Row Count of Table")
+					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+				}
 
 				By("Delete mysql")
 				f.DeleteMySQL(mysql.ObjectMeta)
@@ -457,7 +495,7 @@ var _ = Describe("MySQL", func() {
 				It("should resume DormantDatabase successfully", shouldResumeSuccessfully)
 			})
 
-			FContext("With Init", func() {
+			Context("With Init", func() {
 				BeforeEach(func() {
 					usedInitScript = true
 					mysql.Spec.Init = &api.InitSpec{
@@ -504,7 +542,7 @@ var _ = Describe("MySQL", func() {
 					deleteTestResource()
 				})
 
-				FContext("with init", func() {
+				Context("with init", func() {
 					BeforeEach(func() {
 						usedInitScript = true
 						mysql.Spec.Init = &api.InitSpec{
@@ -607,6 +645,16 @@ var _ = Describe("MySQL", func() {
 
 						By("Create mysql from snapshot")
 						mysql = f.MySQL()
+						if f.StorageClass != "" {
+							mysql.Spec.Storage = &core.PersistentVolumeClaimSpec{
+								Resources: core.ResourceRequirements{
+									Requests: core.ResourceList{
+										core.ResourceStorage: resource.MustParse("50Mi"),
+									},
+								},
+								StorageClassName: types.StringP(f.StorageClass),
+							}
+						}
 						mysql.Spec.Init = &api.InitSpec{
 							SnapshotSource: &api.SnapshotSourceSpec{
 								Namespace: snapshot.Namespace,
@@ -661,7 +709,7 @@ var _ = Describe("MySQL", func() {
 					})
 				})
 
-				Context("Multiple times with init", func() {
+				FContext("Multiple times with init", func() {
 					BeforeEach(func() {
 						usedInitScript = true
 						mysql.Spec.Init = &api.InitSpec{
