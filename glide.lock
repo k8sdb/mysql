@@ -1,5 +1,5 @@
 hash: 391471b832da51d8158ade4aebde239f52c287bd4048d7acabb34828cc3816b9
-updated: 2018-01-24T15:13:52.953638251+06:00
+updated: 2018-01-26T12:09:47.726336511+06:00
 imports:
 - name: cloud.google.com/go
   version: fe3d41e1ecb2ce36ad3a979037c9b9a2b726226f
@@ -144,7 +144,7 @@ imports:
 - name: github.com/go-openapi/swag
   version: 1d0bd113de87027671077d3c71eb3ac5d7dbba72
 - name: github.com/go-sql-driver/mysql
-  version: 2cc627ac8defc45d65066ae98f898166f580f9a4
+  version: bc14601d1bd56421dd60f561e6052c9ed77f9daf
 - name: github.com/go-xorm/builder
   version: 488224409dd8aa2ce7a5baf8d10d55764a913738
 - name: github.com/go-xorm/core
@@ -235,7 +235,7 @@ imports:
 - name: github.com/juju/ratelimit
   version: 5b9ff866471762aa2ab2dced63c9fb6f53921342
 - name: github.com/kubedb/apimachinery
-  version: a76ad4331cea306b6996c488e0855f79552b2f2a
+  version: e9a30c23ecf5f39c963364e5a229766575193716
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -251,7 +251,7 @@ imports:
   - pkg/storage
   - pkg/validator
 - name: github.com/kubernetes/apimachinery
-  version: 2f1e02d3e57b8fb5206c5326bcb65217edc63a8e
+  version: b621949a1923cee3fce8bca9613e9a83609f0bbc
   subpackages:
   - pkg/conversion
 - name: github.com/mailru/easyjson
@@ -388,7 +388,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: adc96e7cd85a1474b9ffb0c47dbc327d0e7ce5fb
+  version: 61a5611191ce37af3dca50af6d9265cb273ccb88
   subpackages:
   - gensupport
   - googleapi

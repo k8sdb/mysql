@@ -135,8 +135,14 @@ func (f *Framework) CleanSnapshot() {
 	}
 	for _, s := range snapshotList.Items {
 		util.PatchSnapshot(f.extClient, &s, func(in *api.Snapshot) *api.Snapshot {
-			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
+			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, api.GenericKey)
 			return in
 		})
+	}
+	deletePolicy := metav1.DeletePropagationBackground
+	if err := f.extClient.Snapshots(f.namespace).DeleteCollection(&metav1.DeleteOptions{
+		PropagationPolicy: &deletePolicy,
+	}, metav1.ListOptions{}); err != nil {
+		return
 	}
 }

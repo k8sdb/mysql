@@ -13,6 +13,8 @@ import (
 
 type Controller struct {
 	*amc.Controller
+	// SnapshotDoer interface
+	snapshotter amc.Snapshotter
 	// ListOptions for watcher
 	listOption metav1.ListOptions
 	// Event Recorder
@@ -30,6 +32,7 @@ type Controller struct {
 // NewController creates a new Controller
 func NewController(
 	controller *amc.Controller,
+	snapshotter amc.Snapshotter,
 	listOption metav1.ListOptions,
 	syncPeriod time.Duration,
 ) *Controller {
@@ -37,10 +40,11 @@ func NewController(
 	// return new DormantDatabase Controller
 	return &Controller{
 		Controller:     controller,
+		snapshotter:    snapshotter,
 		listOption:     listOption,
 		eventRecorder:  eventer.NewEventRecorder(controller.Client, "Job Controller"),
 		syncPeriod:     syncPeriod,
-		maxNumRequests: 2,
+		maxNumRequests: 5,
 	}
 }
 

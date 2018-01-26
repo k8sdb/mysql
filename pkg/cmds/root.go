@@ -19,7 +19,7 @@ const (
 )
 
 func NewRootCmd(version string) *cobra.Command {
-	var rootCmd = &cobra.Command {
+	var rootCmd = &cobra.Command{
 		Use:               "my-operator",
 		DisableAutoGenTag: true,
 		PersistentPreRun: func(c *cobra.Command, args []string) {

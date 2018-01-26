@@ -19,12 +19,12 @@ const (
 
 func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) (*batch.Job, error) {
 	databaseName := mysql.Name
-	jobName := snapshot.OffshootName()
+	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshot.OffshootName())
 	jobLabel := map[string]string{
-		api.LabelDatabaseKind: api.ResourceKindMongoDB,
+		api.LabelDatabaseKind: api.ResourceKindMySQL,
 	}
 	jobAnnotation := map[string]string{
-		api.AnnotationJobType: snapshotProcessRestore,
+		api.AnnotationJobType: api.JobTypeRestore,
 	}
 
 	backupSpec := snapshot.Spec.SnapshotStorageSpec
@@ -50,9 +50,9 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 			OwnerReferences: []metav1.OwnerReference{
 				{
 					APIVersion: api.SchemeGroupVersion.String(),
-					Kind:       api.ResourceKindSnapshot,
-					Name:       snapshot.Name,
-					UID:        snapshot.UID,
+					Kind:       api.ResourceKindMySQL,
+					Name:       mysql.Name,
+					UID:        mysql.UID,
 				},
 			},
 		},
@@ -146,7 +146,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 	databaseName := snapshot.Spec.DatabaseName
 	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshot.OffshootName())
 	jobLabel := map[string]string{
-		api.LabelDatabaseKind: api.ResourceKindMongoDB,
+		api.LabelDatabaseKind: api.ResourceKindMySQL,
 	}
 	jobAnnotation := map[string]string{
 		api.AnnotationJobType: snapshotProcessBackup,

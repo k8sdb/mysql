@@ -1,10 +1,9 @@
 package snapshot
 
 import (
-	"errors"
 	"fmt"
-	"time"
 
+	"github.com/appscode/go/log"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/eventer"
@@ -13,10 +12,6 @@ import (
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-)
-
-const (
-	durationCheckSnapshotJob = time.Minute * 30
 )
 
 func (c *Controller) create(snapshot *api.Snapshot) error {
@@ -34,16 +29,44 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 	// Validate DatabaseSnapshot spec
 	if err := c.snapshotter.ValidateSnapshot(snapshot); err != nil {
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonInvalid, err.Error())
-		return err
+		_, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
+			t := metav1.Now()
+			in.Status.CompletionTime = &t
+			in.Labels[api.LabelDatabaseName] = snapshot.Spec.DatabaseName
+			in.Status.Phase = api.SnapshotPhaseFailed
+			in.Status.Reason = "Invalid Snapshot"
+			return in
+		})
+		if err != nil {
+			c.eventRecorder.Eventf(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			return err
+		}
+		log.Errorln(err)
+		return nil
 	}
 
 	// Check running snapshot
-	if err := c.checkRunningSnapshot(snapshot); err != nil {
+	running, err := c.isSnapshotRunning(snapshot)
+	if err != nil {
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, err.Error())
 		return err
 	}
+	if running {
+		_, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
+			t := metav1.Now()
+			in.Status.CompletionTime = &t
+			in.Status.Phase = api.SnapshotPhaseFailed
+			in.Status.Reason = "One Snapshot is already Running"
+			return in
+		})
+		if err != nil {
+			c.eventRecorder.Eventf(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
+			return err
+		}
+		return nil
+	}
 
-	runtimeObj, err := c.snapshotter.GetDatabase(snapshot)
+	runtimeObj, err := c.snapshotter.GetDatabase(metav1.ObjectMeta{Name: snapshot.Spec.DatabaseName, Namespace: snapshot.Namespace})
 	if err != nil {
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToGet, err.Error())
 		return err
@@ -74,19 +97,8 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		return err
 	}
-	job, err = c.Client.BatchV1().Jobs(snapshot.Namespace).Create(job)
-	if err != nil {
-		message := fmt.Sprintf("Failed to take snapshot. Reason: %v", err)
-		c.eventRecorder.Event(api.ObjectReferenceFor(runtimeObj), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
-		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
-		return err
-	}
 
-	if err := c.SetJobOwnerReference(snapshot, job); err != nil {
-		return err
-	}
-
-	snap, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
+	_, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
 		in.Labels[api.LabelDatabaseName] = snapshot.Spec.DatabaseName
 		in.Labels[api.LabelSnapshotStatus] = string(api.SnapshotPhaseRunning)
 		in.Status.Phase = api.SnapshotPhaseRunning
@@ -96,47 +108,24 @@ func (c *Controller) create(snapshot *api.Snapshot) error {
 		c.eventRecorder.Eventf(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
 		return err
 	}
-	snapshot.Labels = snap.Labels
-	snapshot.Status = snap.Status
 
-	snap, err = util.WaitUntilSnapshotCompletion(c.ExtClient, snapshot.ObjectMeta)
+	job, err = c.Client.BatchV1().Jobs(snapshot.Namespace).Create(job)
 	if err != nil {
+		message := fmt.Sprintf("Failed to take snapshot. Reason: %v", err)
+		c.eventRecorder.Event(api.ObjectReferenceFor(runtimeObj), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
+		c.eventRecorder.Event(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonSnapshotFailed, message)
 		return err
 	}
 
-	if snap.Status.Phase == api.SnapshotPhaseSucceeded {
-		c.eventRecorder.Event(
-			api.ObjectReferenceFor(runtimeObj),
-			core.EventTypeNormal,
-			eventer.EventReasonSuccessfulSnapshot,
-			"Successfully completed snapshot",
-		)
-		c.eventRecorder.Event(
-			snapshot.ObjectReference(),
-			core.EventTypeNormal,
-			eventer.EventReasonSuccessfulSnapshot,
-			"Successfully completed snapshot",
-		)
-	} else {
-		c.eventRecorder.Event(
-			api.ObjectReferenceFor(runtimeObj),
-			core.EventTypeWarning,
-			eventer.EventReasonSnapshotFailed,
-			"Failed to complete snapshot",
-		)
-		c.eventRecorder.Event(
-			snapshot.ObjectReference(),
-			core.EventTypeWarning,
-			eventer.EventReasonSnapshotFailed,
-			"Failed to complete snapshot",
-		)
+	if err := c.SetJobOwnerReference(snapshot, job); err != nil {
+		log.Errorln(err)
 	}
 
 	return nil
 }
 
 func (c *Controller) delete(snapshot *api.Snapshot) error {
-	runtimeObj, err := c.snapshotter.GetDatabase(snapshot)
+	runtimeObj, err := c.snapshotter.GetDatabase(metav1.ObjectMeta{Name: snapshot.Spec.DatabaseName, Namespace: snapshot.Namespace})
 	if err != nil {
 		if !kerr.IsNotFound(err) {
 			c.eventRecorder.Event(
@@ -184,7 +173,7 @@ func (c *Controller) delete(snapshot *api.Snapshot) error {
 	return nil
 }
 
-func (c *Controller) checkRunningSnapshot(snapshot *api.Snapshot) error {
+func (c *Controller) isSnapshotRunning(snapshot *api.Snapshot) (bool, error) {
 	labelMap := map[string]string{
 		api.LabelDatabaseKind:   snapshot.Labels[api.LabelDatabaseKind],
 		api.LabelDatabaseName:   snapshot.Spec.DatabaseName,
@@ -195,25 +184,12 @@ func (c *Controller) checkRunningSnapshot(snapshot *api.Snapshot) error {
 		LabelSelector: labels.SelectorFromSet(labelMap).String(),
 	})
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if len(snapshotList.Items) > 0 {
-		_, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
-			t := metav1.Now()
-			in.Status.StartTime = &t
-			in.Status.CompletionTime = &t
-			in.Status.Phase = api.SnapshotPhaseFailed
-			in.Status.Reason = "One Snapshot is already Running"
-			return in
-		})
-		if err != nil {
-			c.eventRecorder.Eventf(snapshot.ObjectReference(), core.EventTypeWarning, eventer.EventReasonFailedToUpdate, err.Error())
-			return err
-		}
-
-		return errors.New("one Snapshot is already Running")
+		return true, nil
 	}
 
-	return nil
+	return false, nil
 }

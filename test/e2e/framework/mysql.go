@@ -87,8 +87,14 @@ func (f *Framework) CleanMySQL() {
 	}
 	for _, e := range mysqlList.Items {
 		util.PatchMySQL(f.extClient, &e, func(in *api.MySQL) *api.MySQL {
-			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
+			in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, api.GenericKey)
 			return in
 		})
+	}
+	deletePolicy := metav1.DeletePropagationForeground
+	if err := f.extClient.MySQLs(f.namespace).DeleteCollection(&metav1.DeleteOptions{
+		PropagationPolicy: &deletePolicy,
+	}, metav1.ListOptions{}); err != nil {
+		return
 	}
 }

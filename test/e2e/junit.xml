@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="0" time="32.28188189">
-      <testcase name="MySQL Test General - should run successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test General With PVC should run successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
+  <testsuite tests="13" failures="1" time="4892.35501154">
+      <testcase name="MySQL Test General - should run successfully" classname="e2e Suite" time="91.848545109"></testcase>
+      <testcase name="MySQL Test General With PVC should run successfully" classname="e2e Suite" time="333.208873043"></testcase>
       <testcase name="MySQL Test DoNotPause should work successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In Local With PVC should run successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
+      <testcase name="MySQL Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="278.592710182"></testcase>
+      <testcase name="MySQL Test Snapshot In Local With PVC should run successfully" classname="e2e Suite" time="235.749900744"></testcase>
       <testcase name="MySQL Test Snapshot In S3 should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
+      <testcase name="MySQL Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="304.871629587"></testcase>
       <testcase name="MySQL Test Snapshot In Azure should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
       <testcase name="MySQL Test Snapshot In Swift should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
+      <testcase name="MySQL Test Initialize With Script should run successfully" classname="e2e Suite" time="308.254158956"></testcase>
+      <testcase name="MySQL Test Initialize With Snapshot with GCS should run successfully" classname="e2e Suite" time="743.574466758"></testcase>
+      <testcase name="MySQL Test Resume Without Init should resume DormantDatabase successfully" classname="e2e Suite" time="235.518559377"></testcase>
+      <testcase name="MySQL Test Resume With Init should resume DormantDatabase successfully" classname="e2e Suite" time="900.055444083">
+          <failure type="Failure">/home/maruf/go/src/github.com/kubedb/mysql/test/e2e/mysql_test.go:470&#xA;Timed out after 900.000s.&#xA;Expected&#xA;    &lt;bool&gt;: false&#xA;to be true&#xA;/home/maruf/go/src/github.com/kubedb/mysql/test/e2e/mysql_test.go:48</failure>
+          <system-out>[BeforeEach] MySQL&#xA;  /home/maruf/go/src/github.com/kubedb/mysql/test/e2e/mysql_test.go:35&#xA;[BeforeEach] Resume&#xA;  /home/maruf/go/src/github.com/kubedb/mysql/test/e2e/mysql_test.go:406&#xA;[BeforeEach] With Init&#xA;  /home/maruf/go/src/github.com/kubedb/mysql/test/e2e/mysql_test.go:456&#xA;[It] should resume DormantDatabase successfully&#xA;  /home/maruf/go/src/github.com/kubedb/mysql/test/e2e/mysql_test.go:470&#xA;�[1mSTEP�[0m: Create MySQL: mysql-qk72o5&#xA;�[1mSTEP�[0m: Wait for Running mysql&#xA;</system-out>
+      </testcase>
+      <testcase name="MySQL Test Resume With original MySQL should resume DormantDatabase successfully" classname="e2e Suite" time="243.871343793"></testcase>
+      <testcase name="MySQL Test Resume With original MySQL with init should resume DormantDatabase successfully" classname="e2e Suite" time="237.109103516"></testcase>
+      <testcase name="MySQL Test Resume With original MySQL With Snapshot Init should resume successfully" classname="e2e Suite" time="878.448473777"></testcase>
   </testsuite>

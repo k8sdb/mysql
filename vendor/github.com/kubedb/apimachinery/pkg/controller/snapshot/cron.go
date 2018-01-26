@@ -1,7 +1,6 @@
 package snapshot
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -9,7 +8,6 @@ import (
 	"github.com/appscode/go/log"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
-	"github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	"github.com/orcaman/concurrent-map"
 	"gopkg.in/robfig/cron.v2"
@@ -71,11 +69,6 @@ func (c *cronController) ScheduleBackup(
 	// cronEntry name
 	cronEntryName := fmt.Sprintf("%v@%v", om.Name, om.Namespace)
 
-	// Remove previous cron job if exist
-	if id, exists := c.cronEntryIDs.Pop(cronEntryName); exists {
-		c.cron.Remove(id.(cron.EntryID))
-	}
-
 	invoker := &snapshotInvoker{
 		extClient:     c.extClient,
 		runtimeObject: runtimeObj,
@@ -84,8 +77,11 @@ func (c *cronController) ScheduleBackup(
 		eventRecorder: c.eventRecorder,
 	}
 
-	if err := invoker.validateScheduler(durationCheckSnapshotJob); err != nil {
-		return err
+	// Remove previous cron job if exist
+	if id, exists := c.cronEntryIDs.Pop(cronEntryName); exists {
+		c.cron.Remove(id.(cron.EntryID))
+	} else {
+		invoker.createScheduledSnapshot()
 	}
 
 	// Set cron job
@@ -96,6 +92,7 @@ func (c *cronController) ScheduleBackup(
 
 	// Add job entryID
 	c.cronEntryIDs.Set(cronEntryName, entryID)
+
 	return nil
 }
 
@@ -118,24 +115,6 @@ type snapshotInvoker struct {
 	om            metav1.ObjectMeta
 	spec          *api.BackupScheduleSpec
 	eventRecorder record.EventRecorder
-}
-
-func (s *snapshotInvoker) validateScheduler(checkDuration time.Duration) error {
-	utc := time.Now().UTC()
-	snapshot, err := s.createSnapshot(fmt.Sprintf("%v-%v", s.om.Name, utc.Format("20060102-150405")))
-	if err != nil {
-		return err
-	}
-	snapshot, err = util.WaitUntilSnapshotCompletion(s.extClient, snapshot.ObjectMeta)
-	if err != nil {
-		return err
-	}
-
-	if snapshot.Status.Phase == api.SnapshotPhaseFailed {
-		return errors.New("failed to complete initial snapshot")
-	}
-
-	return nil
 }
 
 func (s *snapshotInvoker) createScheduledSnapshot() {
