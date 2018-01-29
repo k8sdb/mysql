@@ -417,7 +417,7 @@ var _ = Describe("MySQL", func() {
 						snapshot.Spec.DatabaseName = mysql.Name
 					})
 
-					FIt("should run successfully", shouldRestoreSnapshot)
+					It("should run successfully", shouldRestoreSnapshot)
 				})
 			})
 		})
