@@ -303,6 +303,18 @@ var _ = Describe("MySQL", func() {
 		})
 
 		Context("Initialize", func() {
+			BeforeEach(func() {
+				if f.StorageClass != "" {
+					mysql.Spec.Storage = &core.PersistentVolumeClaimSpec{
+						Resources: core.ResourceRequirements{
+							Requests: core.ResourceList{
+								core.ResourceStorage: resource.MustParse("50Mi"),
+							},
+						},
+						StorageClassName: types.StringP(f.StorageClass),
+					}
+				}
+			})
 			Context("With Script", func() {
 				BeforeEach(func() {
 					mysql.Spec.Init = &api.InitSpec{
@@ -331,18 +343,6 @@ var _ = Describe("MySQL", func() {
 			})
 
 			Context("With Snapshot", func() {
-				BeforeEach(func() {
-					if f.StorageClass != "" {
-						mysql.Spec.Storage = &core.PersistentVolumeClaimSpec{
-							Resources: core.ResourceRequirements{
-								Requests: core.ResourceList{
-									core.ResourceStorage: resource.MustParse("50Mi"),
-								},
-							},
-							StorageClassName: types.StringP(f.StorageClass),
-						}
-					}
-				})
 				AfterEach(func() {
 					f.DeleteSecret(secret.ObjectMeta)
 				})
@@ -407,7 +407,7 @@ var _ = Describe("MySQL", func() {
 					deleteTestResource()
 				}
 
-				FContext("with GCS", func() {
+				Context("with GCS", func() {
 					BeforeEach(func() {
 						secret = f.SecretForGCSBackend()
 						snapshot.Spec.StorageSecretName = secret.Name
@@ -600,7 +600,7 @@ var _ = Describe("MySQL", func() {
 					})
 				})
 
-				FContext("With Snapshot Init", func() {
+				Context("With Snapshot Init", func() {
 					var skipDataCheck bool
 					AfterEach(func() {
 						f.DeleteSecret(secret.ObjectMeta)
@@ -709,7 +709,7 @@ var _ = Describe("MySQL", func() {
 					})
 				})
 
-				FContext("Multiple times with init", func() {
+				Context("Multiple times with init", func() {
 					BeforeEach(func() {
 						usedInitScript = true
 						mysql.Spec.Init = &api.InitSpec{
@@ -774,7 +774,7 @@ var _ = Describe("MySQL", func() {
 			})
 		})
 
-		FContext("SnapshotScheduler", func() {
+		Context("SnapshotScheduler", func() {
 			AfterEach(func() {
 				f.DeleteSecret(secret.ObjectMeta)
 			})
