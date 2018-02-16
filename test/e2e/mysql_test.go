@@ -143,6 +143,8 @@ var _ = Describe("MySQL", func() {
 
 					By("Checking Row Count of Table")
 					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+
+					deleteTestResource()
 				})
 			})
 		})
