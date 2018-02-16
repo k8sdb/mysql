@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	mysqlVersions = sets.NewString("8.0")
+	mysqlVersions = sets.NewString("8.0", "8")
 )
 
 func ValidateMySQL(client kubernetes.Interface, mysql *api.MySQL) error {
