@@ -1,10 +1,9 @@
 package util
 
 import (
-	"errors"
-
 	"github.com/appscode/kutil/meta"
 	"github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )

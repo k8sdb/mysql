@@ -12,7 +12,7 @@ import (
 	"github.com/appscode/go/runtime"
 	stringz "github.com/appscode/go/strings"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
-	cs "github.com/kubedb/apimachinery/client/typed/kubedb/v1alpha1"
+	cs "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1"
 	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
 	"github.com/kubedb/mysql/pkg/controller"
 	"github.com/kubedb/mysql/pkg/docker"
