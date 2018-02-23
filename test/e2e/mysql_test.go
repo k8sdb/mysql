@@ -516,7 +516,7 @@ var _ = Describe("MySQL", func() {
 			})
 
 			Context("With original MySQL", func() {
-				FIt("should resume DormantDatabase successfully", func() {
+				It("should resume DormantDatabase successfully", func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
