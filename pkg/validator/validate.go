@@ -97,12 +97,6 @@ func matchWithDormantDatabase(extClient cs.KubedbV1alpha1Interface, mysql *api.M
 		}
 	}
 
-	if originalSpec.DatabaseSecret == nil {
-		originalSpec.DatabaseSecret = &core.SecretVolumeSource{
-			SecretName: mysql.Name + "-auth",
-		}
-	}
-
 	// Skip checking doNotPause
 	drmnOriginSpec.DoNotPause = originalSpec.DoNotPause
 
