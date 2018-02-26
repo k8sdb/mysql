@@ -3,6 +3,7 @@ package validator
 import (
 	"fmt"
 
+	"github.com/appscode/go/types"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	amv "github.com/kubedb/apimachinery/pkg/validator"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,6 +23,13 @@ func ValidateMySQL(client kubernetes.Interface, mysql *api.MySQL) error {
 	// check MySQL version validation
 	if !mysqlVersions.Has(string(mysql.Spec.Version)) {
 		return fmt.Errorf(`KubeDB doesn't support MySQL version: %s`, string(mysql.Spec.Version))
+	}
+
+	if mysql.Spec.Replicas != nil {
+		replicas := types.Int32(mysql.Spec.Replicas)
+		if replicas != 1 {
+			return fmt.Errorf(`spec.replicas "%d" invalid. Value must be one`, replicas)
+		}
 	}
 
 	if mysql.Spec.Storage != nil {
