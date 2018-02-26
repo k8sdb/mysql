@@ -101,7 +101,7 @@ func matchWithDormantDatabase(extClient cs.KubedbV1alpha1Interface, mysql *api.M
 	drmnOriginSpec.DoNotPause = originalSpec.DoNotPause
 
 	if !meta_util.Equal(drmnOriginSpec, &originalSpec) {
-		return errors.New("object spec in MySQL mismatches with OriginSpec in DormantDatabase")
+		return errors.New("mysql spec mismatches with OriginSpec in DormantDatabases")
 	}
 
 	return nil
