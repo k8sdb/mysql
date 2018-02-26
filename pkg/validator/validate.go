@@ -4,8 +4,13 @@ import (
 	"fmt"
 
 	"github.com/appscode/go/types"
+	meta_util "github.com/appscode/kutil/meta"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	cs "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1"
 	amv "github.com/kubedb/apimachinery/pkg/validator"
+	"github.com/pkg/errors"
+	core "k8s.io/api/core/v1"
+	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/kubernetes"
@@ -15,7 +20,7 @@ var (
 	mysqlVersions = sets.NewString("8.0", "8")
 )
 
-func ValidateMySQL(client kubernetes.Interface, mysql *api.MySQL) error {
+func ValidateMySQL(client kubernetes.Interface, extClient cs.KubedbV1alpha1Interface, mysql *api.MySQL) error {
 	if mysql.Spec.Version == "" {
 		return fmt.Errorf(`object 'Version' is missing in '%v'`, mysql.Spec)
 	}
@@ -30,6 +35,10 @@ func ValidateMySQL(client kubernetes.Interface, mysql *api.MySQL) error {
 		if replicas != 1 {
 			return fmt.Errorf(`spec.replicas "%d" invalid. Value must be one`, replicas)
 		}
+	}
+
+	if err := matchWithDormantDatabase(extClient, mysql); err != nil {
+		return err
 	}
 
 	if mysql.Spec.Storage != nil {
@@ -60,5 +69,46 @@ func ValidateMySQL(client kubernetes.Interface, mysql *api.MySQL) error {
 		}
 
 	}
+	return nil
+}
+
+func matchWithDormantDatabase(extClient cs.KubedbV1alpha1Interface, mysql *api.MySQL) error {
+	// Check if DormantDatabase exists or not
+	dormantDb, err := extClient.DormantDatabases(mysql.Namespace).Get(mysql.Name, metav1.GetOptions{})
+	if err != nil {
+		if !kerr.IsNotFound(err) {
+			return err
+		}
+		return nil
+	}
+
+	// Check DatabaseKind
+	if dormantDb.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL {
+		return fmt.Errorf(`invalid MySQL: "%v". Exists DormantDatabase "%v" of different Kind`, mysql.Name, dormantDb.Name)
+	}
+
+	// Check Origin Spec
+	drmnOriginSpec := dormantDb.Spec.Origin.Spec.MySQL
+	originalSpec := mysql.Spec
+
+	if originalSpec.DatabaseSecret == nil {
+		originalSpec.DatabaseSecret = &core.SecretVolumeSource{
+			SecretName: mysql.Name + "-auth",
+		}
+	}
+
+	if originalSpec.DatabaseSecret == nil {
+		originalSpec.DatabaseSecret = &core.SecretVolumeSource{
+			SecretName: mysql.Name + "-auth",
+		}
+	}
+
+	// Skip checking doNotPause
+	drmnOriginSpec.DoNotPause = originalSpec.DoNotPause
+
+	if !meta_util.Equal(drmnOriginSpec, &originalSpec) {
+		return errors.New("object spec in MySQL mismatches with OriginSpec in DormantDatabase")
+	}
+
 	return nil
 }
