@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="0" time="124.649014593">
+  <testsuite tests="1" failures="0" time="404.577815304">
       <testcase name="MySQL Test General - should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -18,9 +18,7 @@
       <testcase name="MySQL Test Snapshot In S3 should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
+      <testcase name="MySQL Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="393.786785827"></testcase>
       <testcase name="MySQL Test Snapshot In Azure should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -39,7 +37,9 @@
       <testcase name="MySQL Test Resume With Init should resume DormantDatabase successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test Resume With original MySQL should resume DormantDatabase successfully" classname="e2e Suite" time="118.535835126"></testcase>
+      <testcase name="MySQL Test Resume With original MySQL should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
       <testcase name="MySQL Test Resume With original MySQL with init should resume DormantDatabase successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
