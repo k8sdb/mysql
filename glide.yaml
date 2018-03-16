@@ -6,6 +6,8 @@ import:
 - package: github.com/coreos/prometheus-operator
   repo: https://github.com/tamalsaha/prometheus-operator.git
   version: k-1.9
+- package: github.com/cpuguy83/go-md2man
+  version: v1.0.4
 - package: github.com/graymeta/stow
   repo: https://github.com/appscode/stow.git
   vcs: git
