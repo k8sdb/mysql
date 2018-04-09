@@ -1,24 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="0" time="404.577815304">
+  <testsuite tests="3" failures="0" time="782.790603768">
       <testcase name="MySQL Test General - should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test General With PVC should run successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
+      <testcase name="MySQL Test General With PVC should run successfully" classname="e2e Suite" time="248.860848482"></testcase>
       <testcase name="MySQL Test DoNotPause should work successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In Local With PVC should run successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
+      <testcase name="MySQL Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="217.848408468"></testcase>
+      <testcase name="MySQL Test Snapshot In Local With PVC should run successfully" classname="e2e Suite" time="310.559228483"></testcase>
       <testcase name="MySQL Test Snapshot In S3 should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="393.786785827"></testcase>
+      <testcase name="MySQL Test Snapshot In GCS should take Snapshot successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
       <testcase name="MySQL Test Snapshot In Azure should take Snapshot successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
