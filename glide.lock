@@ -1,5 +1,5 @@
 hash: 63bc5815820cf14e9040cc6a49770280cd7963759d12fec9f85aabbd7b94a1d0
-updated: 2018-04-12T10:45:12.567519562+06:00
+updated: 2018-04-12T19:11:36.761169049+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -428,11 +428,11 @@ imports:
 - name: github.com/sirupsen/logrus
   version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
 - name: github.com/spf13/cobra
-  version: cd30c2a7e91a1d63fd9a0027accf18a681e9d50b
+  version: 615425954c3b0d9485a7027d4d451fdcdfdee84e
   subpackages:
   - doc
 - name: github.com/spf13/pflag
-  version: 329ebf1e04800d11a25047832495199d366580f3
+  version: 583c0c0531f06d5278b7d917446061adc344b5cd
 - name: github.com/ugorji/go
   version: ded73eae5db7e7a0ef6f55aace87a2873c5d2b74
   subpackages:
