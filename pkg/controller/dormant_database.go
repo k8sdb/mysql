@@ -67,10 +67,11 @@ func (c *Controller) createDormantDatabase(mysql *api.MySQL) (*api.DormantDataba
 		Spec: api.DormantDatabaseSpec{
 			Origin: api.Origin{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:        mysql.Name,
-					Namespace:   mysql.Namespace,
-					Labels:      mysql.Labels,
-					Annotations: mysql.Annotations,
+					Name:              mysql.Name,
+					Namespace:         mysql.Namespace,
+					Labels:            mysql.Labels,
+					Annotations:       mysql.Annotations,
+					CreationTimestamp: mysql.CreationTimestamp,
 				},
 				Spec: api.OriginSpec{
 					MySQL: &mysql.Spec,

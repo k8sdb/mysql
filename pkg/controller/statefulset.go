@@ -92,7 +92,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		in.Annotations = core_util.UpsertMap(in.Annotations, mysql.StatefulSetAnnotations())
 
 		in.Spec.Replicas = types.Int32P(1)
-		in.Spec.ServiceName = c.opt.GoverningService
+		in.Spec.ServiceName = c.GoverningService
 		in.Spec.Template.Labels = in.Labels
 		in.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: in.Labels,
@@ -100,7 +100,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 
 		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
 			Name:            api.ResourceSingularMySQL,
-			Image:           c.opt.Docker.GetImageWithTag(mysql),
+			Image:           c.docker.GetImageWithTag(mysql),
 			ImagePullPolicy: core.PullIfNotPresent,
 			Ports: []core.ContainerPort{
 				{
@@ -117,9 +117,9 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 				Args: append([]string{
 					"export",
 					fmt.Sprintf("--address=:%d", mysql.Spec.Monitor.Prometheus.Port),
-					fmt.Sprintf("--analytics=%v", c.opt.EnableAnalytics),
-				}, c.opt.LoggerOptions.ToFlags()...),
-				Image: c.opt.Docker.GetOperatorImageWithTag(mysql),
+					fmt.Sprintf("--enable-analytics=%v", c.EnableAnalytics),
+				}, c.LoggerOptions.ToFlags()...),
+				Image: c.docker.GetOperatorImageWithTag(mysql),
 				Ports: []core.ContainerPort{
 					{
 						Name:          api.PrometheusExporterPortName,

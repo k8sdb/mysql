@@ -18,7 +18,7 @@ show_help() {
     echo "    --bucket=BUCKET                name of bucket"
     echo "    --folder=FOLDER                name of folder in bucket"
     echo "    --snapshot=SNAPSHOT            name of snapshot"
-    echo "    --analytics=ENABLE_ANALYTICS   send analytical events to Google Analytics (default true)"
+    echo "    --enable-analytics=ENABLE_ANALYTICS   send analytical events to Google Analytics (default true)"
 }
 
 RETVAL=0
@@ -67,7 +67,7 @@ while test $# -gt 0; do
             export DB_SNAPSHOT=`echo $1 | sed -e 's/^[^=]*=//g'`
             shift
             ;;
-        --analytics*)
+        --analytics* | --enable-analytics*)
             export ENABLE_ANALYTICS=`echo $1 | sed -e 's/^[^=]*=//g'`
             shift
             ;;
@@ -95,10 +95,10 @@ rm -rf *
 case "$op" in
     backup)
         mysqldump -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" --all-databases > dumpfile.sql
-        osm push --analytics="$ENABLE_ANALYTICS" --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_DATA_DIR" "$DB_FOLDER/$DB_SNAPSHOT"
+        osm push --enable-analytics="$ENABLE_ANALYTICS" --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_DATA_DIR" "$DB_FOLDER/$DB_SNAPSHOT"
         ;;
     restore)
-        osm pull --analytics="$ENABLE_ANALYTICS" --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_FOLDER/$DB_SNAPSHOT" "$DB_DATA_DIR"
+        osm pull --enable-analytics="$ENABLE_ANALYTICS" --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_FOLDER/$DB_SNAPSHOT" "$DB_DATA_DIR"
         mysql -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST"  -f < dumpfile.sql
         ;;
     *)  (10)

@@ -150,6 +150,13 @@ func ValidateMySQL(client kubernetes.Interface, extClient kubedbv1alpha1.KubedbV
 		}
 	}
 
+	if mysql.Spec.Init != nil &&
+		mysql.Spec.Init.SnapshotSource != nil &&
+		databaseSecret == nil {
+		return fmt.Errorf("for Snapshot init, 'spec.databaseSecret.secretName' of %v needs to be similar to older database of snapshot %v",
+			mysql.Name, mysql.Spec.Init.SnapshotSource.Name)
+	}
+
 	backupScheduleSpec := mysql.Spec.BackupSchedule
 	if backupScheduleSpec != nil {
 		if err := amv.ValidateBackupSchedule(client, backupScheduleSpec, mysql.Namespace); err != nil {

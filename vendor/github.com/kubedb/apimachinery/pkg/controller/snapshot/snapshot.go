@@ -309,14 +309,12 @@ func (c *Controller) isSnapshotRunning(snapshot *api.Snapshot) (bool, error) {
 		api.LabelSnapshotStatus: string(api.SnapshotPhaseRunning),
 	}
 
-	snapshotList, err := c.ExtClient.Snapshots(snapshot.Namespace).List(metav1.ListOptions{
-		LabelSelector: labels.SelectorFromSet(labelMap).String(),
-	})
+	snapshotList, err := c.snLister.List(labels.SelectorFromSet(labelMap))
 	if err != nil {
 		return false, err
 	}
 
-	if len(snapshotList.Items) > 0 {
+	if len(snapshotList) > 0 {
 		return true, nil
 	}
 

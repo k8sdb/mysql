@@ -10,7 +10,7 @@ source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
 IMG=mysql-tools
 TAG=8.0
-OSM_VER=${OSM_VER:-0.6.2}
+OSM_VER=${OSM_VER:-0.6.3}
 
 DIST=$REPO_ROOT/dist
 mkdir -p $DIST

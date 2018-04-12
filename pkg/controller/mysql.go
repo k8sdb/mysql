@@ -47,7 +47,7 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	}
 
 	if mysql.Status.CreationTime == nil {
-		mg, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+		my, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
 			t := metav1.Now()
 			in.Status.CreationTime = &t
 			in.Status.Phase = api.DatabasePhaseCreating
@@ -64,11 +64,11 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			}
 			return err
 		}
-		mysql.Status = mg.Status
+		mysql.Status = my.Status
 	}
 
 	// create Governing Service
-	governingService := c.opt.GoverningService
+	governingService := c.GoverningService
 	if err := c.CreateGoverningService(governingService, mysql.Namespace); err != nil {
 		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
 			c.recorder.Eventf(
@@ -200,7 +200,7 @@ func (c *Controller) ensureBackupScheduler(mysql *api.MySQL) {
 }
 
 func (c *Controller) initialize(mysql *api.MySQL) error {
-	mg, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+	my, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
 		in.Status.Phase = api.DatabasePhaseInitializing
 		return in
 	})
@@ -215,7 +215,7 @@ func (c *Controller) initialize(mysql *api.MySQL) error {
 		}
 		return err
 	}
-	mysql.Status = mg.Status
+	mysql.Status = my.Status
 
 	snapshotSource := mysql.Spec.Init.SnapshotSource
 	// Event for notification that kubernetes objects are creating

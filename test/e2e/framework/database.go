@@ -58,8 +58,8 @@ func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta) GomegaAsyncAss
 			}
 			return true
 		},
-		time.Minute*15,
-		time.Second*10,
+		time.Minute*30,
+		time.Second*20,
 	)
 	return nil
 }
@@ -87,7 +87,7 @@ func (f *Framework) EventuallyInsertRow(meta metav1.ObjectMeta, total int) Gomeg
 			}
 			return true
 		},
-		time.Minute*15,
+		time.Minute*30,
 		time.Second*10,
 	)
 	return nil
@@ -110,10 +110,9 @@ func (f *Framework) EventuallyCountRow(meta metav1.ObjectMeta) GomegaAsyncAssert
 			if err != nil {
 				return -1
 			}
-
 			return int(total)
 		},
-		time.Minute*15,
-		time.Second*10,
+		time.Minute*30,
+		time.Second*20,
 	)
 }

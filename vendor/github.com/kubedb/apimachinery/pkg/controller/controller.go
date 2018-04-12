@@ -1,12 +1,18 @@
 package controller
 
 import (
+	"time"
+
+	"github.com/appscode/go/log/golog"
+	"github.com/appscode/kutil/tools/queue"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1"
+	kubedbinformers "github.com/kubedb/apimachinery/client/informers/externalversions"
 	batch "k8s.io/api/batch/v1"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -17,6 +23,30 @@ type Controller struct {
 	ApiExtKubeClient crd_cs.ApiextensionsV1beta1Interface
 	// ThirdPartyExtension client
 	ExtClient cs.KubedbV1alpha1Interface
+}
+
+type Config struct {
+	// Informer factory
+	KubeInformerFactory   informers.SharedInformerFactory
+	KubedbInformerFactory kubedbinformers.SharedInformerFactory
+
+	// DormantDb queue
+	DDBQueue *queue.Worker
+	// job queue
+	JobQueue *queue.Worker
+	// snapshot queue
+	SNQueue *queue.Worker
+
+	OperatorNamespace string
+	GoverningService  string
+	ResyncPeriod      time.Duration
+	MaxNumRequeues    int
+	NumThreads        int
+	OpsAddress        string
+	LoggerOptions     golog.Options
+	EnableAnalytics   bool
+	AnalyticsClientID string
+	WatchNamespace    string
 }
 
 type Snapshotter interface {

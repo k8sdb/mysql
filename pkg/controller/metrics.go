@@ -14,6 +14,6 @@ func (c *Controller) runHTTPServer() {
 	m.Get("/metrics", promhttp.Handler())
 	http.Handle("/", m)
 
-	log.Infof("Starting Server: %s", c.opt.Address)
-	log.Fatal(http.ListenAndServe(c.opt.Address, nil))
+	log.Infof("Starting Server: %s", c.OpsAddress)
+	log.Fatal(http.ListenAndServe(c.OpsAddress, nil))
 }

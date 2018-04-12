@@ -146,5 +146,5 @@ func (f *Framework) GetMySQLRootPassword(mysql *api.MySQL) (string, error) {
 }
 
 func (f *Framework) DeleteSecret(meta metav1.ObjectMeta) error {
-	return f.kubeClient.CoreV1().Secrets(meta.Namespace).Delete(meta.Name, deleteInForeground())
+	return f.kubeClient.CoreV1().Secrets(meta.Namespace).Delete(meta.Name, deleteInBackground())
 }

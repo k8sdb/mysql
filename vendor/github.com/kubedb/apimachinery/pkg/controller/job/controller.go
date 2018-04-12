@@ -1,69 +1,48 @@
 package job
 
 import (
-	"time"
-
+	"github.com/appscode/kutil/tools/queue"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	batch_listers "k8s.io/client-go/listers/batch/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/client-go/util/workqueue"
 )
 
 type Controller struct {
 	*amc.Controller
+	amc.Config
 	// SnapshotDoer interface
 	snapshotter amc.Snapshotter
-	// ListOptions for watcher
-	listOption metav1.ListOptions
+	// tweakListOptions for watcher
+	tweakListOptions func(*metav1.ListOptions)
 	// Event Recorder
 	eventRecorder record.EventRecorder
-	// sync time to sync the list.
-	syncPeriod time.Duration
-	// Workqueue
-	indexer  cache.Indexer
-	queue    workqueue.RateLimitingInterface
-	informer cache.Controller
-	// Max number requests for retries
-	maxNumRequests int
-	// threadiness of Job handler
-	numThreads int
+	// Job
+	jobQueue    *queue.Worker
+	jobInformer cache.SharedIndexInformer
+	jobLister   batch_listers.JobLister
 }
 
 // NewController creates a new Controller
 func NewController(
 	controller *amc.Controller,
 	snapshotter amc.Snapshotter,
-	listOption metav1.ListOptions,
-	syncPeriod time.Duration,
-	maxNumRequests int,
-	numThreads int,
+	config amc.Config,
+	tweakListOptions func(*metav1.ListOptions),
 ) *Controller {
 	// return new DormantDatabase Controller
 	return &Controller{
-		Controller:     controller,
-		snapshotter:    snapshotter,
-		listOption:     listOption,
-		eventRecorder:  eventer.NewEventRecorder(controller.Client, "Job Controller"),
-		syncPeriod:     syncPeriod,
-		maxNumRequests: maxNumRequests,
-		numThreads:     numThreads,
+		Controller:       controller,
+		snapshotter:      snapshotter,
+		Config:           config,
+		tweakListOptions: tweakListOptions,
+		eventRecorder:    eventer.NewEventRecorder(controller.Client, "Job Controller"),
 	}
 }
 
-func (c *Controller) Run() {
-	// Watch DormantDatabase with provided ListerWatcher
-	c.watchJob()
-}
-
-func (c *Controller) watchJob() {
-
+func (c *Controller) Init() *queue.Worker {
 	c.initWatcher()
-
-	stop := make(chan struct{})
-	defer close(stop)
-
-	c.runWatcher(c.numThreads, stop)
-	select {}
+	return c.jobQueue
 }

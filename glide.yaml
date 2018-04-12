@@ -45,6 +45,9 @@ import:
   repo: https://github.com/appscode/go-version.git
   vcs: git
   version: master
-testImport:
+- package: github.com/onsi/gomega
+  version: v1.2.0
 - package: github.com/onsi/ginkgo
   version: v1.4.0
+- package: k8s.io/kube-aggregator
+  version: kubernetes-1.9.0
