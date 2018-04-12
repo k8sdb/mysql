@@ -193,13 +193,6 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 								Format:      "",
 							},
 						},
-						"resume": {
-							SchemaProps: spec.SchemaProps{
-								Description: "If true, resumes database",
-								Type:        []string{"boolean"},
-								Format:      "",
-							},
-						},
 						"origin": {
 							SchemaProps: spec.SchemaProps{
 								Description: "Origin to store original database information",
@@ -207,6 +200,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 							},
 						},
 					},
+					Required: []string{"origin"},
 				},
 			},
 			Dependencies: []string{
@@ -511,6 +505,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 							},
 						},
 					},
+					Required: []string{"version"},
 				},
 			},
 			Dependencies: []string{
@@ -983,6 +978,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 							},
 						},
 					},
+					Required: []string{"version"},
 				},
 			},
 			Dependencies: []string{
@@ -1212,6 +1208,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 							},
 						},
 					},
+					Required: []string{"version"},
 				},
 			},
 			Dependencies: []string{
@@ -1441,6 +1438,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 							},
 						},
 					},
+					Required: []string{"version"},
 				},
 			},
 			Dependencies: []string{
@@ -1489,6 +1487,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 							},
 						},
 					},
+					Required: []string{"spec"},
 				},
 			},
 			Dependencies: []string{
@@ -1678,14 +1677,14 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 								Format:      "int32",
 							},
 						},
-						"standby": {
+						"standbyMode": {
 							SchemaProps: spec.SchemaProps{
 								Description: "Standby mode",
 								Type:        []string{"string"},
 								Format:      "",
 							},
 						},
-						"streaming": {
+						"streamingMode": {
 							SchemaProps: spec.SchemaProps{
 								Description: "Streaming mode",
 								Type:        []string{"string"},
@@ -1795,6 +1794,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 							},
 						},
 					},
+					Required: []string{"version"},
 				},
 			},
 			Dependencies: []string{
@@ -2111,6 +2111,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 							},
 						},
 					},
+					Required: []string{"version"},
 				},
 			},
 			Dependencies: []string{
@@ -2593,6 +2594,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 							},
 						},
 					},
+					Required: []string{"databaseName"},
 				},
 			},
 			Dependencies: []string{

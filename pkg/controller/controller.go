@@ -12,7 +12,7 @@ import (
 	cs "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
-	drmnc "github.com/kubedb/apimachinery/pkg/controller/dormant_database"
+	drmnc "github.com/kubedb/apimachinery/pkg/controller/dormantdatabase"
 	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	"github.com/kubedb/mysql/pkg/docker"
@@ -24,8 +24,10 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
+	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/reference"
 	"k8s.io/client-go/util/workqueue"
 )
 
@@ -39,6 +41,7 @@ type Options struct {
 	Address string
 	//Max number requests for retries
 	MaxNumRequeues int
+	NumThreads     int
 	// Enable Analytics
 	EnableAnalytics bool
 	// Analytics Client ID
@@ -143,7 +146,7 @@ func (c *Controller) watchDatabaseSnapshot() {
 		LabelSelector: labels.SelectorFromSet(labelMap).String(),
 	}
 
-	snapc.NewController(c.Controller, c, listOptions, c.syncPeriod).Run()
+	snapc.NewController(c.Controller, c, listOptions, c.syncPeriod, c.opt.MaxNumRequeues, c.opt.NumThreads).Run()
 }
 
 func (c *Controller) watchDeletedDatabase() {
@@ -166,18 +169,20 @@ func (c *Controller) watchDeletedDatabase() {
 		},
 	}
 
-	drmnc.NewController(c.Controller, c, lw, c.syncPeriod).Run()
+	drmnc.NewController(c.Controller, c, lw, c.syncPeriod, c.opt.MaxNumRequeues, c.opt.NumThreads).Run()
 }
 
 func (c *Controller) pushFailureEvent(mysql *api.MySQL, reason string) {
-	c.recorder.Eventf(
-		mysql.ObjectReference(),
-		core.EventTypeWarning,
-		eventer.EventReasonFailedToStart,
-		`Fail to be ready MySQL: "%v". Reason: %v`,
-		mysql.Name,
-		reason,
-	)
+	if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
+		c.recorder.Eventf(
+			ref,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToStart,
+			`Fail to be ready MySQL: "%v". Reason: %v`,
+			mysql.Name,
+			reason,
+		)
+	}
 
 	ms, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
 		in.Status.Phase = api.DatabasePhaseFailed
@@ -185,12 +190,14 @@ func (c *Controller) pushFailureEvent(mysql *api.MySQL, reason string) {
 		return in
 	})
 	if err != nil {
-		c.recorder.Eventf(
-			mysql.ObjectReference(),
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			err.Error(),
-		)
+		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
+			c.recorder.Eventf(
+				ref,
+				core.EventTypeWarning,
+				eventer.EventReasonFailedToUpdate,
+				err.Error(),
+			)
+		}
 	}
 	mysql.Status = ms.Status
 }

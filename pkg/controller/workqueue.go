@@ -29,7 +29,7 @@ func (c *Controller) initWatcher() {
 	}
 
 	// create the workqueue
-	c.queue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), api.ResourceNameMySQL)
+	c.queue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), api.ResourceSingularMySQL)
 
 	// Bind the workqueue to a cache with the help of an informer. This way we make sure that
 	// whenever the cache is updated, the MySQL key is added to the workqueue.

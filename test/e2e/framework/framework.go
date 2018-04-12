@@ -28,7 +28,7 @@ func New(
 		kubeClient:   kubeClient,
 		extClient:    extClient,
 		name:         "mysql-operator",
-		namespace:    rand.WithUniqSuffix(api.ResourceNameMySQL),
+		namespace:    rand.WithUniqSuffix(api.ResourceSingularMySQL),
 		StorageClass: storageClass,
 	}
 }

@@ -158,21 +158,21 @@ func (c *Controller) runSnapshot(key string) error {
 		// is dependent on the actual instance, to detect that a Snapshot was recreated with the same name
 		snapshot := obj.(*api.Snapshot).DeepCopy()
 		if snapshot.DeletionTimestamp != nil {
-			if core_util.HasFinalizer(snapshot.ObjectMeta, "kubedb.com") {
+			if core_util.HasFinalizer(snapshot.ObjectMeta, api.GenericKey) {
 				util.AssignTypeKind(snapshot)
 				if err := c.delete(snapshot); err != nil {
 					log.Errorln(err)
 					return err
 				}
 				snapshot, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
-					in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, "kubedb.com")
+					in.ObjectMeta = core_util.RemoveFinalizer(in.ObjectMeta, api.GenericKey)
 					return in
 				})
 				return err
 			}
 		} else {
 			snapshot, _, err = util.PatchSnapshot(c.ExtClient, snapshot, func(in *api.Snapshot) *api.Snapshot {
-				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, "kubedb.com")
+				in.ObjectMeta = core_util.AddFinalizer(in.ObjectMeta, api.GenericKey)
 				return in
 			})
 			util.AssignTypeKind(snapshot)

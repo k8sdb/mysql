@@ -29,8 +29,6 @@ type Snapshotter interface {
 }
 
 type Deleter interface {
-	Exists(*metav1.ObjectMeta) (bool, error)
-	PauseDatabase(*api.DormantDatabase) error
-	WipeOutDatabase(*api.DormantDatabase) error
-	ResumeDatabase(*api.DormantDatabase) error
+	// WaitUntilPaused will block until db pods and service are deleted. PV/PVC will remain intact.
+	WaitUntilPaused(*api.DormantDatabase) error
 }
