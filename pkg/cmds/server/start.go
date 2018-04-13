@@ -15,7 +15,7 @@ import (
 
 const defaultEtcdPathPrefix = "/registry/kubedb.com"
 
-type KubeDBServerOptions struct {
+type MySQLServerOptions struct {
 	RecommendedOptions *genericoptions.RecommendedOptions
 	ExtraOptions       *ExtraOptions
 
@@ -23,8 +23,8 @@ type KubeDBServerOptions struct {
 	StdErr io.Writer
 }
 
-func NewMySQLServerOptions(out, errOut io.Writer) *KubeDBServerOptions {
-	o := &KubeDBServerOptions{
+func NewMySQLServerOptions(out, errOut io.Writer) *MySQLServerOptions {
+	o := &MySQLServerOptions{
 		// TODO we will nil out the etcd storage options.  This requires a later level of k8s.io/apiserver
 		RecommendedOptions: genericoptions.NewRecommendedOptions(defaultEtcdPathPrefix, server.Codecs.LegacyCodec(admissionv1beta1.SchemeGroupVersion)),
 		ExtraOptions:       NewExtraOptions(),
@@ -36,20 +36,20 @@ func NewMySQLServerOptions(out, errOut io.Writer) *KubeDBServerOptions {
 	return o
 }
 
-func (o KubeDBServerOptions) AddFlags(fs *pflag.FlagSet) {
+func (o MySQLServerOptions) AddFlags(fs *pflag.FlagSet) {
 	o.RecommendedOptions.AddFlags(fs)
 	o.ExtraOptions.AddFlags(fs)
 }
 
-func (o KubeDBServerOptions) Validate(args []string) error {
+func (o MySQLServerOptions) Validate(args []string) error {
 	return nil
 }
 
-func (o *KubeDBServerOptions) Complete() error {
+func (o *MySQLServerOptions) Complete() error {
 	return nil
 }
 
-func (o KubeDBServerOptions) Config() (*server.KubeDBServerConfig, error) {
+func (o MySQLServerOptions) Config() (*server.MySQLServerConfig, error) {
 	// TODO have a "real" external address
 	if err := o.RecommendedOptions.SecureServing.MaybeDefaultWithSelfSignedCerts("localhost", nil, []net.IP{net.ParseIP("127.0.0.1")}); err != nil {
 		return nil, fmt.Errorf("error creating self-signed certificates: %v", err)
@@ -65,7 +65,7 @@ func (o KubeDBServerOptions) Config() (*server.KubeDBServerConfig, error) {
 		return nil, err
 	}
 
-	config := &server.KubeDBServerConfig{
+	config := &server.MySQLServerConfig{
 		GenericConfig:  serverConfig,
 		ExtraConfig:    server.ExtraConfig{},
 		OperatorConfig: controllerConfig,
@@ -73,7 +73,7 @@ func (o KubeDBServerOptions) Config() (*server.KubeDBServerConfig, error) {
 	return config, nil
 }
 
-func (o KubeDBServerOptions) Run(stopCh <-chan struct{}) error {
+func (o MySQLServerOptions) Run(stopCh <-chan struct{}) error {
 	config, err := o.Config()
 	if err != nil {
 		return err

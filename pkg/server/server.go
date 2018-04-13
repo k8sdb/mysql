@@ -45,7 +45,7 @@ func init() {
 	)
 }
 
-type KubeDBServerConfig struct {
+type MySQLServerConfig struct {
 	GenericConfig  *genericapiserver.RecommendedConfig
 	ExtraConfig    ExtraConfig
 	OperatorConfig *controller.OperatorConfig
@@ -55,13 +55,13 @@ type ExtraConfig struct {
 	AdmissionHooks []hooks.AdmissionHook
 }
 
-// KubeDBServer contains state for a Kubernetes cluster master/api server.
-type KubeDBServer struct {
+// MySQLServer contains state for a Kubernetes cluster master/api server.
+type MySQLServer struct {
 	GenericAPIServer *genericapiserver.GenericAPIServer
 	Operator         *controller.Controller
 }
 
-func (op *KubeDBServer) Run(stopCh <-chan struct{}) error {
+func (op *MySQLServer) Run(stopCh <-chan struct{}) error {
 	go op.Operator.Run(stopCh)
 	return op.GenericAPIServer.PrepareRun().Run(stopCh)
 }
@@ -78,7 +78,7 @@ type CompletedConfig struct {
 }
 
 // Complete fills in any fields not set that are required to have valid data. It's mutating the receiver.
-func (c *KubeDBServerConfig) Complete() CompletedConfig {
+func (c *MySQLServerConfig) Complete() CompletedConfig {
 	completedCfg := completedConfig{
 		c.GenericConfig.Complete(),
 		c.ExtraConfig,
@@ -93,8 +93,8 @@ func (c *KubeDBServerConfig) Complete() CompletedConfig {
 	return CompletedConfig{&completedCfg}
 }
 
-// New returns a new instance of KubeDBServer from the given config.
-func (c completedConfig) New() (*KubeDBServer, error) {
+// New returns a new instance of MySQLServer from the given config.
+func (c completedConfig) New() (*MySQLServer, error) {
 	genericServer, err := c.GenericConfig.New("kubedb-server", genericapiserver.EmptyDelegate) // completion is done in Complete, no need for a second time
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (c completedConfig) New() (*KubeDBServer, error) {
 		return nil, err
 	}
 
-	s := &KubeDBServer{
+	s := &MySQLServer{
 		GenericAPIServer: genericServer,
 		Operator:         ctrl,
 	}
