@@ -49,7 +49,6 @@ func (f *Framework) RunOperatorAndServer(kubeconfigPath string, stopCh <-chan st
 	serverOpt.RecommendedOptions.SecureServing.BindAddress = net.ParseIP("127.0.0.1")
 	serverOpt.RecommendedOptions.Authorization.RemoteKubeConfigFile = kubeconfigPath
 	serverOpt.RecommendedOptions.Authentication.RemoteKubeConfigFile = kubeconfigPath
-	serverOpt.RecommendedOptions.Authentication.SkipInClusterLookup = true
 
 	serverOpt.ExtraOptions.Docker.Registry = DockerRegistry
 	serverOpt.ExtraOptions.Docker.ExporterTag = ExporterTag
