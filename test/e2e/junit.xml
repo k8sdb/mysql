@@ -1,57 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="6" failures="0" time="3304.4534685">
-      <testcase name="MySQL Test General Without PVC should run successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
+  <testsuite tests="22" failures="22" time="127.943846353">
+      <testcase name="BeforeSuite" classname="e2e Suite" time="126.437841935">
+          <failure type="Failure">/home/maruf/go/src/github.com/kubedb/mysql/test/e2e/e2e_suite_test.go:61&#xA;Timed out after 120.000s.&#xA;Expected success, but got an error:&#xA;    &lt;*errors.StatusError | 0xc4201fb680&gt;: {&#xA;        ErrStatus: {&#xA;            TypeMeta: {Kind: &#34;&#34;, APIVersion: &#34;&#34;},&#xA;            ListMeta: {SelfLink: &#34;&#34;, ResourceVersion: &#34;&#34;, Continue: &#34;&#34;},&#xA;            Status: &#34;Failure&#34;,&#xA;            Message: &#34;apiservices.apiregistration.k8s.io \&#34;v1alpha1.admission.kubedb.com\&#34; not found&#34;,&#xA;            Reason: &#34;NotFound&#34;,&#xA;            Details: {&#xA;                Name: &#34;v1alpha1.admission.kubedb.com&#34;,&#xA;                Group: &#34;apiregistration.k8s.io&#34;,&#xA;                Kind: &#34;apiservices&#34;,&#xA;                UID: &#34;&#34;,&#xA;                Causes: nil,&#xA;                RetryAfterSeconds: 0,&#xA;            },&#xA;            Code: 404,&#xA;        },&#xA;    }&#xA;    apiservices.apiregistration.k8s.io &#34;v1alpha1.admission.kubedb.com&#34; not found&#xA;/home/maruf/go/src/github.com/kubedb/mysql/test/e2e/e2e_suite_test.go:94</failure>
       </testcase>
-      <testcase name="MySQL Test General With PVC should run successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test DoNotPause should work successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In Local Without PVC should run successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In S3 should take Snapshot successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In GCS Without Init should take Snapshot successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In GCS With Init should take Snapshot successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In GCS Delete One Snapshot keeping others Delete One Snapshot keeping others" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In Azure should take Snapshot successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Snapshot In Swift should take Snapshot successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Initialize With Script should run successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Initialize With Snapshot should run successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Resume Super Fast User - Create-Delete-Create-Delete-Create  should resume DormantDatabase successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Resume Without Init should resume DormantDatabase successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Resume with init Script should resume DormantDatabase successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
-      <testcase name="MySQL Test Resume With Snapshot Init should resume successfully" classname="e2e Suite" time="750.021729776"></testcase>
-      <testcase name="MySQL Test Resume Multiple times with init should resume DormantDatabase successfully" classname="e2e Suite" time="573.491941601"></testcase>
-      <testcase name="MySQL Test SnapshotScheduler With Startup with local should run schedular successfully" classname="e2e Suite" time="492.497326971"></testcase>
-      <testcase name="MySQL Test SnapshotScheduler With Startup with GCS and PVC should run schedular successfully" classname="e2e Suite" time="379.269342776"></testcase>
-      <testcase name="MySQL Test SnapshotScheduler With Update - with Local should run schedular successfully" classname="e2e Suite" time="383.998554377"></testcase>
-      <testcase name="MySQL Test SnapshotScheduler Re-Use DormantDatabase&#39;s scheduler should re-use scheduler successfully" classname="e2e Suite" time="713.363147852"></testcase>
   </testsuite>
