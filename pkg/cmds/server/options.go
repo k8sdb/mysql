@@ -33,9 +33,6 @@ type ExtraOptions struct {
 
 	PrometheusCrdGroup string
 	PrometheusCrdKinds prom.CrdKinds
-
-	// Address to listen on for web interface and telemetry.
-	OpsAddress string
 }
 
 func (s ExtraOptions) WatchNamespace() string {
@@ -63,7 +60,6 @@ func NewExtraOptions() *ExtraOptions {
 		Burst:              1e6,
 		PrometheusCrdGroup: prom.Group,
 		PrometheusCrdKinds: prom.DefaultCrdKinds,
-		OpsAddress:         ":8080",
 	}
 }
 
@@ -77,8 +73,6 @@ func (s *ExtraOptions) AddGoFlags(fs *flag.FlagSet) {
 	fs.DurationVar(&s.ResyncPeriod, "resync-period", s.ResyncPeriod, "If non-zero, will re-list this often. Otherwise, re-list will be delayed aslong as possible (until the upstream source closes the watch or times out.")
 
 	fs.BoolVar(&s.RestrictToOperatorNamespace, "restrict-to-operator-namespace", s.RestrictToOperatorNamespace, "If true, KubeDB operator will only handle Kubernetes objects in its own namespace.")
-
-	fs.StringVar(&s.OpsAddress, "address", s.OpsAddress, "Address to listen on for web interface and telemetry.")
 
 	fs.StringVar(&s.PrometheusCrdGroup, "prometheus-crd-apigroup", s.PrometheusCrdGroup, "prometheus CRD  API group name")
 	fs.Var(&s.PrometheusCrdKinds, "prometheus-crd-kinds", " - EXPERIMENTAL (could be removed in future releases) - customize CRD kind names")
@@ -103,8 +97,6 @@ func (s *ExtraOptions) ApplyTo(cfg *controller.OperatorConfig) error {
 	cfg.MaxNumRequeues = s.MaxNumRequeues
 	cfg.NumThreads = s.NumThreads
 	cfg.WatchNamespace = s.WatchNamespace()
-
-	cfg.OpsAddress = s.OpsAddress
 
 	if cfg.KubeClient, err = kubernetes.NewForConfig(cfg.ClientConfig); err != nil {
 		return err

@@ -118,9 +118,6 @@ func (c *Controller) RunControllers(stopCh <-chan struct{}) {
 func (c *Controller) Run(stopCh <-chan struct{}) {
 	go c.StartAndRunControllers(stopCh)
 
-	// Run HTTP server to expose metrics, audit endpoint & debug profiles.
-	go c.runHTTPServer()
-
 	<-stopCh
 	c.cronController.StopCron()
 }

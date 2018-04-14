@@ -42,7 +42,6 @@ type Config struct {
 	ResyncPeriod      time.Duration
 	MaxNumRequeues    int
 	NumThreads        int
-	OpsAddress        string
 	LoggerOptions     golog.Options
 	EnableAnalytics   bool
 	AnalyticsClientID string
