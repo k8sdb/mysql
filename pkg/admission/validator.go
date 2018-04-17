@@ -117,7 +117,7 @@ func (a *MySQLValidator) Admit(req *admission.AdmissionRequest) *admission.Admis
 }
 
 var (
-	mysqlVersions = sets.NewString("8.0", "8")
+	mysqlVersions = sets.NewString("8.0", "8", "5.7", "5 ")
 )
 
 // ValidateMySQL checks if the object satisfies all the requirements.

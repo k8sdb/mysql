@@ -492,6 +492,14 @@ var _ = Describe("MySQL", func() {
 						},
 					}
 
+					By("Creating init Snapshot Mysql without secret name" + mysql.Name)
+					err = f.CreateMySQL(mysql)
+					Expect(err).Should(HaveOccurred())
+
+					// for snapshot init, user have to use older secret,
+					// because the username & password  will be replaced to
+					mysql.Spec.DatabaseSecret = oldMySQL.Spec.DatabaseSecret
+
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
