@@ -1,10 +1,16 @@
 package job
 
 import (
+	"time"
+
 	"github.com/appscode/kutil/tools/queue"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
 	"github.com/kubedb/apimachinery/pkg/eventer"
+	batch "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	batchinformer "k8s.io/client-go/informers/batch/v1"
+	"k8s.io/client-go/kubernetes"
 	batch_listers "k8s.io/client-go/listers/batch/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
@@ -20,9 +26,7 @@ type Controller struct {
 	// Event Recorder
 	eventRecorder record.EventRecorder
 	// Job
-	jobQueue    *queue.Worker
-	jobInformer cache.SharedIndexInformer
-	jobLister   batch_listers.JobLister
+	jobLister batch_listers.JobLister
 }
 
 // NewController creates a new Controller
@@ -42,7 +46,19 @@ func NewController(
 	}
 }
 
-func (c *Controller) Init() *queue.Worker {
-	c.initWatcher()
-	return c.jobQueue
+func (c *Controller) InitInformer() cache.SharedIndexInformer {
+	return c.KubeInformerFactory.InformerFor(&batch.Job{}, func(client kubernetes.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+		return batchinformer.NewFilteredJobInformer(
+			client,
+			c.WatchNamespace,
+			resyncPeriod,
+			cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc},
+			c.tweakListOptions,
+		)
+	})
+}
+
+func (c *Controller) AddEventHandlerFunc(selector labels.Selector) *queue.Worker {
+	c.addEventHandler(selector)
+	return c.JobQueue
 }

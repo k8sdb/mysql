@@ -9,9 +9,7 @@ import (
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	. "github.com/onsi/gomega"
-	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,16 +24,6 @@ func (f *Invocation) MySQL() *api.MySQL {
 		},
 		Spec: api.MySQLSpec{
 			Version: types.StrYo("8.0"),
-			Resources: core.ResourceRequirements{
-				Limits: map[core.ResourceName]resource.Quantity{
-					"cpu":    resource.MustParse("500m"),
-					"memory": resource.MustParse("250Mi"),
-				},
-				Requests: map[core.ResourceName]resource.Quantity{
-					"cpu":    resource.MustParse("250m"),
-					"memory": resource.MustParse("100Mi"),
-				},
-			},
 		},
 	}
 }

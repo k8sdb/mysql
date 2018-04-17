@@ -1,37 +1,24 @@
 package dormantdatabase
 
 import (
-	"time"
-
 	"github.com/appscode/go/log"
 	meta_util "github.com/appscode/kutil/meta"
 	"github.com/appscode/kutil/tools/queue"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
-	kubedb_informers "github.com/kubedb/apimachinery/client/informers/externalversions/kubedb/v1alpha1"
-	"k8s.io/client-go/tools/cache"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
-func (c *Controller) initWatcher() {
-	c.ddbInformer = c.KubedbInformerFactory.InformerFor(&api.DormantDatabase{}, func(client cs.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-		return kubedb_informers.NewFilteredDormantDatabaseInformer(
-			client,
-			c.WatchNamespace,
-			resyncPeriod,
-			cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc},
-			c.tweakListOptions,
-		)
-	})
-	c.ddbQueue = queue.New("DormantDatabase", c.MaxNumRequeues, c.NumThreads, c.runDormantDatabase)
-	c.ddbInformer.AddEventHandler(queue.NewEventHandler(c.ddbQueue.GetQueue(), func(old interface{}, new interface{}) bool {
+func (c *Controller) addEventHandler(selector labels.Selector) {
+	c.DrmnQueue = queue.New("DormantDatabase", c.MaxNumRequeues, c.NumThreads, c.runDormantDatabase)
+	c.DrmnInformer.AddEventHandler(queue.NewFilteredHandler(queue.NewEventHandler(c.DrmnQueue.GetQueue(), func(old interface{}, new interface{}) bool {
 		oldObj := old.(*api.DormantDatabase)
 		newObj := new.(*api.DormantDatabase)
 		if !dormantDatabaseEqual(oldObj, newObj) {
 			return true
 		}
 		return false
-	}))
+	}), selector))
 	c.ddbLister = c.KubedbInformerFactory.Kubedb().V1alpha1().DormantDatabases().Lister()
 }
 
@@ -46,7 +33,7 @@ func dormantDatabaseEqual(old, new *api.DormantDatabase) bool {
 
 func (c *Controller) runDormantDatabase(key string) error {
 	log.Debugf("started processing, key: %v\n", key)
-	obj, exists, err := c.ddbInformer.GetIndexer().GetByKey(key)
+	obj, exists, err := c.DrmnInformer.GetIndexer().GetByKey(key)
 	if err != nil {
 		log.Errorf("Fetching object with key %s from store failed with %v\n", key, err)
 		return err

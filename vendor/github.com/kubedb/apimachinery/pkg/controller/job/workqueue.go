@@ -1,41 +1,29 @@
 package job
 
 import (
-	"time"
-
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
 	"github.com/appscode/kutil/tools/queue"
 	batch "k8s.io/api/batch/v1"
-	batchinformer "k8s.io/client-go/informers/batch/v1"
-	"k8s.io/client-go/kubernetes"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/tools/cache"
 )
 
-func (c *Controller) initWatcher() {
-	c.jobInformer = c.KubeInformerFactory.InformerFor(&batch.Job{}, func(client kubernetes.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-		return batchinformer.NewFilteredJobInformer(
-			client,
-			c.WatchNamespace,
-			resyncPeriod,
-			cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc},
-			c.tweakListOptions,
-		)
-	})
-	c.jobQueue = queue.New("Job", c.MaxNumRequeues, c.NumThreads, c.runJob)
+func (c *Controller) addEventHandler(selector labels.Selector) {
+	c.JobQueue = queue.New("Job", c.MaxNumRequeues, c.NumThreads, c.runJob)
 	c.jobLister = c.KubeInformerFactory.Batch().V1().Jobs().Lister()
-	c.jobInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	c.JobInformer.AddEventHandler(queue.NewFilteredHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			job := obj.(*batch.Job)
 			if job.Status.Succeeded > 0 || job.Status.Failed > types.Int32(job.Spec.BackoffLimit) {
-				queue.Enqueue(c.jobQueue.GetQueue(), obj)
+				queue.Enqueue(c.JobQueue.GetQueue(), obj)
 			}
 		},
 		UpdateFunc: func(old interface{}, new interface{}) {
 			oldObj := old.(*batch.Job)
 			newObj := new.(*batch.Job)
 			if isJobCompleted(oldObj, newObj) {
-				queue.Enqueue(c.jobQueue.GetQueue(), new)
+				queue.Enqueue(c.JobQueue.GetQueue(), new)
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
@@ -45,10 +33,10 @@ func (c *Controller) initWatcher() {
 				return
 			}
 			if job.Status.Succeeded == 0 && job.Status.Failed <= types.Int32(job.Spec.BackoffLimit) {
-				queue.Enqueue(c.jobQueue.GetQueue(), obj)
+				queue.Enqueue(c.JobQueue.GetQueue(), obj)
 			}
 		},
-	})
+	}, selector))
 }
 
 func isJobCompleted(old, new *batch.Job) bool {
@@ -63,7 +51,7 @@ func isJobCompleted(old, new *batch.Job) bool {
 
 func (c *Controller) runJob(key string) error {
 	log.Debugf("started processing, key: %v\n", key)
-	obj, exists, err := c.jobInformer.GetIndexer().GetByKey(key)
+	obj, exists, err := c.JobInformer.GetIndexer().GetByKey(key)
 	if err != nil {
 		log.Errorf("Fetching object with key %s from store failed with %v\n", key, err)
 		return err

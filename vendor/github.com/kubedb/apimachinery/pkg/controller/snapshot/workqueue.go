@@ -1,39 +1,26 @@
 package snapshot
 
 import (
-	"time"
-
 	"github.com/appscode/go/log"
 	core_util "github.com/appscode/kutil/core/v1"
 	"github.com/appscode/kutil/tools/queue"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
-	kubedb_informers "github.com/kubedb/apimachinery/client/informers/externalversions/kubedb/v1alpha1"
-	"k8s.io/client-go/tools/cache"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
-func (c *Controller) initWatcher() {
-	c.snInformer = c.KubedbInformerFactory.InformerFor(&api.Snapshot{}, func(client cs.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
-		return kubedb_informers.NewFilteredSnapshotInformer(
-			client,
-			c.WatchNamespace,
-			resyncPeriod,
-			cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc},
-			c.tweakListOptions,
-		)
-	})
-	c.snQueue = queue.New("Snapshot", c.MaxNumRequeues, c.NumThreads, c.runSnapshot)
+func (c *Controller) addEventHandler(selector labels.Selector) {
+	c.SnapQueue = queue.New("Snapshot", c.MaxNumRequeues, c.NumThreads, c.runSnapshot)
 	c.snLister = c.KubedbInformerFactory.Kubedb().V1alpha1().Snapshots().Lister()
-	c.snInformer.AddEventHandler(queue.NewEventHandler(c.snQueue.GetQueue(), func(old interface{}, new interface{}) bool {
+	c.SnapInformer.AddEventHandler(queue.NewFilteredHandler(queue.NewEventHandler(c.SnapQueue.GetQueue(), func(old interface{}, new interface{}) bool {
 		snapshot := new.(*api.Snapshot)
 		return snapshot.DeletionTimestamp != nil
-	}))
+	}), selector))
 }
 
 func (c *Controller) runSnapshot(key string) error {
 	log.Debugf("started processing, key: %v\n", key)
-	obj, exists, err := c.snInformer.GetIndexer().GetByKey(key)
+	obj, exists, err := c.SnapInformer.GetIndexer().GetByKey(key)
 	if err != nil {
 		log.Errorf("Fetching object with key %s from store failed with %v\n", key, err)
 		return err

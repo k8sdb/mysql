@@ -17,7 +17,6 @@ import (
 	core "k8s.io/api/core/v1"
 	crd_api "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -38,6 +37,8 @@ type Controller struct {
 	cronController snapc.CronControllerInterface
 	// Event Recorder
 	recorder record.EventRecorder
+	// labelselector for event-handler of Snapshot, Dormant and Job
+	selector labels.Selector
 	// MySQL
 	myQueue    *queue.Worker
 	myInformer cache.SharedIndexInformer
@@ -67,6 +68,9 @@ func New(
 		promClient:     promClient,
 		cronController: cronController,
 		recorder:       eventer.NewEventRecorder(client, "MySQL operator"),
+		selector: labels.SelectorFromSet(map[string]string{
+			api.LabelDatabaseKind: api.ResourceKindMySQL,
+		}),
 	}
 }
 
@@ -83,21 +87,12 @@ func (c *Controller) EnsureCustomResourceDefinitions() error {
 
 // Init initializes mysql, DormantDB amd Snapshot watcher
 func (c *Controller) Init() error {
-	labelMap := map[string]string{
-		api.LabelDatabaseKind: api.ResourceKindMySQL,
-	}
-
-	tweakListOptions := func(options *metav1.ListOptions) {
-		options.LabelSelector = labels.SelectorFromSet(labelMap).String()
-	}
-
 	if err := c.EnsureCustomResourceDefinitions(); err != nil {
 		return err
 	}
-
 	c.initWatcher()
-	c.DDBQueue = dormantdatabase.NewController(c.Controller, c, c.Config, tweakListOptions).Init()
-	c.SNQueue, c.JobQueue = snapc.NewController(c.Controller, c, c.Config, tweakListOptions).Init()
+	c.DrmnQueue = dormantdatabase.NewController(c.Controller, c, c.Config, nil).AddEventHandlerFunc(c.selector)
+	c.SnapQueue, c.JobQueue = snapc.NewController(c.Controller, c, c.Config, nil).AddEventHandlerFunc(c.selector)
 
 	return nil
 }
@@ -109,8 +104,8 @@ func (c *Controller) RunControllers(stopCh <-chan struct{}) {
 
 	// Watch x  TPR objects
 	c.myQueue.Run(stopCh)
-	c.DDBQueue.Run(stopCh)
-	c.SNQueue.Run(stopCh)
+	c.DrmnQueue.Run(stopCh)
+	c.SnapQueue.Run(stopCh)
 	c.JobQueue.Run(stopCh)
 }
 

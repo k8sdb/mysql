@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/cache"
 )
 
 type Controller struct {
@@ -31,11 +32,14 @@ type Config struct {
 	KubedbInformerFactory kubedbinformers.SharedInformerFactory
 
 	// DormantDb queue
-	DDBQueue *queue.Worker
+	DrmnQueue    *queue.Worker
+	DrmnInformer cache.SharedIndexInformer
 	// job queue
-	JobQueue *queue.Worker
+	JobQueue    *queue.Worker
+	JobInformer cache.SharedIndexInformer
 	// snapshot queue
-	SNQueue *queue.Worker
+	SnapQueue    *queue.Worker
+	SnapInformer cache.SharedIndexInformer
 
 	OperatorNamespace string
 	GoverningService  string

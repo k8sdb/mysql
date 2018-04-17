@@ -5,10 +5,11 @@ import (
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
 	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
+	"github.com/kubedb/apimachinery/pkg/controller/dormantdatabase"
 	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
-	"github.com/kubedb/apimachinery/pkg/eventer"
 	"github.com/kubedb/mysql/pkg/docker"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 )
@@ -38,18 +39,23 @@ func NewOperatorConfig(clientConfig *rest.Config) *OperatorConfig {
 }
 
 func (c *OperatorConfig) New() (*Controller, error) {
-	ctrl := &Controller{
-		Controller: &amc.Controller{
-			Client:           c.KubeClient,
-			ExtClient:        c.DBClient.KubedbV1alpha1(),
-			ApiExtKubeClient: c.APIExtKubeClient,
-		},
-		Config:         c.Config,
-		docker:         c.Docker,
-		promClient:     c.PromClient,
-		cronController: c.CronController,
-		recorder:       eventer.NewEventRecorder(c.KubeClient, "mysql operator"),
+	ctrl := New(
+		c.KubeClient,
+		c.APIExtKubeClient,
+		c.DBClient.KubedbV1alpha1(),
+		c.PromClient,
+		c.CronController,
+		c.Docker,
+		c.Config,
+	)
+
+	tweakListOptions := func(options *metav1.ListOptions) {
+		options.LabelSelector = ctrl.selector.String()
 	}
+
+	// Initialize Job and Snapshot Informer. Later EventHandler will be added to these informers.
+	ctrl.DrmnInformer = dormantdatabase.NewController(ctrl.Controller, ctrl, ctrl.Config, tweakListOptions).InitInformer()
+	ctrl.SnapInformer, ctrl.JobInformer = snapc.NewController(ctrl.Controller, ctrl, ctrl.Config, tweakListOptions).InitInformer()
 
 	if err := ctrl.Init(); err != nil {
 		return nil, err
