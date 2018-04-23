@@ -34,6 +34,10 @@ func (c *FakeKubedbV1alpha1) Elasticsearches(namespace string) v1alpha1.Elastics
 	return &FakeElasticsearches{c, namespace}
 }
 
+func (c *FakeKubedbV1alpha1) Etcds(namespace string) v1alpha1.EtcdInterface {
+	return &FakeEtcds{c, namespace}
+}
+
 func (c *FakeKubedbV1alpha1) Memcacheds(namespace string) v1alpha1.MemcachedInterface {
 	return &FakeMemcacheds{c, namespace}
 }

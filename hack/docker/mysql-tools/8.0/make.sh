@@ -10,6 +10,7 @@ source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
 IMG=mysql-tools
 TAG=8.0
+ALT_TAG=8
 OSM_VER=${OSM_VER:-0.6.3}
 
 DIST=$REPO_ROOT/dist
@@ -28,6 +29,15 @@ build() {
 
     rm osm
     popd
+}
+
+docker_push() {
+    local cmd="docker tag $DOCKER_REGISTRY/$IMG:$TAG $DOCKER_REGISTRY/$IMG:$ALT_TAG"
+	echo $cmd; $cmd
+	cmd="docker push $DOCKER_REGISTRY/$IMG:$ALT_TAG"
+	echo $cmd; $cmd
+
+	hub_canary
 }
 
 binary_repo $@
