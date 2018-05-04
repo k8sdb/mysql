@@ -5,7 +5,7 @@ import:
 - package: github.com/appscode/pat
 - package: github.com/coreos/prometheus-operator
   repo: https://github.com/tamalsaha/prometheus-operator.git
-  version: k-1.9
+  version: k-1.10
 - package: github.com/cpuguy83/go-md2man
   version: v1.0.4
 - package: github.com/graymeta/stow
@@ -14,7 +14,7 @@ import:
   version: master
 - package: github.com/jpillora/go-ogle-analytics
 - package: github.com/kubedb/apimachinery
-  version: apigroup
+  version: master
 - package: github.com/prometheus/client_golang
   version: v0.8.0
 - package: github.com/prometheus/common
