@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="6" failures="0" time="3513.131027417">
+  <testsuite tests="2" failures="0" time="1204.057668369">
       <testcase name="MySQL Test General Without PVC should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -9,9 +9,7 @@
       <testcase name="MySQL Test DoNotPause should work successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
+      <testcase name="MySQL Test Snapshot In Local should take Snapshot successfully" classname="e2e Suite" time="406.749797133"></testcase>
       <testcase name="MySQL Test Snapshot In Local Without PVC should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -36,9 +34,7 @@
       <testcase name="MySQL Test Initialize With Script should run successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test Initialize With Snapshot should run successfully" classname="e2e Suite" time="0">
-          <skipped></skipped>
-      </testcase>
+      <testcase name="MySQL Test Initialize With Snapshot should run successfully" classname="e2e Suite" time="777.321551212"></testcase>
       <testcase name="MySQL Test Resume Super Fast User - Create-Delete-Create-Delete-Create  should resume DormantDatabase successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
@@ -48,10 +44,22 @@
       <testcase name="MySQL Test Resume with init Script should resume DormantDatabase successfully" classname="e2e Suite" time="0">
           <skipped></skipped>
       </testcase>
-      <testcase name="MySQL Test Resume With Snapshot Init should resume successfully" classname="e2e Suite" time="1015.809401014"></testcase>
-      <testcase name="MySQL Test Resume Multiple times with init should resume DormantDatabase successfully" classname="e2e Suite" time="428.015841247"></testcase>
-      <testcase name="MySQL Test SnapshotScheduler With Startup with local should run schedular successfully" classname="e2e Suite" time="463.939801195"></testcase>
-      <testcase name="MySQL Test SnapshotScheduler With Startup with GCS and PVC should run schedular successfully" classname="e2e Suite" time="453.691059645"></testcase>
-      <testcase name="MySQL Test SnapshotScheduler With Update - with Local should run schedular successfully" classname="e2e Suite" time="454.716698471"></testcase>
-      <testcase name="MySQL Test SnapshotScheduler Re-Use DormantDatabase&#39;s scheduler should re-use scheduler successfully" classname="e2e Suite" time="677.605703392"></testcase>
+      <testcase name="MySQL Test Resume With Snapshot Init should resume successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test Resume Multiple times with init should resume DormantDatabase successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test SnapshotScheduler With Startup with local should run schedular successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test SnapshotScheduler With Startup with GCS and PVC should run schedular successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test SnapshotScheduler With Update - with Local should run schedular successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
+      <testcase name="MySQL Test SnapshotScheduler Re-Use DormantDatabase&#39;s scheduler should re-use scheduler successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
+      </testcase>
   </testsuite>

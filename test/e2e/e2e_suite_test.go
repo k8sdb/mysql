@@ -91,7 +91,7 @@ var _ = BeforeSuite(func() {
 	go root.RunOperatorAndServer(kubeconfigPath, stopCh)
 
 	root.EventuallyCRD().Should(Succeed())
-	root.EventuallyApiServiceReady().Should(Succeed())
+	root.EventuallyAPIServiceReady().Should(Succeed())
 })
 
 var _ = AfterSuite(func() {
