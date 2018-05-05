@@ -1,5 +1,5 @@
-hash: 61b3aac175cc2eaf8f4ee1f8519b83afcbfd88cd0b8079e6e16b396539c0d2b8
-updated: 2018-05-04T10:04:09.081594046-07:00
+hash: 808c776777d8ee5783e938472145bb69e4938b26880b4da5cdd124667c0f7eea
+updated: 2018-05-05T13:34:12.641312569-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -189,7 +189,7 @@ imports:
   - daemon
   - journal
 - name: github.com/coreos/prometheus-operator
-  version: 0608eb688913e3c2523bb503fc8ab76c771e4018
+  version: b21c4949708337d04b9a4d7de0b806dd799a0955
   repo: https://github.com/tamalsaha/prometheus-operator.git
   subpackages:
   - pkg/client/monitoring/v1
@@ -305,7 +305,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 13f86432b882000a51c6e610c620974462691a97
 - name: github.com/kubedb/apimachinery
-  version: 06f741a3961f6f6c83b7a24fdfa5dff753c15444
+  version: 7722f91fb07234ee69f3889e5c6ed5c181b0a0a7
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -501,7 +501,7 @@ imports:
   subpackages:
   - rate
 - name: google.golang.org/api
-  version: db8ef494b6bdaf472489f97ad9c556e18c963444
+  version: bb395b674c9930450ea7243b3e3c8f43150f4c11
   subpackages:
   - gensupport
   - googleapi
@@ -653,7 +653,8 @@ imports:
   - third_party/forked/golang/netutil
   - third_party/forked/golang/reflect
 - name: k8s.io/apiserver
-  version: 5ae41ac86efd753e2ba012f097b83a914b268236
+  version: 6fdedd7050e542dd8c23fdababac0237aedd7f9e
+  repo: https://github.com/tamalsaha/apiserver.git
   subpackages:
   - pkg/admission
   - pkg/admission/configuration
