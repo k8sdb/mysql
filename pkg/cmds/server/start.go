@@ -32,6 +32,7 @@ func NewMySQLServerOptions(out, errOut io.Writer) *MySQLServerOptions {
 		StdErr:             errOut,
 	}
 	o.RecommendedOptions.Etcd = nil
+	o.RecommendedOptions.Admission = nil
 
 	return o
 }
