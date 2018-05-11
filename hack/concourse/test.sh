@@ -32,14 +32,19 @@ go get -u golang.org/x/tools/cmd/goimports
 pharmer
 popd
 
-#delete cluster on exit
 function cleanup {
+    # delete cluster on exit
     pharmer get cluster
     pharmer delete cluster $NAME
     pharmer get cluster
     sleep 120
     pharmer apply $NAME
     pharmer get cluster
+
+    # delete docker image on exit
+    curl -LO https://raw.githubusercontent.com/appscodelabs/libbuild/master/docker.py
+    chmod +x docker.py
+    ./docker.py del_tag kubedbci my-operator $KUBEDB_OPERATOR
 }
 trap cleanup EXIT
 
@@ -108,19 +113,11 @@ AZURE_CONTAINER_NAME=$AZURE_CONTAINER_NAME
 EOF
 
 
-# delete docker images on exit
-function delete_docker_image {
-    curl -LO https://raw.githubusercontent.com/appscodelabs/libbuild/master/docker.py
-    chmod +x docker.py
-    ./docker.py del_tag kubedbci my-operator $KUBEDB_OPERATOR
-}
-trap delete_docker_image EXIT
-
 # run tests
 ./hack/builddeps.sh
 export APPSCODE_ENV=dev
 export DOCKER_REGISTRY=kubedbci
-./hack/docker/my-operator/make.sh build
-./hack/docker/my-operator/make.sh push
+./hack/docker/my-operator/setup.sh build
+./hack/docker/my-operator/setup.sh push
 ./hack/deploy/setup.sh --docker-registry=kubedbci --operator-name=my-operator
 ./hack/make.py test e2e --v=1 --storageclass=standard --selfhosted-operator=true
