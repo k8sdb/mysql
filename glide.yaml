@@ -64,3 +64,5 @@ import:
   version: v1.4.0
 - package: k8s.io/kube-aggregator
   version: kubernetes-1.10.0
+- package: github.com/codeskyblue/go-sh
+  version: master

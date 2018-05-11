@@ -6,8 +6,12 @@ import (
 	"os"
 	"time"
 
+	"path/filepath"
+
 	"github.com/appscode/go/log"
+	shell "github.com/codeskyblue/go-sh"
 	"github.com/kubedb/mysql/pkg/cmds/server"
+	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -15,8 +19,9 @@ import (
 )
 
 var (
-	DockerRegistry string
-	ExporterTag    string
+	DockerRegistry     string
+	ExporterTag        string
+	SelfHostedOperator bool
 )
 
 func (f *Framework) isApiSvcReady(apiSvcName string) error {
@@ -52,6 +57,18 @@ func (f *Framework) EventuallyAPIServiceReady() GomegaAsyncAssertion {
 }
 
 func (f *Framework) RunOperatorAndServer(kubeconfigPath string, stopCh <-chan struct{}) {
+	defer GinkgoRecover()
+
+	sh := shell.NewSession()
+	args := []interface{}{"--namespace", f.Namespace()}
+	SetupServer := filepath.Join("..", "..", "hack", "dev", "setup.sh")
+
+	By("Creating API server and webhook stuffs")
+	cmd := sh.Command(SetupServer, args...)
+	err := cmd.Run()
+	Expect(err).ShouldNot(HaveOccurred())
+
+	By("Starting Server and Operator")
 	serverOpt := server.NewMySQLServerOptions(os.Stdout, os.Stderr)
 
 	serverOpt.RecommendedOptions.CoreAPI.CoreAPIKubeconfigPath = kubeconfigPath
@@ -63,7 +80,7 @@ func (f *Framework) RunOperatorAndServer(kubeconfigPath string, stopCh <-chan st
 	serverOpt.ExtraOptions.Docker.Registry = DockerRegistry
 	serverOpt.ExtraOptions.Docker.ExporterTag = ExporterTag
 
-	err := serverOpt.Run(stopCh)
+	err = serverOpt.Run(stopCh)
 	Expect(err).NotTo(HaveOccurred())
 }
 

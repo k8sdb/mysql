@@ -1,5 +1,5 @@
-hash: 808c776777d8ee5783e938472145bb69e4938b26880b4da5cdd124667c0f7eea
-updated: 2018-05-08T16:02:54.87866776+06:00
+hash: 726c8f0b7ad6e15c2dcf1666f7f694ede7f32523dc11e4a1022337e44f55e18b
+updated: 2018-05-11T17:41:12.768136601+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -39,7 +39,7 @@ imports:
   - admission/v1beta1
   - registry/admissionreview/v1beta1
 - name: github.com/appscode/kutil
-  version: 7c06d378914d77d52a1e2eda9c61560a38950794
+  version: c397449684de5caf2de0309e6453eab905901cf8
   subpackages:
   - apiextensions/v1beta1
   - apps/v1
@@ -103,6 +103,10 @@ imports:
   version: 3ac7bf7a47d159a033b107610db8a1b6575507a4
   subpackages:
   - quantile
+- name: github.com/codegangsta/inject
+  version: 33e0aa1cb7c019ccc3fbe049a8262a6403d30504
+- name: github.com/codeskyblue/go-sh
+  version: cf804ac79dffabb6b16342e24362cc744afc144f
 - name: github.com/coreos/etcd
   version: 95a726a27e09030f9ccbd9982a1508f5a6d25ada
   subpackages:
@@ -501,7 +505,7 @@ imports:
   subpackages:
   - rate
 - name: google.golang.org/api
-  version: 20530fd5d65ad2caee87891f9896d7547cb400c9
+  version: 4bd7f4beb291148443ed4553071c4e0697ff4afb
   subpackages:
   - gensupport
   - googleapi

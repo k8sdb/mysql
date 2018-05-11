@@ -22,6 +22,7 @@ import (
 
 type ExtraOptions struct {
 	Docker                      docker.Docker
+	EnableRBAC                  bool
 	OperatorNamespace           string
 	RestrictToOperatorNamespace bool
 	GoverningService            string
@@ -48,6 +49,7 @@ func NewExtraOptions() *ExtraOptions {
 			Registry:    "kubedb",
 			ExporterTag: "canary",
 		},
+		EnableRBAC:        true,
 		OperatorNamespace: meta.Namespace(),
 		GoverningService:  "kubedb",
 		ResyncPeriod:      10 * time.Minute,
@@ -67,6 +69,7 @@ func (s *ExtraOptions) AddGoFlags(fs *flag.FlagSet) {
 	fs.StringVar(&s.Docker.Registry, "docker-registry", s.Docker.Registry, "User provided docker repository")
 	fs.StringVar(&s.Docker.ExporterTag, "exporter-tag", stringz.Val(v.Version.Version, s.Docker.ExporterTag), "Tag of kubedb/operator used as exporter")
 	fs.StringVar(&s.GoverningService, "governing-service", s.GoverningService, "Governing service for database statefulset")
+	fs.BoolVar(&s.EnableRBAC, "rbac", s.EnableRBAC, "Enable RBAC for operator & offshoot Kubernetes objects")
 
 	fs.Float64Var(&s.QPS, "qps", s.QPS, "The maximum QPS to the master from this client")
 	fs.IntVar(&s.Burst, "burst", s.Burst, "The maximum burst for throttle")
@@ -88,6 +91,7 @@ func (s *ExtraOptions) ApplyTo(cfg *controller.OperatorConfig) error {
 	var err error
 
 	cfg.Docker = s.Docker
+	cfg.EnableRBAC = s.EnableRBAC
 	cfg.OperatorNamespace = s.OperatorNamespace
 	cfg.GoverningService = s.GoverningService
 
