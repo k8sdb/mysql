@@ -117,7 +117,7 @@ EOF
 ./hack/builddeps.sh
 export APPSCODE_ENV=dev
 export DOCKER_REGISTRY=kubedbci
-./hack/docker/my-operator/setup.sh build
-./hack/docker/my-operator/setup.sh push
+./hack/docker/my-operator/make.sh build
+./hack/docker/my-operator/make.sh push
 ./hack/deploy/setup.sh --docker-registry=kubedbci --operator-name=my-operator
 ./hack/make.py test e2e --v=1 --storageclass=standard --selfhosted-operator=true
