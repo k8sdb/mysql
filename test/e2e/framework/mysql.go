@@ -23,7 +23,7 @@ func (f *Invocation) MySQL() *api.MySQL {
 			},
 		},
 		Spec: api.MySQLSpec{
-			Version: types.StrYo("8.0"),
+			Version: types.StrYo("5.7"),
 		},
 	}
 }
