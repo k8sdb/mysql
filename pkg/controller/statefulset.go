@@ -103,7 +103,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
 			Name:            api.ResourceSingularMySQL,
 			Image:           c.docker.GetImageWithTag(mysql),
-			ImagePullPolicy: core.PullAlways, //todo: if notpresent
+			ImagePullPolicy: core.PullIfNotPresent,
 			Ports: []core.ContainerPort{
 				{
 					Name:          "db",
