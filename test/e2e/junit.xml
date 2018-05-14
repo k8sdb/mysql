@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="1" failures="1" time="94.568728515">
-      <testcase name="BeforeSuite" classname="e2e Suite" time="10.00937501">
-          <failure type="Failure">/home/maruf/go/src/github.com/kubedb/mysql/test/e2e/e2e_suite_test.go:61&#xA;Expected error:&#xA;    &lt;*url.Error | 0xc420366120&gt;: {&#xA;        Op: &#34;Post&#34;,&#xA;        URL: &#34;https://192.168.99.100:8443/api/v1/namespaces&#34;,&#xA;        Err: {},&#xA;    }&#xA;    Post https://192.168.99.100:8443/api/v1/namespaces: net/http: TLS handshake timeout&#xA;not to have occurred&#xA;/home/maruf/go/src/github.com/kubedb/mysql/test/e2e/e2e_suite_test.go:88</failure>
-      </testcase>
-      <testcase name="AfterSuite" classname="e2e Suite" time="84.169286937">
-          <failure type="Failure">/home/maruf/go/src/github.com/kubedb/mysql/test/e2e/e2e_suite_test.go:97&#xA;Expected error:&#xA;    &lt;*url.Error | 0xc4204e16b0&gt;: {&#xA;        Op: &#34;Delete&#34;,&#xA;        URL: &#34;https://192.168.99.100:8443/api/v1/namespaces/mysql-mmtgf6&#34;,&#xA;        Err: {&#xA;            Op: &#34;read&#34;,&#xA;            Net: &#34;tcp&#34;,&#xA;            Source: {&#xA;                IP: [192, 168, 99, 1],&#xA;                Port: 34256,&#xA;                Zone: &#34;&#34;,&#xA;            },&#xA;            Addr: {IP: &#34;\xc0\xa8cd&#34;, Port: 8443, Zone: &#34;&#34;},&#xA;            Err: {Syscall: &#34;read&#34;, Err: 0x68},&#xA;        },&#xA;    }&#xA;    Delete https://192.168.99.100:8443/api/v1/namespaces/mysql-mmtgf6: read tcp 192.168.99.1:34256-&gt;192.168.99.100:8443: read: connection reset by peer&#xA;not to have occurred&#xA;/home/maruf/go/src/github.com/kubedb/mysql/test/e2e/e2e_suite_test.go:111</failure>
-      </testcase>
-      <testcase name="AfterSuite" classname="e2e Suite" time="84.555605443">
-          <failure type="Failure">/home/maruf/go/src/github.com/kubedb/mysql/test/e2e/e2e_suite_test.go:97&#xA;Expected error:&#xA;    &lt;*url.Error | 0xc42044ff50&gt;: {&#xA;        Op: &#34;Delete&#34;,&#xA;        URL: &#34;https://192.168.99.100:8443/api/v1/namespaces/mysql-mmtgf6&#34;,&#xA;        Err: {&#xA;            Op: &#34;read&#34;,&#xA;            Net: &#34;tcp&#34;,&#xA;            Source: {&#xA;                IP: [192, 168, 99, 1],&#xA;                Port: 34254,&#xA;                Zone: &#34;&#34;,&#xA;            },&#xA;            Addr: {IP: &#34;\xc0\xa8cd&#34;, Port: 8443, Zone: &#34;&#34;},&#xA;            Err: {Syscall: &#34;read&#34;, Err: 0x68},&#xA;        },&#xA;    }&#xA;    Delete https://192.168.99.100:8443/api/v1/namespaces/mysql-mmtgf6: read tcp 192.168.99.1:34254-&gt;192.168.99.100:8443: read: connection reset by peer&#xA;not to have occurred&#xA;/home/maruf/go/src/github.com/kubedb/mysql/test/e2e/e2e_suite_test.go:111</failure>
+  <testsuite tests="1" failures="0" time="484.999496415">
+      <testcase name="MySQL Test General Without PVC should run successfully" classname="e2e Suite" time="0">
+          <skipped></skipped>
       </testcase>
   </testsuite>
