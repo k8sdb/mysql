@@ -108,7 +108,7 @@ var _ = Describe("MySQL", func() {
 				It("should run successfully", shouldSuccessfullyRunning)
 			})
 
-			Context("With PVC", func() {
+			FContext("With PVC", func() {
 				It("should run successfully", func() {
 					if skipMessage != "" {
 						Skip(skipMessage)
