@@ -98,10 +98,12 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			MatchLabels: in.Labels,
 		}
 
+		in = upsertInitContainer(in)
+
 		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
 			Name:            api.ResourceSingularMySQL,
 			Image:           c.docker.GetImageWithTag(mysql),
-			ImagePullPolicy: core.PullIfNotPresent,
+			ImagePullPolicy: core.PullAlways, //todo: if notpresent
 			Ports: []core.ContainerPort{
 				{
 					Name:          "db",
@@ -166,6 +168,29 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 
 		return in
 	})
+}
+
+func upsertInitContainer(statefulSet *apps.StatefulSet) *apps.StatefulSet {
+	container := core.Container{
+		Name:            "remove-lost-found",
+		Image:           "busybox",
+		ImagePullPolicy: core.PullIfNotPresent,
+		Command: []string{
+			"rm",
+			"-rf",
+			"/var/lib/mysql/lost+found",
+		},
+		VolumeMounts: []core.VolumeMount{
+			{
+				Name:      "data",
+				MountPath: "/var/lib/mysql",
+			},
+		},
+	}
+	initContainers := statefulSet.Spec.Template.Spec.InitContainers
+	initContainers = core_util.UpsertContainer(initContainers, container)
+	statefulSet.Spec.Template.Spec.InitContainers = initContainers
+	return statefulSet
 }
 
 func upsertDataVolume(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {

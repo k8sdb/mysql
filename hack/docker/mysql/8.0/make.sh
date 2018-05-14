@@ -5,7 +5,7 @@ DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
 IMG=mysql
 TAG=8.0
 ALT_TAG=8
-PATCH=8.0.3
+PATCH=8.0
 
 docker pull $IMG:$PATCH
 
