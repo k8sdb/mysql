@@ -48,6 +48,7 @@ func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta) GomegaAsyncAss
 			}
 
 			if err := en.Ping(); err != nil {
+				fmt.Println(">>>>>>>>>>>>>> err", err)
 				return false
 			}
 
