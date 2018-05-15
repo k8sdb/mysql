@@ -36,9 +36,8 @@ func (f *Framework) EventuallyDormantDatabase(meta metav1.ObjectMeta) GomegaAsyn
 			if err != nil {
 				if kerr.IsNotFound(err) {
 					return false
-				} else {
-					Expect(err).NotTo(HaveOccurred())
 				}
+				Expect(err).NotTo(HaveOccurred())
 			}
 			return true
 		},

@@ -14,10 +14,9 @@ source "$REPO_ROOT/hack/libbuild/common/lib.sh"
 export APPSCODE_ENV=${APPSCODE_ENV:-prod}
 export KUBEDB_SCRIPT="curl -fsSL https://raw.githubusercontent.com/kubedb/cli/0.8.0-beta.3/"
 
-
 if [ "$APPSCODE_ENV" = "dev" ]; then
     detect_tag ''
-    export KUBEDB_SCRIPT="cat "
+    export KUBEDB_SCRIPT="cat $CLI_ROOT/"
     export CUSTOM_OPERATOR_TAG=$TAG
     echo ""
 
@@ -35,4 +34,6 @@ if [ "$APPSCODE_ENV" = "dev" ]; then
     fi
 fi
 
+echo ""
+echo "${KUBEDB_SCRIPT}hack/deploy/kubedb.sh | bash -s -- --operator-name=my-operator "$@""
 ${KUBEDB_SCRIPT}hack/deploy/kubedb.sh | bash -s -- --operator-name=my-operator "$@"

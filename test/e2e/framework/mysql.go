@@ -57,9 +57,8 @@ func (f *Framework) EventuallyMySQL(meta metav1.ObjectMeta) GomegaAsyncAssertion
 			if err != nil {
 				if kerr.IsNotFound(err) {
 					return false
-				} else {
-					Expect(err).NotTo(HaveOccurred())
 				}
+				Expect(err).NotTo(HaveOccurred())
 			}
 			return true
 		},
