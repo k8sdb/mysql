@@ -36,9 +36,8 @@ func (f *Framework) EventuallyDormantDatabase(meta metav1.ObjectMeta) GomegaAsyn
 			if err != nil {
 				if kerr.IsNotFound(err) {
 					return false
-				} else {
-					Expect(err).NotTo(HaveOccurred())
 				}
+				Expect(err).NotTo(HaveOccurred())
 			}
 			return true
 		},
@@ -127,6 +126,7 @@ func (f *Framework) CleanDormantDatabase() {
 	for _, d := range dormantDatabaseList.Items {
 		if _, _, err := util.PatchDormantDatabase(f.extClient, &d, func(in *api.DormantDatabase) *api.DormantDatabase {
 			in.ObjectMeta.Finalizers = nil
+			in.Spec.WipeOut = true
 			return in
 		}); err != nil {
 			fmt.Printf("error Patching DormantDatabase. error: %v", err)

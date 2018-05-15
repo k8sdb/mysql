@@ -57,9 +57,8 @@ func (f *Framework) EventuallyMySQL(meta metav1.ObjectMeta) GomegaAsyncAssertion
 			if err != nil {
 				if kerr.IsNotFound(err) {
 					return false
-				} else {
-					Expect(err).NotTo(HaveOccurred())
 				}
+				Expect(err).NotTo(HaveOccurred())
 			}
 			return true
 		},
@@ -88,6 +87,7 @@ func (f *Framework) CleanMySQL() {
 	for _, e := range mysqlList.Items {
 		if _, _, err := util.PatchMySQL(f.extClient, &e, func(in *api.MySQL) *api.MySQL {
 			in.ObjectMeta.Finalizers = nil
+			in.Spec.DoNotPause = false
 			return in
 		}); err != nil {
 			fmt.Printf("error Patching MySQL. error: %v", err)

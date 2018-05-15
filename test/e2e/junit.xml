@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-  <testsuite tests="3" failures="1" time="91.995845115">
-      <testcase name="MySQL Test General Without PVC should run successfully" classname="e2e Suite" time="57.553534049"></testcase>
-      <testcase name="MySQL Test General With PVC should run successfully" classname="e2e Suite" time="10.537655157">
-          <failure type="Failure">/home/maruf/go/src/github.com/kubedb/mysql/test/e2e/mysql_test.go:112&#xA;Expected error:&#xA;    &lt;*errors.StatusError | 0xc420029710&gt;: {&#xA;        ErrStatus: {&#xA;            TypeMeta: {Kind: &#34;&#34;, APIVersion: &#34;&#34;},&#xA;            ListMeta: {SelfLink: &#34;&#34;, ResourceVersion: &#34;&#34;, Continue: &#34;&#34;},&#xA;            Status: &#34;Failure&#34;,&#xA;            Message: &#34;mysqls.kubedb.com \&#34;mysql-wockor\&#34; not found&#34;,&#xA;            Reason: &#34;NotFound&#34;,&#xA;            Details: {Name: &#34;mysql-wockor&#34;, Group: &#34;kubedb.com&#34;, Kind: &#34;mysqls&#34;, UID: &#34;&#34;, Causes: nil, RetryAfterSeconds: 0},&#xA;            Code: 404,&#xA;        },&#xA;    }&#xA;    mysqls.kubedb.com &#34;mysql-wockor&#34; not found&#xA;not to have occurred&#xA;/home/maruf/go/src/github.com/kubedb/mysql/test/e2e/framework/mysql.go:75</failure>
-          <system-out>�[1mSTEP�[0m: Cleanup Left Overs&#xA;�[1mSTEP�[0m: Delete Admission Controller Configs&#xA;�[1mSTEP�[0m: Delete left over MySQL objects&#xA;�[1mSTEP�[0m: Delete left over Dormant Database objects&#xA;</system-out>
-      </testcase>
-  </testsuite>
