@@ -29,9 +29,9 @@ if [ "$APPSCODE_ENV" = "dev" ]; then
         pushd $CLI_ROOT
         detect_tag ''
         if [[ $git_branch != $CLI_BRANCH ]]; then
-            git fetch --all
             git checkout $CLI_BRANCH
         fi
+        git pull --ff-only origin $CLI_BRANCH #Pull update from remote only if there will be no conflict.
     fi
 fi
 
