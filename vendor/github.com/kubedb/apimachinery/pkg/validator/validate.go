@@ -14,11 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-func ValidateStorage(client kubernetes.Interface, spec *core.PersistentVolumeClaimSpec) error {
-	if spec == nil {
-		return nil
-	}
-
+func ValidateStorage(client kubernetes.Interface, spec core.PersistentVolumeClaimSpec) error {
 	if spec.StorageClassName != nil {
 		if _, err := client.StorageV1beta1().StorageClasses().Get(*spec.StorageClassName, metav1.GetOptions{}); err != nil {
 			if kerr.IsNotFound(err) {

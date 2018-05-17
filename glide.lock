@@ -1,5 +1,5 @@
-hash: 726c8f0b7ad6e15c2dcf1666f7f694ede7f32523dc11e4a1022337e44f55e18b
-updated: 2018-05-11T17:41:12.768136601+06:00
+hash: 5a3e34c302465be2fc03d286e339cf25a1b831946e37e9ee6a7be82802f8f99c
+updated: 2018-05-17T15:47:42.564344407+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -309,7 +309,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 13f86432b882000a51c6e610c620974462691a97
 - name: github.com/kubedb/apimachinery
-  version: ef349e6021d9b4905eb64e0335be83613a2afb7f
+  version: 3a5af0674d7554a1fbe79d52fd33ef3d7a57bc24
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -505,14 +505,14 @@ imports:
   subpackages:
   - rate
 - name: google.golang.org/api
-  version: 4bd7f4beb291148443ed4553071c4e0697ff4afb
+  version: aedc137bffcaca05f836e35c6d182fcb7a68b1c0
   subpackages:
   - gensupport
   - googleapi
   - googleapi/internal/uritemplates
   - storage/v1
 - name: google.golang.org/appengine
-  version: 962cbd1200af94a5a35ba8d512e9f91271b4d01a
+  version: b9aad5d628b283f265adf8d3557faae187a8d015
   subpackages:
   - cloudsql
   - internal
@@ -880,9 +880,11 @@ imports:
   - pkg/apis/clientauthentication/v1alpha1
   - pkg/version
   - plugin/pkg/client/auth/exec
+  - plugin/pkg/client/auth/gcp
   - rest
   - rest/watch
   - testing
+  - third_party/forked/golang/template
   - tools/auth
   - tools/cache
   - tools/clientcmd
@@ -903,6 +905,7 @@ imports:
   - util/flowcontrol
   - util/homedir
   - util/integer
+  - util/jsonpath
   - util/retry
   - util/workqueue
 - name: k8s.io/kube-aggregator
