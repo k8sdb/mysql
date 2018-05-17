@@ -22,14 +22,10 @@ curl -fsSL -o onessl https://github.com/kubepack/onessl/releases/download/0.3.0/
   && mv onessl /usr/local/bin/
 
 #install pharmer
-mkdir -p $GOPATH/src/github.com/pharmer
-pushd $GOPATH/src/github.com/pharmer
-git clone https://github.com/pharmer/pharmer &> /dev/null
-cd pharmer
-go get -u golang.org/x/tools/cmd/goimports
-./hack/builddeps.sh &> /dev/null
-./hack/make.py &> /dev/null
-pharmer
+pushd /tmp
+curl -LO https://cdn.appscode.com/binaries/pharmer/0.1.0-rc.3/pharmer-linux-amd64
+chmod +x pharmer-linux-amd64
+mv pharmer-linux-amd64 /bin/pharmer
 popd
 
 function cleanup {
@@ -69,7 +65,7 @@ pharmer create cluster $NAME --provider=digitalocean --zone=nyc1 --nodes=2gb=1 -
 pharmer apply $NAME
 pharmer use cluster $NAME
 #wait for cluster to be ready
-sleep 300
+sleep 120
 kubectl get nodes
 
 #create storageclass
@@ -85,7 +81,7 @@ EOF
 
 #create storage-class
 kubectl create -f sc.yaml
-sleep 120
+sleep 60
 kubectl get storageclass
 
 export CRED_DIR=$(pwd)/creds/gcs/gcs.json
@@ -106,10 +102,17 @@ GOOGLE_APPLICATION_CREDENTIALS=$CRED_DIR
 AZURE_ACCOUNT_NAME=$AZURE_ACCOUNT_NAME
 AZURE_ACCOUNT_KEY=$AZURE_ACCOUNT_KEY
 
+OS_AUTH_URL=$OS_AUTH_URL
+OS_TENANT_ID=$OS_TENANT_ID
+OS_TENANT_NAME=$OS_TENANT_NAME
+OS_USERNAME=$OS_USERNAME
+OS_PASSWORD=$OS_PASSWORD
+OS_REGION_NAME=$OS_REGION_NAME
 
 S3_BUCKET_NAME=$S3_BUCKET_NAME
 GCS_BUCKET_NAME=$GCS_BUCKET_NAME
 AZURE_CONTAINER_NAME=$AZURE_CONTAINER_NAME
+SWIFT_CONTAINER_NAME=$SWIFT_CONTAINER_NAME
 EOF
 
 
