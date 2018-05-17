@@ -1,5 +1,5 @@
 hash: 5a3e34c302465be2fc03d286e339cf25a1b831946e37e9ee6a7be82802f8f99c
-updated: 2018-05-17T15:47:42.564344407+06:00
+updated: 2018-05-17T17:01:07.010465009+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -278,6 +278,15 @@ imports:
   - OpenAPIv2
   - compiler
   - extensions
+- name: github.com/gophercloud/gophercloud
+  version: 6da026c32e2d622cc242d32984259c77237aefe1
+  subpackages:
+  - openstack
+  - openstack/identity/v2/tenants
+  - openstack/identity/v2/tokens
+  - openstack/identity/v3/tokens
+  - openstack/utils
+  - pagination
 - name: github.com/graymeta/stow
   version: 42dc7dbf948d85803a205b39e5d3790470651c73
   repo: https://github.com/appscode/stow.git
@@ -309,7 +318,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 13f86432b882000a51c6e610c620974462691a97
 - name: github.com/kubedb/apimachinery
-  version: 3a5af0674d7554a1fbe79d52fd33ef3d7a57bc24
+  version: ffa7dbad55e6b7ae2b20a6cfea018d74682adccc
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -879,8 +888,12 @@ imports:
   - pkg/apis/clientauthentication
   - pkg/apis/clientauthentication/v1alpha1
   - pkg/version
+  - plugin/pkg/client/auth
+  - plugin/pkg/client/auth/azure
   - plugin/pkg/client/auth/exec
   - plugin/pkg/client/auth/gcp
+  - plugin/pkg/client/auth/oidc
+  - plugin/pkg/client/auth/openstack
   - rest
   - rest/watch
   - testing

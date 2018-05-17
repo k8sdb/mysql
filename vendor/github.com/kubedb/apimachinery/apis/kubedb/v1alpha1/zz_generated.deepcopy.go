@@ -1453,15 +1453,7 @@ func (in *PostgresSpec) DeepCopyInto(out *PostgresSpec) {
 			(*in).DeepCopyInto(*out)
 		}
 	}
-	if in.Storage != nil {
-		in, out := &in.Storage, &out.Storage
-		if *in == nil {
-			*out = nil
-		} else {
-			*out = new(v1.PersistentVolumeClaimSpec)
-			(*in).DeepCopyInto(*out)
-		}
-	}
+	in.Storage.DeepCopyInto(&out.Storage)
 	if in.NodeSelector != nil {
 		in, out := &in.NodeSelector, &out.NodeSelector
 		*out = make(map[string]string, len(*in))

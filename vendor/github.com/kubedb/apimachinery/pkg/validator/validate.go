@@ -57,9 +57,12 @@ func ValidateSnapshotSpec(client kubernetes.Interface, spec api.SnapshotStorageS
 		return nil
 	}
 
-	// Need to provide Storage credential secret
-	if spec.StorageSecretName == "" {
-		return fmt.Errorf(`object 'SecretName' is missing in '%v'`, spec)
+	// Note: S3 & GCS bucket can be accessed with default IAM account credential. So do not require secret
+	// Must provide Storage credentials for Azure & Swift
+	if spec.Azure != nil || spec.Swift != nil {
+		if spec.StorageSecretName == "" {
+			return fmt.Errorf(`object 'SecretName' is missing in '%v'`, spec)
+		}
 	}
 
 	if err := storage.CheckBucketAccess(client, spec, namespace); err != nil {
