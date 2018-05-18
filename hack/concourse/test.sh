@@ -125,7 +125,7 @@ EOF
 
 # run tests
 source ./hack/deploy/setup.sh --docker-registry=kubedbci
-./hack/make.py test e2e --v=1 --storageclass=standard --selfhosted-operator=true
+./hack/make.py test e2e --v=1 --storageclass=standard --selfhosted-operator=true || true
 
 echo ""
 kubectl describe deploy -n kube-system -l app=kubedb
