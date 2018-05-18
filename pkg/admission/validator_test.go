@@ -239,7 +239,7 @@ func sampleMySQL() api.MySQL {
 			Version:    "8.0",
 			Replicas:   types.Int32P(1),
 			DoNotPause: true,
-			Storage: &core.PersistentVolumeClaimSpec{
+			Storage: core.PersistentVolumeClaimSpec{
 				StorageClassName: types.StringP("standard"),
 				Resources: core.ResourceRequirements{
 					Requests: core.ResourceList{

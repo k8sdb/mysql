@@ -138,11 +138,8 @@ func ValidateMySQL(client kubernetes.Interface, extClient kubedbv1alpha1.KubedbV
 		return fmt.Errorf(`spec.replicas "%v" invalid. Value must be one`, mysql.Spec.Replicas)
 	}
 
-	if mysql.Spec.Storage != nil {
-		var err error
-		if err = amv.ValidateStorage(client, mysql.Spec.Storage); err != nil {
-			return err
-		}
+	if err := amv.ValidateStorage(client, mysql.Spec.Storage); err != nil {
+		return err
 	}
 
 	databaseSecret := mysql.Spec.DatabaseSecret

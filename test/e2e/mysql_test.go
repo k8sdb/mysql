@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/appscode/go/types"
 	meta_util "github.com/appscode/kutil/meta"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/mysql/test/e2e/framework"
@@ -12,7 +11,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 const (
@@ -71,44 +69,11 @@ var _ = Describe("MySQL", func() {
 		f.EventuallyWipedOut(mysql.ObjectMeta).Should(Succeed())
 	}
 
-	var shouldSuccessfullyRunning = func() {
-		if skipMessage != "" {
-			Skip(skipMessage)
-		}
-
-		// Create MySQL
-		createAndWaitForRunning()
-
-		// Delete test resource
-		deleteTestResource()
-	}
-
 	Describe("Test", func() {
-		BeforeEach(func() {
-			if f.StorageClass == "" {
-				Skip("Missing StorageClassName. Provide as flag to test this.")
-			}
-			mysql.Spec.Storage = &core.PersistentVolumeClaimSpec{
-				Resources: core.ResourceRequirements{
-					Requests: core.ResourceList{
-						core.ResourceStorage: resource.MustParse("1Gi"),
-					},
-				},
-				StorageClassName: types.StringP(f.StorageClass),
-			}
-
-		})
 
 		Context("General", func() {
 
-			Context("Without PVC", func() {
-				BeforeEach(func() {
-					mysql.Spec.Storage = nil
-				})
-				It("should run successfully", shouldSuccessfullyRunning)
-			})
-
-			Context("With PVC", func() {
+			Context("-", func() {
 				It("should run successfully", func() {
 					if skipMessage != "" {
 						Skip(skipMessage)
@@ -236,14 +201,6 @@ var _ = Describe("MySQL", func() {
 				})
 
 				It("should take Snapshot successfully", shouldTakeSnapshot)
-
-				// Additional
-				Context("Without PVC", func() {
-					BeforeEach(func() {
-						mysql.Spec.Storage = nil
-					})
-					It("should run successfully", shouldTakeSnapshot)
-				})
 			})
 
 			Context("In S3", func() {
@@ -475,16 +432,6 @@ var _ = Describe("MySQL", func() {
 
 					By("Create mysql from snapshot")
 					mysql = f.MySQL()
-					if f.StorageClass != "" {
-						mysql.Spec.Storage = &core.PersistentVolumeClaimSpec{
-							Resources: core.ResourceRequirements{
-								Requests: core.ResourceList{
-									core.ResourceStorage: resource.MustParse("50Mi"),
-								},
-							},
-							StorageClassName: types.StringP(f.StorageClass),
-						}
-					}
 					mysql.Spec.Init = &api.InitSpec{
 						SnapshotSource: &api.SnapshotSourceSpec{
 							Namespace: snapshot.Namespace,
@@ -553,6 +500,9 @@ var _ = Describe("MySQL", func() {
 					By("Delete mysql")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for MySQL to be deleted")
+					f.EventuallyMySQL(mysql.ObjectMeta).Should(BeFalse())
 
 					// Create MySQL object again to resume it
 					By("Create MySQL: " + mysql.Name)
@@ -723,16 +673,6 @@ var _ = Describe("MySQL", func() {
 
 					By("Create mysql from snapshot")
 					mysql = f.MySQL()
-					if f.StorageClass != "" {
-						mysql.Spec.Storage = &core.PersistentVolumeClaimSpec{
-							Resources: core.ResourceRequirements{
-								Requests: core.ResourceList{
-									core.ResourceStorage: resource.MustParse("50Mi"),
-								},
-							},
-							StorageClassName: types.StringP(f.StorageClass),
-						}
-					}
 					mysql.Spec.Init = &api.InitSpec{
 						SnapshotSource: &api.SnapshotSourceSpec{
 							Namespace: snapshot.Namespace,
@@ -891,7 +831,7 @@ var _ = Describe("MySQL", func() {
 					BeforeEach(func() {
 						secret = f.SecretForLocalBackend()
 						mysql.Spec.BackupSchedule = &api.BackupScheduleSpec{
-							CronExpression: "@every 1m",
+							CronExpression: "@every 20s",
 							SnapshotStorageSpec: api.SnapshotStorageSpec{
 								StorageSecretName: secret.Name,
 								Local: &api.LocalSpec{
@@ -907,7 +847,7 @@ var _ = Describe("MySQL", func() {
 					It("should run schedular successfully", shouldStartupSchedular)
 				})
 
-				Context("with GCS and PVC", func() {
+				Context("with GCS", func() {
 					BeforeEach(func() {
 						secret = f.SecretForGCSBackend()
 						mysql.Spec.BackupSchedule = &api.BackupScheduleSpec{
@@ -939,7 +879,7 @@ var _ = Describe("MySQL", func() {
 					By("Update mysql")
 					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
-							CronExpression: "@every 1m",
+							CronExpression: "@every 20s",
 							SnapshotStorageSpec: api.SnapshotStorageSpec{
 								StorageSecretName: secret.Name,
 								Local: &api.LocalSpec{
@@ -985,7 +925,7 @@ var _ = Describe("MySQL", func() {
 					By("Update mysql")
 					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
-							CronExpression: "@every 1m",
+							CronExpression: "@every 20s",
 							SnapshotStorageSpec: api.SnapshotStorageSpec{
 								StorageSecretName: secret.Name,
 								Local: &api.LocalSpec{
