@@ -129,11 +129,11 @@ func (c *Controller) create(mysql *api.MySQL) error {
 		}
 		jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshotSource.Name)
 		if _, err := c.Client.BatchV1().Jobs(snapshotSource.Namespace).Get(jobName, metav1.GetOptions{}); err != nil {
-			if kerr.IsAlreadyExists(err) {
-				return nil
-			} else if !kerr.IsNotFound(err) {
+			if !kerr.IsNotFound(err) {
 				return err
 			}
+		} else {
+			return nil
 		}
 		if err := c.initialize(mysql); err != nil {
 			return fmt.Errorf("failed to complete initialization. Reason: %v", err)
