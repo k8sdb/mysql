@@ -6,6 +6,7 @@ import (
 
 	meta_util "github.com/appscode/kutil/meta"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/mysql/test/e2e/framework"
 	"github.com/kubedb/mysql/test/e2e/matcher"
 	. "github.com/onsi/ginkgo"
@@ -18,6 +19,8 @@ const (
 	GCS_BUCKET_NAME      = "GCS_BUCKET_NAME"
 	AZURE_CONTAINER_NAME = "AZURE_CONTAINER_NAME"
 	SWIFT_CONTAINER_NAME = "SWIFT_CONTAINER_NAME"
+	MYSQL_DATABASE       = "MYSQL_DATABASE"
+	MYSQL_ROOT_PASSWORD  = "MYSQL_ROOT_PASSWORD"
 )
 
 var _ = Describe("MySQL", func() {
@@ -28,6 +31,7 @@ var _ = Describe("MySQL", func() {
 		snapshot    *api.Snapshot
 		secret      *core.Secret
 		skipMessage string
+		dbName      string
 	)
 
 	BeforeEach(func() {
@@ -35,6 +39,7 @@ var _ = Describe("MySQL", func() {
 		mysql = f.MySQL()
 		snapshot = f.Snapshot()
 		skipMessage = ""
+		dbName = "mysql"
 	})
 
 	var createAndWaitForRunning = func() {
@@ -82,13 +87,13 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					By("Creating Table")
-					f.EventuallyCreateTable(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyCreateTable(mysql.ObjectMeta, dbName).Should(BeTrue())
 
 					By("Inserting Rows")
-					f.EventuallyInsertRow(mysql.ObjectMeta, 3).Should(BeTrue())
+					f.EventuallyInsertRow(mysql.ObjectMeta, dbName, 3).Should(BeTrue())
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					By("Delete mysql")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
@@ -109,7 +114,7 @@ var _ = Describe("MySQL", func() {
 					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					deleteTestResource()
 				})
@@ -380,7 +385,7 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					// Delete test resource
 					deleteTestResource()
@@ -407,13 +412,13 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					By("Creating Table")
-					f.EventuallyCreateTable(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyCreateTable(mysql.ObjectMeta, dbName).Should(BeTrue())
 
 					By("Inserting Row")
-					f.EventuallyInsertRow(mysql.ObjectMeta, 3).Should(BeTrue())
+					f.EventuallyInsertRow(mysql.ObjectMeta, dbName, 3).Should(BeTrue())
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					By("Create Secret")
 					f.CreateSecret(secret)
@@ -451,7 +456,7 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					// Delete test resource
 					deleteTestResource()
@@ -476,13 +481,13 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					By("Creating Table")
-					f.EventuallyCreateTable(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyCreateTable(mysql.ObjectMeta, dbName).Should(BeTrue())
 
 					By("Inserting Row")
-					f.EventuallyInsertRow(mysql.ObjectMeta, 3).Should(BeTrue())
+					f.EventuallyInsertRow(mysql.ObjectMeta, dbName, 3).Should(BeTrue())
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					By("Delete mysql")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
@@ -516,7 +521,7 @@ var _ = Describe("MySQL", func() {
 					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					_, err = f.GetMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
@@ -532,13 +537,13 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					By("Creating Table")
-					f.EventuallyCreateTable(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyCreateTable(mysql.ObjectMeta, dbName).Should(BeTrue())
 
 					By("Inserting Row")
-					f.EventuallyInsertRow(mysql.ObjectMeta, 3).Should(BeTrue())
+					f.EventuallyInsertRow(mysql.ObjectMeta, dbName, 3).Should(BeTrue())
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					By("Delete mysql")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
@@ -559,7 +564,7 @@ var _ = Describe("MySQL", func() {
 					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					mysql, err = f.GetMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
@@ -589,7 +594,7 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					By("Delete mysql")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
@@ -613,7 +618,7 @@ var _ = Describe("MySQL", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					// Delete test resource
 					deleteTestResource()
@@ -648,13 +653,13 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					By("Creating Table")
-					f.EventuallyCreateTable(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyCreateTable(mysql.ObjectMeta, dbName).Should(BeTrue())
 
 					By("Inserting Row")
-					f.EventuallyInsertRow(mysql.ObjectMeta, 3).Should(BeTrue())
+					f.EventuallyInsertRow(mysql.ObjectMeta, dbName, 3).Should(BeTrue())
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					By("Create Secret")
 					f.CreateSecret(secret)
@@ -691,7 +696,7 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					By("Delete mysql")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
@@ -715,7 +720,7 @@ var _ = Describe("MySQL", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					if usedInitSnapshot {
 						Expect(mysql.Spec.Init).ShouldNot(BeNil())
@@ -755,7 +760,7 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					for i := 0; i < 3; i++ {
 						By(fmt.Sprintf("%v-th", i+1) + " time running.")
@@ -782,7 +787,7 @@ var _ = Describe("MySQL", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						By("Checking Row Count of Table")
-						f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+						f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 						if usedInitScript {
 							Expect(mysql.Spec.Init).ShouldNot(BeNil())
@@ -941,13 +946,13 @@ var _ = Describe("MySQL", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Creating Table")
-					f.EventuallyCreateTable(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyCreateTable(mysql.ObjectMeta, dbName).Should(BeTrue())
 
 					By("Inserting Row")
-					f.EventuallyInsertRow(mysql.ObjectMeta, 3).Should(BeTrue())
+					f.EventuallyInsertRow(mysql.ObjectMeta, dbName, 3).Should(BeTrue())
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					By("Count multiple Snapshot Object")
 					f.EventuallySnapshotCount(mysql.ObjectMeta).Should(matcher.MoreThan(3))
@@ -971,7 +976,7 @@ var _ = Describe("MySQL", func() {
 					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Checking Row Count of Table")
-					f.EventuallyCountRow(mysql.ObjectMeta).Should(Equal(3))
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
 
 					By("Count multiple Snapshot Object")
 					f.EventuallySnapshotCount(mysql.ObjectMeta).Should(matcher.MoreThan(5))
@@ -985,6 +990,139 @@ var _ = Describe("MySQL", func() {
 
 					By("Verify multiple Succeeded Snapshot")
 					f.EventuallyMultipleSnapshotFinishedProcessing(mysql.ObjectMeta).Should(Succeed())
+
+					deleteTestResource()
+				})
+			})
+		})
+
+		Context("EnvVars", func() {
+
+			Context("Database Name as EnvVar", func() {
+				It("should create DB with name provide in EvnVar", func() {
+					if skipMessage != "" {
+						Skip(skipMessage)
+					}
+
+					dbName = f.App()
+					mysql.Spec.Env = []core.EnvVar{
+						{
+							Name:  MYSQL_DATABASE,
+							Value: dbName,
+						},
+					}
+					// Create MySQL
+					createAndWaitForRunning()
+
+					By("Creating Table")
+					f.EventuallyCreateTable(mysql.ObjectMeta, dbName).Should(BeTrue())
+
+					By("Inserting Rows")
+					f.EventuallyInsertRow(mysql.ObjectMeta, dbName, 3).Should(BeTrue())
+
+					By("Checking Row Count of Table")
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
+
+					By("Delete mysql")
+					err = f.DeleteMySQL(mysql.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for mysql to be paused")
+					f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+
+					// Create MySQL object again to resume it
+					By("Create MySQL: " + mysql.Name)
+					err = f.CreateMySQL(mysql)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for DormantDatabase to be deleted")
+					f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
+
+					By("Wait for Running mysql")
+					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+
+					By("Checking Row Count of Table")
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
+
+					deleteTestResource()
+				})
+			})
+
+			Context("Root Password as EnvVar", func() {
+				It("should reject to create MySQL CRD", func() {
+					if skipMessage != "" {
+						Skip(skipMessage)
+					}
+
+					mysql.Spec.Env = []core.EnvVar{
+						{
+							Name:  MYSQL_ROOT_PASSWORD,
+							Value: "not@secret",
+						},
+					}
+					By("Create MySQL: " + mysql.Name)
+					err = f.CreateMySQL(mysql)
+					Expect(err).To(HaveOccurred())
+				})
+			})
+
+			Context("Update EnvVar", func() {
+				It("should reject to update EvnVar", func() {
+					if skipMessage != "" {
+						Skip(skipMessage)
+					}
+
+					dbName = f.App()
+					mysql.Spec.Env = []core.EnvVar{
+						{
+							Name:  MYSQL_DATABASE,
+							Value: dbName,
+						},
+					}
+					// Create MySQL
+					createAndWaitForRunning()
+
+					By("Creating Table")
+					f.EventuallyCreateTable(mysql.ObjectMeta, dbName).Should(BeTrue())
+
+					By("Inserting Rows")
+					f.EventuallyInsertRow(mysql.ObjectMeta, dbName, 3).Should(BeTrue())
+
+					By("Checking Row Count of Table")
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
+
+					By("Delete mysql")
+					err = f.DeleteMySQL(mysql.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for mysql to be paused")
+					f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+
+					// Create MySQL object again to resume it
+					By("Create MySQL: " + mysql.Name)
+					err = f.CreateMySQL(mysql)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for DormantDatabase to be deleted")
+					f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
+
+					By("Wait for Running mysql")
+					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+
+					By("Checking Row Count of Table")
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
+
+					By("Patching EnvVar")
+					_, _, err = util.PatchMySQL(f.ExtClient(), mysql, func(in *api.MySQL) *api.MySQL {
+						in.Spec.Env = []core.EnvVar{
+							{
+								Name:  MYSQL_DATABASE,
+								Value: "patched-db",
+							},
+						}
+						return in
+					})
+					Expect(err).To(HaveOccurred())
 
 					deleteTestResource()
 				})

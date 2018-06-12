@@ -33,6 +33,10 @@ type MySQLValidator struct {
 
 var _ hookapi.AdmissionHook = &MySQLValidator{}
 
+var forbiddenEnvVars = []string{
+	"MYSQL_ROOT_PASSWORD",
+}
+
 func (a *MySQLValidator) Resource() (plural schema.GroupVersionResource, singular string) {
 	return schema.GroupVersionResource{
 			Group:    "validators.kubedb.com",
@@ -136,6 +140,10 @@ func ValidateMySQL(client kubernetes.Interface, extClient kubedbv1alpha1.KubedbV
 
 	if mysql.Spec.Replicas == nil || *mysql.Spec.Replicas != 1 {
 		return fmt.Errorf(`spec.replicas "%v" invalid. Value must be one`, mysql.Spec.Replicas)
+	}
+
+	if err := amv.ValidateEnvVar(mysql.Spec.Env, forbiddenEnvVars, api.ResourceKindMySQL); err != nil {
+		return err
 	}
 
 	if err := amv.ValidateStorage(client, mysql.Spec.Storage); err != nil {
@@ -247,6 +255,7 @@ var preconditionSpecFields = []string{
 	"spec.databaseSecret",
 	"spec.nodeSelector",
 	"spec.init",
+	"spec.env",
 }
 
 func preconditionFailedError(kind string) error {
