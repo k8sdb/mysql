@@ -58,7 +58,7 @@ func BuildOpenAPIDefinitionsForResource(model interface{}, config *common.Config
 	o := newOpenAPI(config)
 	// We can discard the return value of toSchema because all we care about is the side effect of calling it.
 	// All the models created for this resource get added to o.swagger.Definitions
-	_, err := o.toSchema(getCanonicalTypeName(model))
+	_, err := o.toSchema(model)
 	if err != nil {
 		return nil, err
 	}
@@ -67,21 +67,6 @@ func BuildOpenAPIDefinitionsForResource(model interface{}, config *common.Config
 		return nil, err
 	}
 	return &swagger.Definitions, nil
-}
-
-// BuildOpenAPIDefinitionsForResources returns the OpenAPI spec which includes the definitions for the
-// passed type names.
-func BuildOpenAPIDefinitionsForResources(config *common.Config, names ...string) (*spec.Swagger, error) {
-	o := newOpenAPI(config)
-	// We can discard the return value of toSchema because all we care about is the side effect of calling it.
-	// All the models created for this resource get added to o.swagger.Definitions
-	for _, name := range names {
-		_, err := o.toSchema(name)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return o.finalizeSwagger()
 }
 
 // newOpenAPI sets up the openAPI object so we can build the spec.
