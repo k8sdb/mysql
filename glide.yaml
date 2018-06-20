@@ -26,8 +26,12 @@ import:
   version: v0.2.0
 - package: github.com/jpillora/go-ogle-analytics
 - package: github.com/kubedb/apimachinery
-  version: usrEnv
-- package: github.com/prometheus/client_golang
+  version: 0.8.0
+- package: github.com/onsi/ginkgo
+  version: v1.5.0
+- package: github.com/onsi/gomega
+  version: v1.4.0
+- package: github.com/pkg/errors
   version: v0.8.0
 - package: github.com/spf13/cobra
   version: v0.0.3

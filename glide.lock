@@ -1,5 +1,5 @@
-hash: 224f7c05a194bb782e5af44d6d03be42e18f72cd9bf40063048ef15a2c336ef8
-updated: 2018-06-12T17:33:10.201509183+06:00
+hash: 58690fb94ad345f6d5bdd9f18c104e86f1fa462485c89f5a54f0690bd7b60025
+updated: 2018-06-12T04:22:07.746129757-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -262,7 +262,7 @@ imports:
   - ptypes/struct
   - ptypes/timestamp
 - name: github.com/google/go-cmp
-  version: 5411ab924f9ffa6566244a9e504bc347edacffd3
+  version: 3af367b6b30c263d47e8895973edcca9a49cf029
   subpackages:
   - cmp
   - cmp/internal/diff
@@ -314,7 +314,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 13f86432b882000a51c6e610c620974462691a97
 - name: github.com/kubedb/apimachinery
-  version: 0f1642b8d2355b36d865daf965c5d8b12069fbc4
+  version: a5e86ceb63069fd32b89cfbb1fc31a7ac9d8ce75
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
