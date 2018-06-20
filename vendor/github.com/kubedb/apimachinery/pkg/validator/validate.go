@@ -100,7 +100,7 @@ func ValidateEnvVar(envs []core.EnvVar, forbiddenEnvs []string, resourceType str
 	for _, env := range envs {
 		present, _ := arrays.Contains(forbiddenEnvs, env.Name)
 		if present {
-			return fmt.Errorf("environment varialble %s is forbidden to use in %s spec", env.Name, resourceType)
+			return fmt.Errorf("environment variable %s is forbidden to use in %s spec", env.Name, resourceType)
 		}
 	}
 	return nil
