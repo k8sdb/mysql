@@ -11,7 +11,7 @@ DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
 IMG=mysql-tools
 TAG=8.0
 ALT_TAG=8
-OSM_VER=${OSM_VER:-0.7.0}
+OSM_VER=${OSM_VER:-0.7.1}
 
 DIST=$REPO_ROOT/dist
 mkdir -p $DIST
