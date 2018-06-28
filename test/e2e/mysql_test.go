@@ -999,7 +999,7 @@ var _ = Describe("MySQL", func() {
 		Context("EnvVars", func() {
 
 			Context("Database Name as EnvVar", func() {
-				It("should create DB with name provide in EvnVar", func() {
+				It("should create DB with name provided in EvnVar", func() {
 					if skipMessage != "" {
 						Skip(skipMessage)
 					}

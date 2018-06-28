@@ -35,6 +35,9 @@ var _ hookapi.AdmissionHook = &MySQLValidator{}
 
 var forbiddenEnvVars = []string{
 	"MYSQL_ROOT_PASSWORD",
+	"MYSQL_ALLOW_EMPTY_PASSWORD",
+	"MYSQL_RANDOM_ROOT_PASSWORD",
+	"MYSQL_ONETIME_PASSWORD",
 }
 
 func (a *MySQLValidator) Resource() (plural schema.GroupVersionResource, singular string) {
