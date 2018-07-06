@@ -381,7 +381,7 @@ var _ = Describe("MySQL", func() {
 				})
 
 				It("should run successfully", func() {
-					// Create Postgres
+					// Create MySQL
 					createAndWaitForRunning()
 
 					By("Checking Row Count of Table")
@@ -1125,6 +1125,53 @@ var _ = Describe("MySQL", func() {
 					Expect(err).To(HaveOccurred())
 
 					deleteTestResource()
+				})
+			})
+		})
+
+		Context("Custom config", func() {
+
+			customConfigs := []string{
+				"max_connections=200",
+				"read_buffer_size=1048576", // 1MB
+			}
+
+			Context("from configMap", func() {
+				var userConfig *core.ConfigMap
+
+				BeforeEach(func() {
+					userConfig = f.GetCustomConfig(customConfigs)
+				})
+
+				AfterEach(func() {
+					By("Deleting configMap: " + userConfig.Name)
+					f.DeleteConfigMap(userConfig.ObjectMeta)
+				})
+
+				It("should set configuration provided in configMap", func() {
+					if skipMessage != "" {
+						Skip(skipMessage)
+					}
+
+					By("Creating configMap: " + userConfig.Name)
+					err := f.CreateConfigMap(userConfig)
+					Expect(err).NotTo(HaveOccurred())
+
+					mysql.Spec.ConfigFile = &core.VolumeSource{
+						ConfigMap: &core.ConfigMapVolumeSource{
+							LocalObjectReference: core.LocalObjectReference{
+								Name: userConfig.Name,
+							},
+						},
+					}
+
+					// Create MySQL
+					createAndWaitForRunning()
+
+					By("Checking mysql configured from provided custom configuration")
+					for _, cfg := range customConfigs {
+						f.EventuallyMySQLVariable(mysql.ObjectMeta, cfg).Should(matcher.UseCustomConfig(cfg))
+					}
 				})
 			})
 		})

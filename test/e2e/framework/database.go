@@ -2,6 +2,7 @@ package framework
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/appscode/kutil/tools/portforward"
@@ -114,5 +115,30 @@ func (f *Framework) EventuallyCountRow(meta metav1.ObjectMeta, dbName string) Go
 		},
 		time.Minute*30,
 		time.Second*20,
+	)
+}
+
+func (f *Framework) EventuallyMySQLVariable(meta metav1.ObjectMeta, config string) GomegaAsyncAssertion {
+	configPair := strings.Split(config, "=")
+	sql := fmt.Sprintf("SHOW VARIABLES LIKE '%s';", configPair[0])
+	return Eventually(
+		func() []map[string][]byte {
+			en, err := f.GetMySQLClient(meta)
+			if err != nil {
+				return nil
+			}
+
+			if err := en.Ping(); err != nil {
+				return nil
+			}
+
+			results, err := en.Query(sql)
+			if err != nil {
+				return nil
+			}
+			return results
+		},
+		time.Minute*5,
+		time.Second*5,
 	)
 }
