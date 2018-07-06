@@ -151,6 +151,8 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		// Set Admin Secret as MYSQL_ROOT_PASSWORD env variable
 		in = upsertEnv(in, mysql)
 		in = upsertDataVolume(in, mysql)
+		in = upsertCustomConfig(in, mysql)
+
 		if mysql.Spec.Init != nil && mysql.Spec.Init.ScriptSource != nil {
 			in = upsertInitScript(in, mysql.Spec.Init.ScriptSource.VolumeSource)
 		}
@@ -300,4 +302,31 @@ func (c *Controller) checkStatefulSetPodStatus(statefulSet *apps.StatefulSet) er
 		return err
 	}
 	return nil
+}
+
+func upsertCustomConfig(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {
+	if mysql.Spec.ConfigFile != nil {
+		for i, container := range statefulSet.Spec.Template.Spec.Containers {
+			if container.Name == api.ResourceSingularMySQL {
+				configVolumeMount := core.VolumeMount{
+					Name:      "custom-config",
+					MountPath: "/etc/mysql/conf.d",
+				}
+				volumeMounts := container.VolumeMounts
+				volumeMounts = core_util.UpsertVolumeMount(volumeMounts, configVolumeMount)
+				statefulSet.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+
+				configVolume := core.Volume{
+					Name:         "custom-config",
+					VolumeSource: *mysql.Spec.ConfigFile,
+				}
+
+				volumes := statefulSet.Spec.Template.Spec.Volumes
+				volumes = core_util.UpsertVolume(volumes, configVolume)
+				statefulSet.Spec.Template.Spec.Volumes = volumes
+				break
+			}
+		}
+	}
+	return statefulSet
 }
