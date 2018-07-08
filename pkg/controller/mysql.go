@@ -47,12 +47,12 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	}
 
 	if mysql.Status.CreationTime == nil {
-		my, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
+		my, err := util.UpdateMySQLStatus(c.ExtClient, mysql, func(in *api.MySQLStatus) *api.MySQLStatus {
 			t := metav1.Now()
-			in.Status.CreationTime = &t
-			in.Status.Phase = api.DatabasePhaseCreating
+			in.CreationTime = &t
+			in.Phase = api.DatabasePhaseCreating
 			return in
-		})
+		}, api.EnableStatusSubresource)
 		if err != nil {
 			if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
 				c.recorder.Eventf(
@@ -141,10 +141,10 @@ func (c *Controller) create(mysql *api.MySQL) error {
 		return nil
 	}
 
-	ms, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
-		in.Status.Phase = api.DatabasePhaseRunning
+	ms, err := util.UpdateMySQLStatus(c.ExtClient, mysql, func(in *api.MySQLStatus) *api.MySQLStatus {
+		in.Phase = api.DatabasePhaseRunning
 		return in
-	})
+	}, api.EnableStatusSubresource)
 	if err != nil {
 		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
 			c.recorder.Eventf(
@@ -200,10 +200,10 @@ func (c *Controller) ensureBackupScheduler(mysql *api.MySQL) {
 }
 
 func (c *Controller) initialize(mysql *api.MySQL) error {
-	my, _, err := util.PatchMySQL(c.ExtClient, mysql, func(in *api.MySQL) *api.MySQL {
-		in.Status.Phase = api.DatabasePhaseInitializing
+	my, err := util.UpdateMySQLStatus(c.ExtClient, mysql, func(in *api.MySQLStatus) *api.MySQLStatus {
+		in.Phase = api.DatabasePhaseInitializing
 		return in
-	})
+	}, api.EnableStatusSubresource)
 	if err != nil {
 		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
 			c.recorder.Eventf(
