@@ -16,7 +16,7 @@ type KubedbTable struct {
 	Name string
 }
 
-func (f *Framework) GetMySQLClient(meta metav1.ObjectMeta) (*xorm.Engine, error) {
+func (f *Framework) GetMySQLClient(meta metav1.ObjectMeta, dbName string) (*xorm.Engine, error) {
 	mysql, err := f.GetMySQL(meta)
 	if err != nil {
 		return nil, err
@@ -35,14 +35,14 @@ func (f *Framework) GetMySQLClient(meta metav1.ObjectMeta) (*xorm.Engine, error)
 	}
 	pass, err := f.GetMySQLRootPassword(mysql)
 
-	cnnstr := fmt.Sprintf("root:%v@tcp(127.0.0.1:%v)/mysql", pass, tunnel.Local)
+	cnnstr := fmt.Sprintf("root:%v@tcp(127.0.0.1:%v)/%s", pass, tunnel.Local, dbName)
 	return xorm.NewEngine("mysql", cnnstr)
 }
 
-func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta, dbName string) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
-			en, err := f.GetMySQLClient(meta)
+			en, err := f.GetMySQLClient(meta, dbName)
 			if err != nil {
 				return false
 			}
@@ -64,11 +64,11 @@ func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta) GomegaAsyncAss
 	return nil
 }
 
-func (f *Framework) EventuallyInsertRow(meta metav1.ObjectMeta, total int) GomegaAsyncAssertion {
+func (f *Framework) EventuallyInsertRow(meta metav1.ObjectMeta, dbName string, total int) GomegaAsyncAssertion {
 	count := 0
 	return Eventually(
 		func() bool {
-			en, err := f.GetMySQLClient(meta)
+			en, err := f.GetMySQLClient(meta, dbName)
 			if err != nil {
 				return false
 			}
@@ -93,10 +93,10 @@ func (f *Framework) EventuallyInsertRow(meta metav1.ObjectMeta, total int) Gomeg
 	return nil
 }
 
-func (f *Framework) EventuallyCountRow(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+func (f *Framework) EventuallyCountRow(meta metav1.ObjectMeta, dbName string) GomegaAsyncAssertion {
 	return Eventually(
 		func() int {
-			en, err := f.GetMySQLClient(meta)
+			en, err := f.GetMySQLClient(meta, dbName)
 			if err != nil {
 				return -1
 			}
