@@ -1157,7 +1157,7 @@ var _ = Describe("MySQL", func() {
 					err := f.CreateConfigMap(userConfig)
 					Expect(err).NotTo(HaveOccurred())
 
-					mysql.Spec.ConfigFile = &core.VolumeSource{
+					mysql.Spec.ConfigSource = &core.VolumeSource{
 						ConfigMap: &core.ConfigMapVolumeSource{
 							LocalObjectReference: core.LocalObjectReference{
 								Name: userConfig.Name,
@@ -1170,7 +1170,7 @@ var _ = Describe("MySQL", func() {
 
 					By("Checking mysql configured from provided custom configuration")
 					for _, cfg := range customConfigs {
-						f.EventuallyMySQLVariable(mysql.ObjectMeta, cfg).Should(matcher.UseCustomConfig(cfg))
+						f.EventuallyMySQLVariable(mysql.ObjectMeta, dbName, cfg).Should(matcher.UseCustomConfig(cfg))
 					}
 				})
 			})

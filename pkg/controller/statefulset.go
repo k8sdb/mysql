@@ -305,7 +305,7 @@ func (c *Controller) checkStatefulSetPodStatus(statefulSet *apps.StatefulSet) er
 }
 
 func upsertCustomConfig(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {
-	if mysql.Spec.ConfigFile != nil {
+	if mysql.Spec.ConfigSource != nil {
 		for i, container := range statefulSet.Spec.Template.Spec.Containers {
 			if container.Name == api.ResourceSingularMySQL {
 				configVolumeMount := core.VolumeMount{
@@ -318,7 +318,7 @@ func upsertCustomConfig(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.S
 
 				configVolume := core.Volume{
 					Name:         "custom-config",
-					VolumeSource: *mysql.Spec.ConfigFile,
+					VolumeSource: *mysql.Spec.ConfigSource,
 				}
 
 				volumes := statefulSet.Spec.Template.Spec.Volumes

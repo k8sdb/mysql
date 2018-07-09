@@ -118,12 +118,12 @@ func (f *Framework) EventuallyCountRow(meta metav1.ObjectMeta, dbName string) Go
 	)
 }
 
-func (f *Framework) EventuallyMySQLVariable(meta metav1.ObjectMeta, config string) GomegaAsyncAssertion {
+func (f *Framework) EventuallyMySQLVariable(meta metav1.ObjectMeta, dbName string, config string) GomegaAsyncAssertion {
 	configPair := strings.Split(config, "=")
 	sql := fmt.Sprintf("SHOW VARIABLES LIKE '%s';", configPair[0])
 	return Eventually(
 		func() []map[string][]byte {
-			en, err := f.GetMySQLClient(meta)
+			en, err := f.GetMySQLClient(meta, dbName)
 			if err != nil {
 				return nil
 			}
