@@ -837,7 +837,7 @@ var _ = Describe("MySQL", func() {
 						secret = f.SecretForLocalBackend()
 						mysql.Spec.BackupSchedule = &api.BackupScheduleSpec{
 							CronExpression: "@every 20s",
-							SnapshotStorageSpec: api.SnapshotStorageSpec{
+							Backend: api.Backend{
 								StorageSecretName: secret.Name,
 								Local: &api.LocalSpec{
 									MountPath: "/repo",
@@ -857,7 +857,7 @@ var _ = Describe("MySQL", func() {
 						secret = f.SecretForGCSBackend()
 						mysql.Spec.BackupSchedule = &api.BackupScheduleSpec{
 							CronExpression: "@every 1m",
-							SnapshotStorageSpec: api.SnapshotStorageSpec{
+							Backend: api.Backend{
 								StorageSecretName: secret.Name,
 								GCS: &api.GCSSpec{
 									Bucket: os.Getenv(GCS_BUCKET_NAME),
@@ -885,7 +885,7 @@ var _ = Describe("MySQL", func() {
 					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
 							CronExpression: "@every 20s",
-							SnapshotStorageSpec: api.SnapshotStorageSpec{
+							Backend: api.Backend{
 								StorageSecretName: secret.Name,
 								Local: &api.LocalSpec{
 									MountPath: "/repo",
@@ -931,7 +931,7 @@ var _ = Describe("MySQL", func() {
 					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
 							CronExpression: "@every 20s",
-							SnapshotStorageSpec: api.SnapshotStorageSpec{
+							Backend: api.Backend{
 								StorageSecretName: secret.Name,
 								Local: &api.LocalSpec{
 									MountPath: "/repo",

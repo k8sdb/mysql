@@ -8,11 +8,11 @@ import (
 	"github.com/graymeta/stow"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
-	"github.com/kubedb/apimachinery/pkg/storage"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	storage "kmodules.xyz/objectstore-api/osm"
 )
 
 func (f *Invocation) Snapshot() *api.Snapshot {
@@ -130,7 +130,7 @@ func (f *Framework) EventuallyMultipleSnapshotFinishedProcessing(meta metav1.Obj
 }
 
 func (f *Framework) checkSnapshotData(snapshot *api.Snapshot) (bool, error) {
-	storageSpec := snapshot.Spec.SnapshotStorageSpec
+	storageSpec := snapshot.Spec.Backend
 	cfg, err := storage.NewOSMContext(f.kubeClient, storageSpec, snapshot.Namespace)
 	if err != nil {
 		return false, err
