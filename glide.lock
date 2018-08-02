@@ -1,5 +1,5 @@
 hash: edbea1f50f2f2a97ac460571e25e72fdc30b7785a086c50bbb370cc9f05016e9
-updated: 2018-07-31T13:17:11.334458898-07:00
+updated: 2018-08-01T18:58:36.965952803-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -212,7 +212,7 @@ imports:
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
 - name: github.com/evanphx/json-patch
-  version: 94e38aa1586e8a6c8a75770bddf5ff84c48a106b
+  version: afac545df32f2287a079e2dfb7ba2745a643747e
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
@@ -312,7 +312,7 @@ imports:
 - name: github.com/json-iterator/go
   version: f2b4162afba35581b6d4a50d3b8f34e33c144682
 - name: github.com/kubedb/apimachinery
-  version: e3f101afd0112e3d266359879bc03865d28381f9
+  version: 883ae26a8ff0a28ffc2c36ba7c34f2532cefae21
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
@@ -427,15 +427,13 @@ imports:
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/russross/blackfriday
-  version: 300106c228d52c8941d4b3de6054a6062a86dda3
+  version: 4048872b16cc0fc2c5fd9eacf0ed2c2fedaa0c8c
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/sergi/go-diff
   version: 97b2266dfe4bd4ea1b81a463322f04f8b724801e
   subpackages:
   - diffmatchpatch
-- name: github.com/shurcooL/sanitized_anchor_name
-  version: 10ef21a441db47d8b13ebcc5fd2310f636973c77
 - name: github.com/spf13/cobra
   version: ef82de70bb3f60c65fb8eebacbb2d122ef517385
   subpackages:
@@ -946,7 +944,7 @@ imports:
   - pkg/util
   - pkg/util/proto
 - name: kmodules.xyz/monitoring-agent-api
-  version: 323ed6f2129deea0309979d9396728c613f369d4
+  version: 2b926a410fbfe224acd3297619e15734eb0ad75d
   repo: https://github.com/kmodules/monitoring-agent-api.git
   vcs: git
   subpackages:
@@ -954,11 +952,18 @@ imports:
   - agents/coreosprometheusoperator
   - agents/prometheusbuiltin
   - api
+  - api/v1
 - name: kmodules.xyz/objectstore-api
-  version: f2d3726e2b0438b0b7264f8bf62edf928e5ca962
+  version: 5437829d6e1c97de1c3effe5f2dc6cbca2e0bfd4
   repo: https://github.com/kmodules/objectstore-api.git
   vcs: git
   subpackages:
-  - api
+  - api/v1
   - osm
+- name: kmodules.xyz/offshoot-api
+  version: ca509dced59191f2fe70d49a5e238ec92016a8eb
+  repo: https://github.com/kmodules/offshoot-api.git
+  vcs: git
+  subpackages:
+  - api/v1
 testImports: []

@@ -56,6 +56,10 @@ func (c *FakeKubedbV1alpha1) Postgreses(namespace string) v1alpha1.PostgresInter
 	return &FakePostgreses{c, namespace}
 }
 
+func (c *FakeKubedbV1alpha1) PostgresVersions() v1alpha1.PostgresVersionInterface {
+	return &FakePostgresVersions{c}
+}
+
 func (c *FakeKubedbV1alpha1) Redises(namespace string) v1alpha1.RedisInterface {
 	return &FakeRedises{c, namespace}
 }
