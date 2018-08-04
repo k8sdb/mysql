@@ -79,9 +79,9 @@ func (c *Controller) createService(mysql *api.MySQL) (kutil.VerbType, error) {
 
 	_, ok, err := core_util.CreateOrPatchService(c.Client, meta, func(in *core.Service) *core.Service {
 		in.ObjectMeta = core_util.EnsureOwnerReference(in.ObjectMeta, ref)
-		in.Labels = mysql.OffshootLabels()
+		in.Labels = mysql.OffshootSelectors()
 		in.Spec.Ports = upsertServicePort(in, mysql)
-		in.Spec.Selector = mysql.OffshootLabels()
+		in.Spec.Selector = mysql.OffshootSelectors()
 		return in
 	})
 	return ok, err
