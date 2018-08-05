@@ -12,20 +12,18 @@ import (
 )
 
 const (
-	snapshotDumpDir        = "/var/data"
-	snapshotProcessRestore = "restore"
-	snapshotProcessBackup  = "backup"
+	snapshotDumpDir = "/var/data"
 )
 
 func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) (*batch.Job, error) {
 	databaseName := mysql.Name
 	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshot.OffshootName())
-	jobLabel := map[string]string{
-		api.LabelDatabaseKind: api.ResourceKindMySQL,
+	jobLabel := mysql.OffshootLabels()
+	if jobLabel == nil {
+		jobLabel = map[string]string{}
 	}
-	jobAnnotation := map[string]string{
-		api.AnnotationJobType: api.JobTypeRestore,
-	}
+	jobLabel[api.LabelDatabaseKind] = api.ResourceKindMySQL
+	jobLabel[api.AnnotationJobType] = api.JobTypeRestore
 
 	backupSpec := snapshot.Spec.Backend
 	bucket, err := backupSpec.Container()
@@ -46,7 +44,7 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        jobName,
 			Labels:      jobLabel,
-			Annotations: jobAnnotation,
+			Annotations: snapshot.Spec.PodTemplate.Controller.Annotations,
 			OwnerReferences: []metav1.OwnerReference{
 				{
 					APIVersion: api.SchemeGroupVersion.String(),
@@ -59,15 +57,15 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 		Spec: batch.JobSpec{
 			Template: core.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: jobLabel,
+					Annotations: snapshot.Spec.PodTemplate.Annotations,
 				},
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:  snapshotProcessRestore,
+							Name:  api.JobTypeRestore,
 							Image: c.docker.GetToolsImageWithTag(mysql),
 							Args: []string{
-								snapshotProcessRestore,
+								api.JobTypeRestore,
 								fmt.Sprintf(`--host=%s`, databaseName),
 								fmt.Sprintf(`--user=%s`, mysqlUser),
 								fmt.Sprintf(`--data-dir=%s`, snapshotDumpDir),
@@ -93,7 +91,7 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 									},
 								},
 							},
-							Resources: snapshot.Spec.Resources,
+							Resources: snapshot.Spec.PodTemplate.Spec.Resources,
 							VolumeMounts: []core.VolumeMount{
 								{
 									Name:      persistentVolume.Name,
@@ -107,7 +105,6 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 							},
 						},
 					},
-					ImagePullSecrets: mysql.Spec.ImagePullSecrets,
 					Volumes: []core.Volume{
 						{
 							Name:         persistentVolume.Name,
@@ -122,7 +119,15 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 							},
 						},
 					},
-					RestartPolicy: core.RestartPolicyNever,
+					RestartPolicy:     core.RestartPolicyNever,
+					NodeSelector:      snapshot.Spec.PodTemplate.Spec.NodeSelector,
+					Affinity:          snapshot.Spec.PodTemplate.Spec.Affinity,
+					SchedulerName:     snapshot.Spec.PodTemplate.Spec.SchedulerName,
+					Tolerations:       snapshot.Spec.PodTemplate.Spec.Tolerations,
+					ImagePullSecrets:  snapshot.Spec.PodTemplate.Spec.ImagePullSecrets,
+					PriorityClassName: snapshot.Spec.PodTemplate.Spec.PriorityClassName,
+					Priority:          snapshot.Spec.PodTemplate.Spec.Priority,
+					SecurityContext:   snapshot.Spec.PodTemplate.Spec.SecurityContext,
 				},
 			},
 		},
@@ -144,19 +149,21 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 
 func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, error) {
 	databaseName := snapshot.Spec.DatabaseName
-	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshot.OffshootName())
-	jobLabel := map[string]string{
-		api.LabelDatabaseKind: api.ResourceKindMySQL,
-	}
-	jobAnnotation := map[string]string{
-		api.AnnotationJobType: snapshotProcessBackup,
-	}
-	backupSpec := snapshot.Spec.Backend
-	bucket, err := backupSpec.Container()
+	mysql, err := c.myLister.MySQLs(snapshot.Namespace).Get(databaseName)
 	if err != nil {
 		return nil, err
 	}
-	mysql, err := c.myLister.MySQLs(snapshot.Namespace).Get(databaseName)
+
+	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshot.OffshootName())
+	jobLabel := mysql.OffshootLabels()
+	if jobLabel == nil {
+		jobLabel = map[string]string{}
+	}
+	jobLabel[api.LabelDatabaseKind] = api.ResourceKindMySQL
+	jobLabel[api.AnnotationJobType] = api.JobTypeBackup
+
+	backupSpec := snapshot.Spec.Backend
+	bucket, err := backupSpec.Container()
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +180,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        jobName,
 			Labels:      jobLabel,
-			Annotations: jobAnnotation,
+			Annotations: snapshot.Spec.PodTemplate.Controller.Annotations,
 			OwnerReferences: []metav1.OwnerReference{
 				{
 					APIVersion: api.SchemeGroupVersion.String(),
@@ -186,15 +193,15 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 		Spec: batch.JobSpec{
 			Template: core.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: jobLabel,
+					Annotations: snapshot.Spec.PodTemplate.Annotations,
 				},
 				Spec: core.PodSpec{
 					Containers: []core.Container{
 						{
-							Name:  snapshotProcessBackup,
+							Name:  api.JobTypeBackup,
 							Image: c.docker.GetToolsImageWithTag(mysql),
 							Args: []string{
-								snapshotProcessBackup,
+								api.JobTypeBackup,
 								fmt.Sprintf(`--host=%s`, databaseName),
 								fmt.Sprintf(`--user=%s`, mysqlUser),
 								fmt.Sprintf(`--data-dir=%s`, snapshotDumpDir),
@@ -220,7 +227,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 									},
 								},
 							},
-							Resources: snapshot.Spec.Resources,
+							Resources: snapshot.Spec.PodTemplate.Spec.Resources,
 							VolumeMounts: []core.VolumeMount{
 								{
 									Name:      persistentVolume.Name,
@@ -234,7 +241,6 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 							},
 						},
 					},
-					ImagePullSecrets: mysql.Spec.ImagePullSecrets,
 					Volumes: []core.Volume{
 						{
 							Name:         persistentVolume.Name,
@@ -249,7 +255,15 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 							},
 						},
 					},
-					RestartPolicy: core.RestartPolicyNever,
+					RestartPolicy:     core.RestartPolicyNever,
+					NodeSelector:      snapshot.Spec.PodTemplate.Spec.NodeSelector,
+					Affinity:          snapshot.Spec.PodTemplate.Spec.Affinity,
+					SchedulerName:     snapshot.Spec.PodTemplate.Spec.SchedulerName,
+					Tolerations:       snapshot.Spec.PodTemplate.Spec.Tolerations,
+					ImagePullSecrets:  snapshot.Spec.PodTemplate.Spec.ImagePullSecrets,
+					PriorityClassName: snapshot.Spec.PodTemplate.Spec.PriorityClassName,
+					Priority:          snapshot.Spec.PodTemplate.Spec.Priority,
+					SecurityContext:   snapshot.Spec.PodTemplate.Spec.SecurityContext,
 				},
 			},
 		},

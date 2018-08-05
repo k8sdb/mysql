@@ -79,9 +79,23 @@ func (c *Controller) createService(mysql *api.MySQL) (kutil.VerbType, error) {
 
 	_, ok, err := core_util.CreateOrPatchService(c.Client, meta, func(in *core.Service) *core.Service {
 		in.ObjectMeta = core_util.EnsureOwnerReference(in.ObjectMeta, ref)
-		in.Labels = mysql.OffshootSelectors()
-		in.Spec.Ports = upsertServicePort(in, mysql)
+		in.Labels = mysql.OffshootLabels()
+		in.Annotations = mysql.Spec.ServiceTemplate.Annotations
+
 		in.Spec.Selector = mysql.OffshootSelectors()
+		in.Spec.Ports = upsertServicePort(in, mysql)
+
+		if mysql.Spec.ServiceTemplate.Spec.ClusterIP != "" {
+			in.Spec.ClusterIP = mysql.Spec.ServiceTemplate.Spec.ClusterIP
+		}
+		if mysql.Spec.ServiceTemplate.Spec.Type != "" {
+			in.Spec.Type = mysql.Spec.ServiceTemplate.Spec.Type
+		}
+		in.Spec.ExternalIPs = mysql.Spec.ServiceTemplate.Spec.ExternalIPs
+		in.Spec.LoadBalancerIP = mysql.Spec.ServiceTemplate.Spec.LoadBalancerIP
+		in.Spec.LoadBalancerSourceRanges = mysql.Spec.ServiceTemplate.Spec.LoadBalancerSourceRanges
+		in.Spec.ExternalTrafficPolicy = mysql.Spec.ServiceTemplate.Spec.ExternalTrafficPolicy
+		in.Spec.HealthCheckNodePort = mysql.Spec.ServiceTemplate.Spec.HealthCheckNodePort
 		return in
 	})
 	return ok, err
