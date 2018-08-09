@@ -38,7 +38,13 @@ func TestMySQLValidator_Admit(t *testing.T) {
 			validator := MySQLValidator{}
 
 			validator.initialized = true
-			validator.extClient = extFake.NewSimpleClientset()
+			validator.extClient = extFake.NewSimpleClientset(
+				&api.MySQLVersion{
+					ObjectMeta: metaV1.ObjectMeta{
+						Name: "8.0",
+					},
+				},
+			)
 			validator.client = fake.NewSimpleClientset(
 				&core.Secret{
 					ObjectMeta: metaV1.ObjectMeta{

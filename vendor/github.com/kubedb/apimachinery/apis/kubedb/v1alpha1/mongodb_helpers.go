@@ -88,5 +88,22 @@ func (p MongoDB) CustomResourceDefinition() *apiextensions.CustomResourceDefinit
 		EnableValidation:        true,
 		GetOpenAPIDefinitions:   GetOpenAPIDefinitions,
 		EnableStatusSubresource: EnableStatusSubresource,
+		AdditionalPrinterColumns: []apiextensions.CustomResourceColumnDefinition{
+			{
+				Name:     "Version",
+				Type:     "string",
+				JSONPath: ".spec.version",
+			},
+			{
+				Name:     "Status",
+				Type:     "string",
+				JSONPath: ".status.phase",
+			},
+			{
+				Name:     "Age",
+				Type:     "date",
+				JSONPath: ".metadata.creationTimestamp",
+			},
+		},
 	}, setNameSchema)
 }

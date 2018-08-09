@@ -37,6 +37,7 @@ func init() {
 
 	flag.StringVar(&storageClass, "storageclass", "standard", "Kubernetes StorageClass name")
 	flag.StringVar(&framework.DockerRegistry, "docker-registry", "kubedb", "User provided docker repository")
+	flag.StringVar(&framework.DBVersion, "my-version", "8.0", "MongoDB version")
 	flag.StringVar(&framework.ExporterTag, "exporter-tag", "canary", "Tag of kubedb/operator used as exporter")
 	flag.BoolVar(&framework.SelfHostedOperator, "selfhosted-operator", false, "Enable this for provided controller")
 }

@@ -12,6 +12,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
+	store "kmodules.xyz/objectstore-api/api/v1"
 )
 
 const (
@@ -25,24 +26,30 @@ const (
 
 var _ = Describe("MySQL", func() {
 	var (
-		err         error
-		f           *framework.Invocation
-		mysql       *api.MySQL
-		snapshot    *api.Snapshot
-		secret      *core.Secret
-		skipMessage string
-		dbName      string
+		err          error
+		f            *framework.Invocation
+		mysql        *api.MySQL
+		mysqlVersion *api.MySQLVersion
+		snapshot     *api.Snapshot
+		secret       *core.Secret
+		skipMessage  string
+		dbName       string
 	)
 
 	BeforeEach(func() {
 		f = root.Invoke()
 		mysql = f.MySQL()
+		mysqlVersion = f.MySQLVersion()
 		snapshot = f.Snapshot()
 		skipMessage = ""
 		dbName = "mysql"
 	})
 
 	var createAndWaitForRunning = func() {
+		By("Create MySQLVersion: " + mysqlVersion.Name)
+		err = f.CreateMySQLVersion(mysqlVersion)
+		Expect(err).NotTo(HaveOccurred())
+
 		By("Create MySQL: " + mysql.Name)
 		err = f.CreateMySQL(mysql)
 		Expect(err).NotTo(HaveOccurred())
@@ -72,6 +79,8 @@ var _ = Describe("MySQL", func() {
 
 		By("Wait for mysql resources to be wipedOut")
 		f.EventuallyWipedOut(mysql.ObjectMeta).Should(Succeed())
+
+		// Todo: DeleteMySQL Version on aftereach
 	}
 
 	Describe("Test", func() {
@@ -197,7 +206,7 @@ var _ = Describe("MySQL", func() {
 					skipDataCheck = true
 					secret = f.SecretForLocalBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Local = &api.LocalSpec{
+					snapshot.Spec.Local = &store.LocalSpec{
 						MountPath: "/repo",
 						VolumeSource: core.VolumeSource{
 							EmptyDir: &core.EmptyDirVolumeSource{},
@@ -212,7 +221,7 @@ var _ = Describe("MySQL", func() {
 				BeforeEach(func() {
 					secret = f.SecretForS3Backend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.S3 = &api.S3Spec{
+					snapshot.Spec.S3 = &store.S3Spec{
 						Bucket: os.Getenv(S3_BUCKET_NAME),
 					}
 				})
@@ -224,7 +233,7 @@ var _ = Describe("MySQL", func() {
 				BeforeEach(func() {
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &api.GCSSpec{
+					snapshot.Spec.GCS = &store.GCSSpec{
 						Bucket: os.Getenv(GCS_BUCKET_NAME),
 					}
 				})
@@ -290,7 +299,7 @@ var _ = Describe("MySQL", func() {
 						snapshot := f.Snapshot()
 						snapshot.Spec.DatabaseName = mysql.Name
 						snapshot.Spec.StorageSecretName = secret.Name
-						snapshot.Spec.GCS = &api.GCSSpec{
+						snapshot.Spec.GCS = &store.GCSSpec{
 							Bucket: os.Getenv(GCS_BUCKET_NAME),
 						}
 
@@ -344,7 +353,7 @@ var _ = Describe("MySQL", func() {
 				BeforeEach(func() {
 					secret = f.SecretForAzureBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Azure = &api.AzureSpec{
+					snapshot.Spec.Azure = &store.AzureSpec{
 						Container: os.Getenv(AZURE_CONTAINER_NAME),
 					}
 				})
@@ -356,7 +365,7 @@ var _ = Describe("MySQL", func() {
 				BeforeEach(func() {
 					secret = f.SecretForSwiftBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Swift = &api.SwiftSpec{
+					snapshot.Spec.Swift = &store.SwiftSpec{
 						Container: os.Getenv(SWIFT_CONTAINER_NAME),
 					}
 				})
@@ -401,7 +410,7 @@ var _ = Describe("MySQL", func() {
 				BeforeEach(func() {
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &api.GCSSpec{
+					snapshot.Spec.GCS = &store.GCSSpec{
 						Bucket: os.Getenv(GCS_BUCKET_NAME),
 					}
 					snapshot.Spec.DatabaseName = mysql.Name
@@ -643,7 +652,7 @@ var _ = Describe("MySQL", func() {
 					usedInitSnapshot = true
 					secret = f.SecretForGCSBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &api.GCSSpec{
+					snapshot.Spec.GCS = &store.GCSSpec{
 						Bucket: os.Getenv(GCS_BUCKET_NAME),
 					}
 					snapshot.Spec.DatabaseName = mysql.Name
@@ -837,9 +846,9 @@ var _ = Describe("MySQL", func() {
 						secret = f.SecretForLocalBackend()
 						mysql.Spec.BackupSchedule = &api.BackupScheduleSpec{
 							CronExpression: "@every 20s",
-							Backend: api.Backend{
+							Backend: store.Backend{
 								StorageSecretName: secret.Name,
-								Local: &api.LocalSpec{
+								Local: &store.LocalSpec{
 									MountPath: "/repo",
 									VolumeSource: core.VolumeSource{
 										EmptyDir: &core.EmptyDirVolumeSource{},
@@ -857,9 +866,9 @@ var _ = Describe("MySQL", func() {
 						secret = f.SecretForGCSBackend()
 						mysql.Spec.BackupSchedule = &api.BackupScheduleSpec{
 							CronExpression: "@every 1m",
-							Backend: api.Backend{
+							Backend: store.Backend{
 								StorageSecretName: secret.Name,
-								GCS: &api.GCSSpec{
+								GCS: &store.GCSSpec{
 									Bucket: os.Getenv(GCS_BUCKET_NAME),
 								},
 							},
@@ -885,9 +894,9 @@ var _ = Describe("MySQL", func() {
 					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
 							CronExpression: "@every 20s",
-							Backend: api.Backend{
+							Backend: store.Backend{
 								StorageSecretName: secret.Name,
-								Local: &api.LocalSpec{
+								Local: &store.LocalSpec{
 									MountPath: "/repo",
 									VolumeSource: core.VolumeSource{
 										EmptyDir: &core.EmptyDirVolumeSource{},
@@ -931,9 +940,9 @@ var _ = Describe("MySQL", func() {
 					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
 							CronExpression: "@every 20s",
-							Backend: api.Backend{
+							Backend: store.Backend{
 								StorageSecretName: secret.Name,
-								Local: &api.LocalSpec{
+								Local: &store.LocalSpec{
 									MountPath: "/repo",
 									VolumeSource: core.VolumeSource{
 										EmptyDir: &core.EmptyDirVolumeSource{},
@@ -1005,7 +1014,7 @@ var _ = Describe("MySQL", func() {
 					}
 
 					dbName = f.App()
-					mysql.Spec.Env = []core.EnvVar{
+					mysql.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 						{
 							Name:  MYSQL_DATABASE,
 							Value: dbName,
@@ -1054,7 +1063,7 @@ var _ = Describe("MySQL", func() {
 						Skip(skipMessage)
 					}
 
-					mysql.Spec.Env = []core.EnvVar{
+					mysql.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 						{
 							Name:  MYSQL_ROOT_PASSWORD,
 							Value: "not@secret",
@@ -1073,7 +1082,7 @@ var _ = Describe("MySQL", func() {
 					}
 
 					dbName = f.App()
-					mysql.Spec.Env = []core.EnvVar{
+					mysql.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 						{
 							Name:  MYSQL_DATABASE,
 							Value: dbName,
@@ -1114,7 +1123,7 @@ var _ = Describe("MySQL", func() {
 
 					By("Patching EnvVar")
 					_, _, err = util.PatchMySQL(f.ExtClient(), mysql, func(in *api.MySQL) *api.MySQL {
-						in.Spec.Env = []core.EnvVar{
+						in.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 							{
 								Name:  MYSQL_DATABASE,
 								Value: "patched-db",

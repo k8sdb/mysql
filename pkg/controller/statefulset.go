@@ -85,6 +85,11 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		return nil, kutil.VerbUnchanged, rerr
 	}
 
+	mysqlVersion, err := c.ExtClient.MySQLVersions().Get(string(mysql.Spec.Version), metav1.GetOptions{})
+	if err != nil {
+		return nil, kutil.VerbUnchanged, rerr
+	}
+
 	return app_util.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
 		in.Labels = mysql.OffshootLabels()
 		in.Annotations = mysql.Spec.PodTemplate.Controller.Annotations
@@ -123,7 +128,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		)
 		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
 			Name:      api.ResourceSingularMySQL,
-			Image:     c.docker.GetImageWithTag(mysql),
+			Image:     mysqlVersion.Spec.DB.Image,
 			Resources: mysql.Spec.PodTemplate.Spec.Resources,
 			Ports: []core.ContainerPort{
 				{
@@ -141,7 +146,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 					fmt.Sprintf("--address=:%d", mysql.Spec.Monitor.Prometheus.Port),
 					fmt.Sprintf("--enable-analytics=%v", c.EnableAnalytics),
 				}, c.LoggerOptions.ToFlags()...),
-				Image: c.docker.GetOperatorImageWithTag(mysql),
+				Image: mysqlVersion.Spec.Exporter.Image,
 				Ports: []core.ContainerPort{
 					{
 						Name:          api.PrometheusExporterPortName,

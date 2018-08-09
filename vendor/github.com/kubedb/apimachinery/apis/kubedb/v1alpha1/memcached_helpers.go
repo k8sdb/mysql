@@ -2,7 +2,6 @@ package v1alpha1
 
 import (
 	"fmt"
-	"strings"
 
 	crdutils "github.com/appscode/kutil/apiextensions/v1beta1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
@@ -15,29 +14,13 @@ func (r Memcached) OffshootName() string {
 
 func (r Memcached) OffshootSelectors() map[string]string {
 	return map[string]string{
-		LabelDatabaseName: r.Name,
 		LabelDatabaseKind: ResourceKindMemcached,
+		LabelDatabaseName: r.Name,
 	}
 }
 
-func (r Memcached) DeploymentLabels() map[string]string {
-	labels := r.OffshootSelectors()
-	for key, val := range r.Labels {
-		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, MemcachedKey+"/") {
-			labels[key] = val
-		}
-	}
-	return labels
-}
-
-func (r Memcached) DeploymentAnnotations() map[string]string {
-	annotations := make(map[string]string)
-	for key, val := range r.Annotations {
-		if !strings.HasPrefix(key, GenericKey+"/") && !strings.HasPrefix(key, MemcachedKey+"/") {
-			annotations[key] = val
-		}
-	}
-	return annotations
+func (r Memcached) OffshootLabels() map[string]string {
+	return filterTags(r.OffshootSelectors(), r.Labels)
 }
 
 func (r Memcached) ResourceShortCode() string {

@@ -95,7 +95,9 @@ func (c *Controller) createService(mysql *api.MySQL) (kutil.VerbType, error) {
 		in.Spec.LoadBalancerIP = mysql.Spec.ServiceTemplate.Spec.LoadBalancerIP
 		in.Spec.LoadBalancerSourceRanges = mysql.Spec.ServiceTemplate.Spec.LoadBalancerSourceRanges
 		in.Spec.ExternalTrafficPolicy = mysql.Spec.ServiceTemplate.Spec.ExternalTrafficPolicy
-		in.Spec.HealthCheckNodePort = mysql.Spec.ServiceTemplate.Spec.HealthCheckNodePort
+		if mysql.Spec.ServiceTemplate.Spec.HealthCheckNodePort > 0 {
+			in.Spec.HealthCheckNodePort = mysql.Spec.ServiceTemplate.Spec.HealthCheckNodePort
+		}
 		return in
 	})
 	return ok, err

@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 
+	core_util "github.com/appscode/kutil/core/v1"
 	"github.com/appscode/kutil/tools/analytics"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	batch "k8s.io/api/batch/v1"
@@ -16,7 +17,10 @@ const (
 )
 
 func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) (*batch.Job, error) {
-	databaseName := mysql.Name
+	mysqlVersion, err := c.ExtClient.MySQLVersions().Get(string(mysql.Spec.Version), metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
 	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshot.OffshootName())
 	jobLabel := mysql.OffshootLabels()
 	if jobLabel == nil {
@@ -63,10 +67,10 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 					Containers: []core.Container{
 						{
 							Name:  api.JobTypeRestore,
-							Image: c.docker.GetToolsImageWithTag(mysql),
+							Image: mysqlVersion.Spec.Tools.Image,
 							Args: []string{
 								api.JobTypeRestore,
-								fmt.Sprintf(`--host=%s`, databaseName),
+								fmt.Sprintf(`--host=%s`, mysql.ServiceName()),
 								fmt.Sprintf(`--user=%s`, mysqlUser),
 								fmt.Sprintf(`--data-dir=%s`, snapshotDumpDir),
 								fmt.Sprintf(`--bucket=%s`, bucket),
@@ -124,10 +128,13 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 					Affinity:          snapshot.Spec.PodTemplate.Spec.Affinity,
 					SchedulerName:     snapshot.Spec.PodTemplate.Spec.SchedulerName,
 					Tolerations:       snapshot.Spec.PodTemplate.Spec.Tolerations,
-					ImagePullSecrets:  snapshot.Spec.PodTemplate.Spec.ImagePullSecrets,
 					PriorityClassName: snapshot.Spec.PodTemplate.Spec.PriorityClassName,
 					Priority:          snapshot.Spec.PodTemplate.Spec.Priority,
 					SecurityContext:   snapshot.Spec.PodTemplate.Spec.SecurityContext,
+					ImagePullSecrets: core_util.MergeLocalObjectReferences(
+						snapshot.Spec.PodTemplate.Spec.ImagePullSecrets,
+						mysql.Spec.PodTemplate.Spec.ImagePullSecrets,
+					),
 				},
 			},
 		},
@@ -148,8 +155,11 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 }
 
 func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, error) {
-	databaseName := snapshot.Spec.DatabaseName
-	mysql, err := c.myLister.MySQLs(snapshot.Namespace).Get(databaseName)
+	mysql, err := c.myLister.MySQLs(snapshot.Namespace).Get(snapshot.Spec.DatabaseName)
+	if err != nil {
+		return nil, err
+	}
+	mysqlVersion, err := c.ExtClient.MySQLVersions().Get(string(mysql.Spec.Version), metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -199,10 +209,10 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 					Containers: []core.Container{
 						{
 							Name:  api.JobTypeBackup,
-							Image: c.docker.GetToolsImageWithTag(mysql),
+							Image: mysqlVersion.Spec.Tools.Image,
 							Args: []string{
 								api.JobTypeBackup,
-								fmt.Sprintf(`--host=%s`, databaseName),
+								fmt.Sprintf(`--host=%s`, mysql.ServiceName()),
 								fmt.Sprintf(`--user=%s`, mysqlUser),
 								fmt.Sprintf(`--data-dir=%s`, snapshotDumpDir),
 								fmt.Sprintf(`--bucket=%s`, bucket),
@@ -260,10 +270,13 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 					Affinity:          snapshot.Spec.PodTemplate.Spec.Affinity,
 					SchedulerName:     snapshot.Spec.PodTemplate.Spec.SchedulerName,
 					Tolerations:       snapshot.Spec.PodTemplate.Spec.Tolerations,
-					ImagePullSecrets:  snapshot.Spec.PodTemplate.Spec.ImagePullSecrets,
 					PriorityClassName: snapshot.Spec.PodTemplate.Spec.PriorityClassName,
 					Priority:          snapshot.Spec.PodTemplate.Spec.Priority,
 					SecurityContext:   snapshot.Spec.PodTemplate.Spec.SecurityContext,
+					ImagePullSecrets: core_util.MergeLocalObjectReferences(
+						snapshot.Spec.PodTemplate.Spec.ImagePullSecrets,
+						mysql.Spec.PodTemplate.Spec.ImagePullSecrets,
+					),
 				},
 			},
 		},
