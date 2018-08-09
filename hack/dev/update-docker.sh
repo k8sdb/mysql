@@ -1,8 +1,8 @@
 #!/bin/bash
-set -xeou pipefail
+set -eou pipefail
 
 GOPATH=$(go env GOPATH)
-REPO_ROOT=$GOPATH/src/github.com/kubedb/mysql
+REPO_ROOT=${GOPATH}/src/github.com/kubedb/mysql
 
 export DB_UPDATE=1
 export TOOLS_UPDATE=1
@@ -49,20 +49,32 @@ while test $# -gt 0; do
   esac
 done
 
+dbversions=(
+  5.7
+  8.0
+)
+
+echo ""
+env | sort | grep -e DOCKER_REGISTRY -e APPSCODE_ENV || true
+echo ""
+
 if [ "$DB_UPDATE" -eq 1 ]; then
-  $REPO_ROOT/hack/docker/mysql/5.7/make.sh
-  $REPO_ROOT/hack/docker/mysql/8.0/make.sh
+  cowsay -f tux "Processing database images" || true
+  for db in "${dbversions[@]}"; do
+    ${REPO_ROOT}/hack/docker/mysql/${db}/make.sh
+  done
 fi
 
 if [ "$TOOLS_UPDATE" -eq 1 ]; then
-  $REPO_ROOT/hack/docker/mysql-tools/5.7/make.sh build
-  $REPO_ROOT/hack/docker/mysql-tools/5.7/make.sh push
-
-  $REPO_ROOT/hack/docker/mysql-tools/8.0/make.sh build
-  $REPO_ROOT/hack/docker/mysql-tools/8.0/make.sh push
+  cowsay -f tux "Processing database-tools images" || true
+  for db in "${dbversions[@]}"; do
+    ${REPO_ROOT}/hack/docker/mysql-tools/${db}/make.sh build
+    ${REPO_ROOT}/hack/docker/mysql-tools/${db}/make.sh push
+  done
 fi
 
 if [ "$OPERATOR_UPDATE" -eq 1 ]; then
-  $REPO_ROOT/hack/docker/my-operator/make.sh build
-  $REPO_ROOT/hack/docker/my-operator/make.sh push
+  cowsay -f tux "Processing Operator images" || true
+  ${REPO_ROOT}/hack/docker/my-operator/make.sh build
+  ${REPO_ROOT}/hack/docker/my-operator/make.sh push
 fi

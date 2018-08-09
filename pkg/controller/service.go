@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 
+	"github.com/appscode/go/log"
 	"github.com/appscode/kutil"
 	core_util "github.com/appscode/kutil/core/v1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
@@ -18,7 +19,7 @@ import (
 
 func (c *Controller) ensureService(mysql *api.MySQL) (kutil.VerbType, error) {
 	// Check if service name exists
-	if err := c.checkService(mysql); err != nil {
+	if err := c.checkService(mysql,mysql.ServiceName()); err != nil {
 		return kutil.VerbUnchanged, err
 	}
 
@@ -49,9 +50,8 @@ func (c *Controller) ensureService(mysql *api.MySQL) (kutil.VerbType, error) {
 	return vt, nil
 }
 
-func (c *Controller) checkService(mysql *api.MySQL) error {
-	name := mysql.OffshootName()
-	service, err := c.Client.CoreV1().Services(mysql.Namespace).Get(name, metav1.GetOptions{})
+func (c *Controller) checkService(mysql *api.MySQL, serviceName string) error {
+	service, err := c.Client.CoreV1().Services(mysql.Namespace).Get(serviceName, metav1.GetOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
 			return nil
@@ -59,8 +59,9 @@ func (c *Controller) checkService(mysql *api.MySQL) error {
 		return err
 	}
 
-	if service.Spec.Selector[api.LabelDatabaseName] != name {
-		return fmt.Errorf(`Intended service "%v" already exists`, name)
+	if service.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL ||
+		service.Labels[api.LabelDatabaseName] != mysql.Name {
+		return fmt.Errorf(`intended service "%v" already exists`, serviceName)
 	}
 
 	return nil
@@ -83,7 +84,14 @@ func (c *Controller) createService(mysql *api.MySQL) (kutil.VerbType, error) {
 		in.Annotations = mysql.Spec.ServiceTemplate.Annotations
 
 		in.Spec.Selector = mysql.OffshootSelectors()
-		in.Spec.Ports = upsertServicePort(in, mysql)
+		in.Spec.Ports = core_util.MergeServicePorts(in.Spec.Ports, []core.ServicePort{
+			{
+				Name:       "db",
+				Protocol:   core.ProtocolTCP,
+				Port:       3306,
+				TargetPort: intstr.FromString("db"),
+			},
+		})
 
 		if mysql.Spec.ServiceTemplate.Spec.ClusterIP != "" {
 			in.Spec.ClusterIP = mysql.Spec.ServiceTemplate.Spec.ClusterIP
@@ -103,22 +111,69 @@ func (c *Controller) createService(mysql *api.MySQL) (kutil.VerbType, error) {
 	return ok, err
 }
 
-func upsertServicePort(service *core.Service, mysql *api.MySQL) []core.ServicePort {
-	desiredPorts := []core.ServicePort{
-		{
-			Name:       "db",
-			Protocol:   core.ProtocolTCP,
-			Port:       3306,
-			TargetPort: intstr.FromString("db"),
-		},
+func (c *Controller) ensureStatsService(mysql *api.MySQL) (kutil.VerbType, error) {
+	// return if monitoring is not prometheus
+	if mysql.GetMonitoringVendor() != mona.VendorPrometheus {
+		log.Warningln("mysql.spec.monitor.agent is not coreos-operator or builtin.")
+		return kutil.VerbUnchanged, nil
 	}
-	if mysql.GetMonitoringVendor() == mona.VendorPrometheus {
-		desiredPorts = append(desiredPorts, core.ServicePort{
-			Name:       api.PrometheusExporterPortName,
-			Protocol:   core.ProtocolTCP,
-			Port:       mysql.Spec.Monitor.Prometheus.Port,
-			TargetPort: intstr.FromString(api.PrometheusExporterPortName),
+
+	// Check if statsService name exists
+	if err := c.checkService(mysql, mysql.StatsService().ServiceName()); err != nil {
+		return kutil.VerbUnchanged, err
+	}
+
+	// create statsService
+	vt, err := c.createStatsService(mysql)
+	if err != nil {
+		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
+			c.recorder.Eventf(
+				ref,
+				core.EventTypeWarning,
+				eventer.EventReasonFailedToCreate,
+				"Failed to create StatsService. Reason: %v",
+				err,
+			)
+		}
+		return kutil.VerbUnchanged, err
+	} else if vt != kutil.VerbUnchanged {
+		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
+			c.recorder.Eventf(
+				ref,
+				core.EventTypeNormal,
+				eventer.EventReasonSuccessful,
+				"Successfully %s StatsService",
+				vt,
+			)
+		}
+	}
+	return vt, nil
+}
+
+func (c *Controller) createStatsService(mysql *api.MySQL) (kutil.VerbType, error) {
+	meta := metav1.ObjectMeta{
+		Name:      mysql.StatsService().ServiceName(),
+		Namespace: mysql.Namespace,
+	}
+
+	ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql)
+	if rerr != nil {
+		return kutil.VerbUnchanged, rerr
+	}
+
+	_, ok, err := core_util.CreateOrPatchService(c.Client, meta, func(in *core.Service) *core.Service {
+		in.ObjectMeta = core_util.EnsureOwnerReference(in.ObjectMeta, ref)
+		in.Labels = mysql.OffshootLabels()
+		in.Spec.Selector = mysql.OffshootSelectors()
+		in.Spec.Ports = core_util.MergeServicePorts(in.Spec.Ports, []core.ServicePort{
+			{
+				Name:       api.PrometheusExporterPortName,
+				Protocol:   core.ProtocolTCP,
+				Port:       mysql.Spec.Monitor.Prometheus.Port,
+				TargetPort: intstr.FromString(api.PrometheusExporterPortName),
+			},
 		})
-	}
-	return core_util.MergeServicePorts(service.Spec.Ports, desiredPorts)
+		return in
+	})
+	return ok, err
 }

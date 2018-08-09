@@ -43,20 +43,32 @@ func (m Memcached) ServiceName() string {
 	return m.OffshootName()
 }
 
-func (m Memcached) ServiceMonitorName() string {
+type memcachedStatsService struct {
+	*Memcached
+}
+
+func (m memcachedStatsService) GetNamespace() string {
+	return m.Memcached.GetNamespace()
+}
+
+func (m memcachedStatsService) ServiceName() string {
+	return m.OffshootName() + "-stats"
+}
+
+func (m memcachedStatsService) ServiceMonitorName() string {
 	return fmt.Sprintf("kubedb-%s-%s", m.Namespace, m.Name)
 }
 
-func (m Memcached) Path() string {
+func (m memcachedStatsService) Path() string {
 	return fmt.Sprintf("/kubedb.com/v1alpha1/namespaces/%s/%s/%s/metrics", m.Namespace, m.ResourcePlural(), m.Name)
 }
 
-func (m Memcached) Scheme() string {
+func (m memcachedStatsService) Scheme() string {
 	return ""
 }
 
-func (m *Memcached) StatsAccessor() mona.StatsAccessor {
-	return m
+func (m Memcached) StatsService() mona.StatsAccessor {
+	return &memcachedStatsService{&m}
 }
 
 func (m *Memcached) GetMonitoringVendor() string {

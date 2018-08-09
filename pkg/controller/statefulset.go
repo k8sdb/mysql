@@ -67,8 +67,9 @@ func (c *Controller) checkStatefulSet(mysql *api.MySQL) error {
 		return err
 	}
 
-	if statefulSet.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL {
-		return fmt.Errorf(`Intended statefulSet "%v" already exists`, mysql.OffshootName())
+	if statefulSet.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL ||
+		statefulSet.Labels[api.LabelDatabaseName] != mysql.Name {
+		return fmt.Errorf(`intended statefulSet "%v" already exists`, mysql.OffshootName())
 	}
 
 	return nil

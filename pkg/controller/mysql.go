@@ -161,6 +161,21 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	// Ensure Schedule backup
 	c.ensureBackupScheduler(mysql)
 
+	// ensure StatsService for desired monitoring
+	if _, err := c.ensureStatsService(mysql); err != nil {
+		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
+			c.recorder.Eventf(
+				ref,
+				core.EventTypeWarning,
+				eventer.EventReasonFailedToCreate,
+				"Failed to manage monitoring system. Reason: %v",
+				err,
+			)
+		}
+		log.Errorln(err)
+		return nil
+	}
+
 	if err := c.manageMonitor(mysql); err != nil {
 		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
 			c.recorder.Eventf(
