@@ -114,7 +114,7 @@ func (c *Controller) createService(mysql *api.MySQL) (kutil.VerbType, error) {
 func (c *Controller) ensureStatsService(mysql *api.MySQL) (kutil.VerbType, error) {
 	// return if monitoring is not prometheus
 	if mysql.GetMonitoringVendor() != mona.VendorPrometheus {
-		log.Warningln("mysql.spec.monitor.agent is not coreos-operator or builtin.")
+		log.Warningln("spec.monitor.agent is not coreos-operator or builtin.")
 		return kutil.VerbUnchanged, nil
 	}
 
@@ -123,45 +123,17 @@ func (c *Controller) ensureStatsService(mysql *api.MySQL) (kutil.VerbType, error
 		return kutil.VerbUnchanged, err
 	}
 
-	// create statsService
-	vt, err := c.createStatsService(mysql)
-	if err != nil {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-			c.recorder.Eventf(
-				ref,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToCreate,
-				"Failed to create StatsService. Reason: %v",
-				err,
-			)
-		}
-		return kutil.VerbUnchanged, err
-	} else if vt != kutil.VerbUnchanged {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-			c.recorder.Eventf(
-				ref,
-				core.EventTypeNormal,
-				eventer.EventReasonSuccessful,
-				"Successfully %s StatsService",
-				vt,
-			)
-		}
-	}
-	return vt, nil
-}
-
-func (c *Controller) createStatsService(mysql *api.MySQL) (kutil.VerbType, error) {
-	meta := metav1.ObjectMeta{
-		Name:      mysql.StatsService().ServiceName(),
-		Namespace: mysql.Namespace,
-	}
-
 	ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql)
 	if rerr != nil {
 		return kutil.VerbUnchanged, rerr
 	}
 
-	_, ok, err := core_util.CreateOrPatchService(c.Client, meta, func(in *core.Service) *core.Service {
+	// create/patch stats Service
+	meta := metav1.ObjectMeta{
+		Name:      mysql.StatsService().ServiceName(),
+		Namespace: mysql.Namespace,
+	}
+	_, vt, err := core_util.CreateOrPatchService(c.Client, meta, func(in *core.Service) *core.Service {
 		in.ObjectMeta = core_util.EnsureOwnerReference(in.ObjectMeta, ref)
 		in.Labels = mysql.OffshootLabels()
 		in.Spec.Selector = mysql.OffshootSelectors()
@@ -175,5 +147,23 @@ func (c *Controller) createStatsService(mysql *api.MySQL) (kutil.VerbType, error
 		})
 		return in
 	})
-	return ok, err
+	if err != nil {
+		c.recorder.Eventf(
+			ref,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			"Failed to create stats service. Reason: %v",
+			err,
+		)
+		return kutil.VerbUnchanged, err
+	} else if vt != kutil.VerbUnchanged {
+		c.recorder.Eventf(
+			ref,
+			core.EventTypeNormal,
+			eventer.EventReasonSuccessful,
+			"Successfully %s stats service",
+			vt,
+		)
+	}
+	return vt, nil
 }
