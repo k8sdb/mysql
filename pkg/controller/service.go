@@ -128,7 +128,7 @@ func (c *Controller) ensureStatsService(mysql *api.MySQL) (kutil.VerbType, error
 		return kutil.VerbUnchanged, rerr
 	}
 
-	// create/patch stats Service
+	// reconcile stats Service
 	meta := metav1.ObjectMeta{
 		Name:      mysql.StatsService().ServiceName(),
 		Namespace: mysql.Namespace,
@@ -152,7 +152,7 @@ func (c *Controller) ensureStatsService(mysql *api.MySQL) (kutil.VerbType, error
 			ref,
 			core.EventTypeWarning,
 			eventer.EventReasonFailedToCreate,
-			"Failed to create stats service. Reason: %v",
+			"Failed to reconcile stats service. Reason: %v",
 			err,
 		)
 		return kutil.VerbUnchanged, err
