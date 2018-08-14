@@ -19,7 +19,7 @@ import (
 
 func (c *Controller) ensureService(mysql *api.MySQL) (kutil.VerbType, error) {
 	// Check if service name exists
-	if err := c.checkService(mysql,mysql.ServiceName()); err != nil {
+	if err := c.checkService(mysql, mysql.ServiceName()); err != nil {
 		return kutil.VerbUnchanged, err
 	}
 
