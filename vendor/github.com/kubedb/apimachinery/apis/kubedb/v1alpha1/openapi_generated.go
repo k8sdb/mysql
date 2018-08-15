@@ -574,11 +574,6 @@ func schema_apimachinery_apis_kubedb_v1alpha1_DormantDatabaseStatus(ref common.R
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Properties: map[string]spec.Schema{
-					"creationTime": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
-						},
-					},
 					"pausingTime": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
@@ -938,11 +933,6 @@ func schema_apimachinery_apis_kubedb_v1alpha1_ElasticsearchStatus(ref common.Ref
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Properties: map[string]spec.Schema{
-					"creationTime": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
-						},
-					},
 					"phase": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -965,8 +955,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_ElasticsearchStatus(ref common.Ref
 				},
 			},
 		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+		Dependencies: []string{},
 	}
 }
 
@@ -1369,11 +1358,6 @@ func schema_apimachinery_apis_kubedb_v1alpha1_EtcdStatus(ref common.ReferenceCal
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Properties: map[string]spec.Schema{
-					"creationTime": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
-						},
-					},
 					"phase": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -1396,8 +1380,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_EtcdStatus(ref common.ReferenceCal
 				},
 			},
 		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+		Dependencies: []string{},
 	}
 }
 
@@ -1824,11 +1807,6 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MemcachedStatus(ref common.Referen
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Properties: map[string]spec.Schema{
-					"creationTime": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
-						},
-					},
 					"phase": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -1851,8 +1829,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MemcachedStatus(ref common.Referen
 				},
 			},
 		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+		Dependencies: []string{},
 	}
 }
 
@@ -2243,11 +2220,6 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MongoDBStatus(ref common.Reference
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Properties: map[string]spec.Schema{
-					"creationTime": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
-						},
-					},
 					"phase": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -2270,8 +2242,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MongoDBStatus(ref common.Reference
 				},
 			},
 		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+		Dependencies: []string{},
 	}
 }
 
@@ -2694,11 +2665,6 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MySQLStatus(ref common.ReferenceCa
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Properties: map[string]spec.Schema{
-					"creationTime": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
-						},
-					},
 					"phase": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -2721,8 +2687,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MySQLStatus(ref common.ReferenceCa
 				},
 			},
 		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+		Dependencies: []string{},
 	}
 }
 
@@ -3289,11 +3254,6 @@ func schema_apimachinery_apis_kubedb_v1alpha1_PostgresStatus(ref common.Referenc
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Properties: map[string]spec.Schema{
-					"creationTime": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
-						},
-					},
 					"phase": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -3316,8 +3276,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_PostgresStatus(ref common.Referenc
 				},
 			},
 		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+		Dependencies: []string{},
 	}
 }
 
@@ -3841,11 +3800,6 @@ func schema_apimachinery_apis_kubedb_v1alpha1_RedisStatus(ref common.ReferenceCa
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Properties: map[string]spec.Schema{
-					"creationTime": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
-						},
-					},
 					"phase": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -3868,8 +3822,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_RedisStatus(ref common.ReferenceCa
 				},
 			},
 		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+		Dependencies: []string{},
 	}
 }
 

@@ -40,7 +40,7 @@ type SnapshotSpec struct {
 
 	// Compute Resources required by the pod used to take database snapshots
 	// Deprecated: Use podTemplate.spec.resources
-	Resources core.ResourceRequirements `json:"resources,omitempty"`
+	Resources *core.ResourceRequirements `json:"resources,omitempty"`
 }
 
 type SnapshotPhase string

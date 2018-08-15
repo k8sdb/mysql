@@ -90,9 +90,8 @@ type MemcachedSpec struct {
 }
 
 type MemcachedStatus struct {
-	CreationTime *metav1.Time  `json:"creationTime,omitempty"`
-	Phase        DatabasePhase `json:"phase,omitempty"`
-	Reason       string        `json:"reason,omitempty"`
+	Phase  DatabasePhase `json:"phase,omitempty"`
+	Reason string        `json:"reason,omitempty"`
 	// observedGeneration is the most recent generation observed for this resource. It corresponds to the
 	// resource's generation, which is updated on mutation by the API Server.
 	// +optional
