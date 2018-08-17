@@ -128,11 +128,14 @@ func (a *MySQLValidator) Admit(req *admission.AdmissionRequest) *admission.Admis
 // It is not method of Interface, because it is referenced from controller package too.
 func ValidateMySQL(client kubernetes.Interface, extClient kubedbv1alpha1.KubedbV1alpha1Interface, mysql *api.MySQL) error {
 	if mysql.Spec.Version == "" {
-		return fmt.Errorf(`object 'Version' is missing in '%v'`, mysql.Spec)
+		return errors.New(`'spec.version' is missing`)
 	}
-
 	if _, err := extClient.MySQLVersions().Get(string(mysql.Spec.Version), metav1.GetOptions{}); err != nil {
 		return err
+	}
+
+	if mysql.Spec.StorageType == "" {
+		return fmt.Errorf(`'spec.storageType' is missing`)
 	}
 
 	if mysql.Spec.Replicas == nil || *mysql.Spec.Replicas != 1 {
