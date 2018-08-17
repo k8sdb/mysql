@@ -128,9 +128,11 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			),
 		)
 		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
-			Name:      api.ResourceSingularMySQL,
-			Image:     mysqlVersion.Spec.DB.Image,
-			Resources: mysql.Spec.PodTemplate.Spec.Resources,
+			Name:            api.ResourceSingularMySQL,
+			Image:           mysqlVersion.Spec.DB.Image,
+			ImagePullPolicy: core.PullIfNotPresent,
+			Args:            mysql.Spec.PodTemplate.Spec.Args,
+			Resources:       mysql.Spec.PodTemplate.Spec.Resources,
 			Ports: []core.ContainerPort{
 				{
 					Name:          "db",

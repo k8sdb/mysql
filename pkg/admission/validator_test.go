@@ -242,9 +242,10 @@ func sampleMySQL() api.MySQL {
 			},
 		},
 		Spec: api.MySQLSpec{
-			Version:    "8.0",
-			Replicas:   types.Int32P(1),
-			DoNotPause: true,
+			Version:     "8.0",
+			Replicas:    types.Int32P(1),
+			DoNotPause:  true,
+			StorageType: api.StorageTypeDurable,
 			Storage: &core.PersistentVolumeClaimSpec{
 				StorageClassName: types.StringP("standard"),
 				Resources: core.ResourceRequirements{
