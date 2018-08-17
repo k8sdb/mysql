@@ -27,7 +27,7 @@ func (f *Invocation) MySQL() *api.MySQL {
 		},
 		Spec: api.MySQLSpec{
 			Version: jsonTypes.StrYo("5.7"),
-			Storage: core.PersistentVolumeClaimSpec{
+			Storage: &core.PersistentVolumeClaimSpec{
 				Resources: core.ResourceRequirements{
 					Requests: core.ResourceList{
 						core.ResourceStorage: resource.MustParse("1Gi"),

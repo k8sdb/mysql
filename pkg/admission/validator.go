@@ -143,7 +143,7 @@ func ValidateMySQL(client kubernetes.Interface, extClient kubedbv1alpha1.KubedbV
 		return err
 	}
 
-	if err := amv.ValidateStorage(client, mysql.Spec.Storage); err != nil {
+	if err := amv.ValidateStorage(client, mysql.Spec.StorageType, mysql.Spec.Storage); err != nil {
 		return err
 	}
 
@@ -248,6 +248,7 @@ func getPreconditionFunc() []mergepatch.PreconditionFunc {
 
 var preconditionSpecFields = []string{
 	"spec.version",
+	"spec.storageType",
 	"spec.storage",
 	"spec.databaseSecret",
 	"spec.nodeSelector",
