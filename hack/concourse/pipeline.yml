@@ -18,6 +18,7 @@ resources:
     owner: kubedb
     repo: mysql
     label: ok-to-test/cncf
+    org: kubedb
     access_token: ((access_token))
 
 - name: gke
