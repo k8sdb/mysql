@@ -15,6 +15,4 @@ source "hack/libbuild/common/lib.sh"
 detect_tag ''
 
 # delete docker image on exit
-curl -LO https://raw.githubusercontent.com/appscodelabs/libbuild/master/docker.py
-chmod +x docker.py
-./docker.py del_tag $DOCKER_REGISTRY my-operator $TAG
+./hack/libbuild/docker.py del_tag $DOCKER_REGISTRY my-operator $TAG
