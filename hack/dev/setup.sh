@@ -69,5 +69,7 @@ done
 cat $REPO_ROOT/hack/dev/validating-webhook.yaml | $ONESSL envsubst | kubectl apply -f -
 cat $REPO_ROOT/hack/dev/mutating-webhook.yaml | $ONESSL envsubst | kubectl apply -f -
 cat $REPO_ROOT/hack/dev/apiregistration.yaml | $ONESSL envsubst | kubectl apply -f -
+# Following line may give error if DBVersions CRD already not created not exists
+cat $REPO_ROOT/hack/dev/mysql-catalog.yaml | $ONESSL envsubst | kubectl apply -f - || true
 rm -f ./onessl
 popd
