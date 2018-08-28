@@ -150,7 +150,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 				Args: []string{
 					"-c",
 					fmt.Sprintf(`set -x
-					export DATA_SOURCE_NAME="${MYSQL_ROOT_USERNAME:-}:${MYSQL_ROOT_PASSWORD:-}@(127.0.0.1:3306)/;"
+					export DATA_SOURCE_NAME="${MYSQL_ROOT_USERNAME:-}:${MYSQL_ROOT_PASSWORD:-}@(127.0.0.1:3306)/"
 					/bin/mysqld_exporter  --web.listen-address=:%v --web.telemetry-path=%v`,
 						mysql.Spec.Monitor.Prometheus.Port, mysql.StatsService().Path()),
 				},
