@@ -1,7 +1,12 @@
 #!/bin/bash
 set -eou pipefail
 
-crds=(mysqls snapshots dormantdatabases)
+crds=(
+  dormantdatabases
+  mysqls
+  mysqlversions
+  snapshots
+)
 
 export KUBEDB_UNINSTALL=0
 export KUBEDB_PURGE=0
@@ -66,19 +71,26 @@ if [ "$KUBEDB_UNINSTALL" -eq 1 ]; then
       pairs=($(kubectl get ${crd}.kubedb.com --all-namespaces -o jsonpath='{range .items[*]}{.metadata.name} {.metadata.namespace} {end}' || true))
       total=${#pairs[*]}
 
-      for ((i = 0; i < $total; i += 2)); do
+      for ((i = 0; i < $total; i++)); do
         name=${pairs[$i]}
-        namespace=${pairs[$i + 1]}
+        namespace="default"
+        if [ ${#crd} -lt 8 ] || [ ${crd: -8} != "versions" ]; then
+          namespace=${pairs[$i + 1]}
+          i+=1
+        fi
         # remove finalizers
         kubectl patch ${crd}.kubedb.com $name -n $namespace -p '{"metadata":{"finalizers":[]}}' --type=merge
         # delete crd object
         echo "deleting ${crd} $namespace/$name"
-        kubectl delete ${crd}.kubedb.com $name -n $namespace || true
+        kubectl delete ${crd}.kubedb.com $name -n $namespace --ignore-not-found=true
       done
 
       # delete crd
-      kubectl delete crd ${crd}.kubedb.com || true
+      kubectl delete crd ${crd}.kubedb.com --ignore-not-found=true
     done
+
+    # delete user roles
+    kubectl delete clusterroles kubedb:core:admin kubedb:core:edit kubedb:core:view --ignore-not-found=true
   fi
 
   echo

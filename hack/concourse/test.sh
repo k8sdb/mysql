@@ -24,8 +24,10 @@ cp creds/.env $GOPATH/src/github.com/$ORG_NAME/$REPO_NAME/hack/config/.env
 pushd "$GOPATH"/src/github.com/$ORG_NAME/$REPO_NAME
 
 ./hack/builddeps.sh
-./hack/docker/$OPERATOR_NAME/make.sh build
-./hack/docker/$OPERATOR_NAME/make.sh push
+./hack/dev/update-docker.sh
+
+# uninstall any previous existing configuration
+./hack/deploy/setup.sh --uninstall --purge
 
 # run tests
 ./hack/deploy/setup.sh --docker-registry=kubedbci
