@@ -28,9 +28,9 @@ import:
 - package: github.com/kubedb/apimachinery
   version: master
 - package: github.com/onsi/ginkgo
-  version: v1.5.0
+  version: v1.6.0
 - package: github.com/onsi/gomega
-  version: v1.4.0
+  version: v1.4.1
 - package: github.com/pkg/errors
   version: v0.8.0
 - package: github.com/spf13/cobra
@@ -63,6 +63,10 @@ import:
   version: release-8.0
 - package: kmodules.xyz/objectstore-api
   repo: https://github.com/kmodules/objectstore-api.git
+  vcs: git
+  version: release-8.0
+- package: kmodules.xyz/offshoot-api
+  repo: https://github.com/kmodules/offshoot-api.git
   vcs: git
   version: release-8.0
 - package: github.com/openshift/api

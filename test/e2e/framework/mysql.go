@@ -26,7 +26,7 @@ func (f *Invocation) MySQL() *api.MySQL {
 			},
 		},
 		Spec: api.MySQLSpec{
-			Version: jsonTypes.StrYo("5.7"),
+			Version: jsonTypes.StrYo(DBVersion),
 			Storage: &core.PersistentVolumeClaimSpec{
 				Resources: core.ResourceRequirements{
 					Requests: core.ResourceList{
