@@ -124,6 +124,7 @@ jobs:
     params:
       state: pending
       commit: mysql
+      description: "concourse-ci"
   - task: test-e2e
     privileged: true
     file: mysql/hack/concourse/task.yml
@@ -137,11 +138,13 @@ jobs:
       params:
         state: success
         commit: mysql
+        description: "concourse-ci"
     on_failure:
       put: repo-status
       params:
         state: failure
         commit: mysql
+        description: "concourse-ci"
     ensure:
       put: concourse-locks
       params:
