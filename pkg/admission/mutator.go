@@ -105,6 +105,10 @@ func setDefaultValues(client kubernetes.Interface, extClient cs.Interface, mysql
 		mysql.Spec.StorageType = api.StorageTypeDurable
 	}
 
+	if mysql.Spec.TerminationPolicy == "" {
+		mysql.Spec.TerminationPolicy = api.TerminationPolicyPause
+	}
+
 	if mysql.Spec.Replicas == nil {
 		mysql.Spec.Replicas = types.Int32P(1)
 	}

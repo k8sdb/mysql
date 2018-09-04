@@ -138,6 +138,10 @@ func ValidateMySQL(client kubernetes.Interface, extClient kubedbv1alpha1.KubedbV
 		return fmt.Errorf(`'spec.storageType' is missing`)
 	}
 
+	if mysql.Spec.TerminationPolicy == "" {
+		return fmt.Errorf(`'spec.terminationPolicy' is missing`)
+	}
+
 	if mysql.Spec.Replicas == nil || *mysql.Spec.Replicas != 1 {
 		return fmt.Errorf(`spec.replicas "%v" invalid. Value must be one`, mysql.Spec.Replicas)
 	}

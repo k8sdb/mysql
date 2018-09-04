@@ -264,6 +264,7 @@ func sampleMySQL() api.MySQL {
 					},
 				},
 			},
+			TerminationPolicy: api.TerminationPolicyPause,
 		},
 	}
 }

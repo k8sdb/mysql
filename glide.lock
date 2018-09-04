@@ -1,5 +1,5 @@
-hash: 40f5a34297cb08de4bd9adcae623fa3c70f4ef9bf7e5aced7cd919d8ef1cec9a
-updated: 2018-09-04T01:26:34.649364799-07:00
+hash: e77b9953dd6ff31f68570781cec16229ba713c08a9622e1727d58075d5bc771a
+updated: 2018-09-04T13:34:16.878659462-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -215,7 +215,7 @@ imports:
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
 - name: github.com/evanphx/json-patch
-  version: afac545df32f2287a079e2dfb7ba2745a643747e
+  version: 94e38aa1586e8a6c8a75770bddf5ff84c48a106b
 - name: github.com/fatih/structs
   version: ebf56d35bba727c68ac77f56f2fcf90b181851aa
 - name: github.com/ghodss/yaml
@@ -324,7 +324,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: 47d981b293ceda5827bafd9fa1ba0425fd1f3d88
+  version: 1e34763325582740fdd60fb127a594093c3daa49
   subpackages:
   - apis/kubedb
   - apis/kubedb/v1alpha1
