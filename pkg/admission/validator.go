@@ -208,6 +208,7 @@ func matchWithDormantDatabase(extClient kubedbv1alpha1.KubedbV1alpha1Interface, 
 
 	// Check Origin Spec
 	drmnOriginSpec := dormantDb.Spec.Origin.Spec.MySQL
+	drmnOriginSpec.SetDefaults()
 	originalSpec := mysql.Spec
 
 	// Skip checking doNotPause
