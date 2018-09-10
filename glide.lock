@@ -1,5 +1,5 @@
-hash: ae76c1ccece751caaf2ae8c1f4d51465d2ef16d1b2e21cd78b248c22a353aba5
-updated: 2018-09-10T11:00:07.858580217-07:00
+hash: d92a08a9ecc3ef687c4731c37eebca96184407ea6d7be80968ccde8217cb44d6
+updated: 2018-09-10T16:12:03.899884457-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -216,7 +216,7 @@ imports:
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
 - name: github.com/evanphx/json-patch
-  version: 94e38aa1586e8a6c8a75770bddf5ff84c48a106b
+  version: afac545df32f2287a079e2dfb7ba2745a643747e
 - name: github.com/fatih/structs
   version: ebf56d35bba727c68ac77f56f2fcf90b181851aa
 - name: github.com/ghodss/yaml
@@ -264,7 +264,7 @@ imports:
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
 - name: github.com/google/go-cmp
-  version: 3af367b6b30c263d47e8895973edcca9a49cf029
+  version: 2006917edc5a27cd174dbc4baba31a137d6cb9ff
   subpackages:
   - cmp
   - cmp/internal/diff
@@ -440,13 +440,15 @@ imports:
 - name: github.com/PuerkitoBio/urlesc
   version: 5bd2802263f21d8788851d5305584c82a5c75d7e
 - name: github.com/russross/blackfriday
-  version: 4048872b16cc0fc2c5fd9eacf0ed2c2fedaa0c8c
+  version: 300106c228d52c8941d4b3de6054a6062a86dda3
 - name: github.com/satori/go.uuid
   version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/sergi/go-diff
   version: 97b2266dfe4bd4ea1b81a463322f04f8b724801e
   subpackages:
   - diffmatchpatch
+- name: github.com/shurcooL/sanitized_anchor_name
+  version: 10ef21a441db47d8b13ebcc5fd2310f636973c77
 - name: github.com/spf13/cobra
   version: ef82de70bb3f60c65fb8eebacbb2d122ef517385
   subpackages:
@@ -680,7 +682,7 @@ imports:
   - third_party/forked/golang/netutil
   - third_party/forked/golang/reflect
 - name: k8s.io/apiserver
-  version: 8573140a007810ee0d5a165647f171b0a77acfe5
+  version: 9970aee1898bc65beb8f3829b2ddf8e191777f78
   repo: https://github.com/pharmer/apiserver.git
   vcs: git
   subpackages:
@@ -943,7 +945,7 @@ imports:
   - util/retry
   - util/workqueue
 - name: k8s.io/kube-aggregator
-  version: bd6e1ad75c9758cad2069bb2f65880cf805ad8e9
+  version: 07bfdba27d43fe6b7eea965213b3aad555de2457
   subpackages:
   - pkg/apis/apiregistration
   - pkg/apis/apiregistration/v1
