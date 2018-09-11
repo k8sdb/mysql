@@ -17,21 +17,25 @@ type KubedbTable struct {
 	Name string
 }
 
-func (f *Framework) GetMySQLClient(meta metav1.ObjectMeta, dbName string) (*xorm.Engine, error) {
-	mysql, err := f.GetMySQL(meta)
-	if err != nil {
-		return nil, err
-	}
-	clientPodName := fmt.Sprintf("%v-0", mysql.Name)
+func (f *Framework) ForwardPort(meta metav1.ObjectMeta) (*portforward.Tunnel, error) {
+	clientPodName := fmt.Sprintf("%v-0", meta.Name)
 	tunnel := portforward.NewTunnel(
 		f.kubeClient.CoreV1().RESTClient(),
 		f.restConfig,
-		mysql.Namespace,
+		meta.Namespace,
 		clientPodName,
 		3306,
 	)
 
 	if err := tunnel.ForwardPort(); err != nil {
+		return nil, err
+	}
+	return tunnel, nil
+}
+
+func (f *Framework) GetMySQLClient(meta metav1.ObjectMeta, tunnel *portforward.Tunnel, dbName string) (*xorm.Engine, error) {
+	mysql, err := f.GetMySQL(meta)
+	if err != nil {
 		return nil, err
 	}
 	pass, err := f.GetMySQLRootPassword(mysql)
@@ -40,13 +44,46 @@ func (f *Framework) GetMySQLClient(meta metav1.ObjectMeta, dbName string) (*xorm
 	return xorm.NewEngine("mysql", cnnstr)
 }
 
-func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta, dbName string) GomegaAsyncAssertion {
+func (f *Framework) EventuallyDatabaseReady(meta metav1.ObjectMeta, dbName string) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
-			en, err := f.GetMySQLClient(meta, dbName)
+			tunnel, err := f.ForwardPort(meta)
 			if err != nil {
 				return false
 			}
+			defer tunnel.Close()
+
+			en, err := f.GetMySQLClient(meta, tunnel, dbName)
+			if err != nil {
+				return false
+			}
+			defer en.Close()
+
+			if err := en.Ping(); err != nil {
+				return false
+			}
+			return true
+		},
+		time.Minute*10,
+		time.Second*20,
+	)
+	return nil
+}
+
+func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta, dbName string) GomegaAsyncAssertion {
+	return Eventually(
+		func() bool {
+			tunnel, err := f.ForwardPort(meta)
+			if err != nil {
+				return false
+			}
+			defer tunnel.Close()
+
+			en, err := f.GetMySQLClient(meta, tunnel, dbName)
+			if err != nil {
+				return false
+			}
+			defer en.Close()
 
 			if err := en.Ping(); err != nil {
 				return false
@@ -59,7 +96,7 @@ func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta, dbName string)
 			}
 			return true
 		},
-		time.Minute*30,
+		time.Minute*10,
 		time.Second*20,
 	)
 	return nil
@@ -69,10 +106,17 @@ func (f *Framework) EventuallyInsertRow(meta metav1.ObjectMeta, dbName string, t
 	count := 0
 	return Eventually(
 		func() bool {
-			en, err := f.GetMySQLClient(meta, dbName)
+			tunnel, err := f.ForwardPort(meta)
 			if err != nil {
 				return false
 			}
+			defer tunnel.Close()
+
+			en, err := f.GetMySQLClient(meta, tunnel, dbName)
+			if err != nil {
+				return false
+			}
+			defer en.Close()
 
 			if err := en.Ping(); err != nil {
 				return false
@@ -88,7 +132,7 @@ func (f *Framework) EventuallyInsertRow(meta metav1.ObjectMeta, dbName string, t
 			}
 			return true
 		},
-		time.Minute*30,
+		time.Minute*10,
 		time.Second*10,
 	)
 	return nil
@@ -97,10 +141,17 @@ func (f *Framework) EventuallyInsertRow(meta metav1.ObjectMeta, dbName string, t
 func (f *Framework) EventuallyCountRow(meta metav1.ObjectMeta, dbName string) GomegaAsyncAssertion {
 	return Eventually(
 		func() int {
-			en, err := f.GetMySQLClient(meta, dbName)
+			tunnel, err := f.ForwardPort(meta)
 			if err != nil {
 				return -1
 			}
+			defer tunnel.Close()
+
+			en, err := f.GetMySQLClient(meta, tunnel, dbName)
+			if err != nil {
+				return -1
+			}
+			defer en.Close()
 
 			if err := en.Ping(); err != nil {
 				return -1
@@ -113,7 +164,7 @@ func (f *Framework) EventuallyCountRow(meta metav1.ObjectMeta, dbName string) Go
 			}
 			return int(total)
 		},
-		time.Minute*30,
+		time.Minute*10,
 		time.Second*20,
 	)
 }
@@ -123,10 +174,17 @@ func (f *Framework) EventuallyMySQLVariable(meta metav1.ObjectMeta, dbName strin
 	sql := fmt.Sprintf("SHOW VARIABLES LIKE '%s';", configPair[0])
 	return Eventually(
 		func() []map[string][]byte {
-			en, err := f.GetMySQLClient(meta, dbName)
+			tunnel, err := f.ForwardPort(meta)
 			if err != nil {
 				return nil
 			}
+			defer tunnel.Close()
+
+			en, err := f.GetMySQLClient(meta, tunnel, dbName)
+			if err != nil {
+				return nil
+			}
+			defer en.Close()
 
 			if err := en.Ping(); err != nil {
 				return nil
