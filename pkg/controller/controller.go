@@ -12,7 +12,7 @@ import (
 	kutildb "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	api_listers "github.com/kubedb/apimachinery/client/listers/kubedb/v1alpha1"
 	amc "github.com/kubedb/apimachinery/pkg/controller"
-	"github.com/kubedb/apimachinery/pkg/controller/dormantdatabase"
+	drmnc "github.com/kubedb/apimachinery/pkg/controller/dormantdatabase"
 	snapc "github.com/kubedb/apimachinery/pkg/controller/snapshot"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	core "k8s.io/api/core/v1"
@@ -20,6 +20,7 @@ import (
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/labels"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/cache"
@@ -52,6 +53,7 @@ func New(
 	client kubernetes.Interface,
 	apiExtKubeClient crd_cs.ApiextensionsV1beta1Interface,
 	extClient cs.KubedbV1alpha1Interface,
+	dc dynamic.Interface,
 	promClient pcm.MonitoringV1Interface,
 	cronController snapc.CronControllerInterface,
 	opt amc.Config,
@@ -61,6 +63,7 @@ func New(
 			Client:           client,
 			ExtClient:        extClient,
 			ApiExtKubeClient: apiExtKubeClient,
+			DynamicClient:    dc,
 		},
 		Config:         opt,
 		promClient:     promClient,
@@ -87,7 +90,7 @@ func (c *Controller) EnsureCustomResourceDefinitions() error {
 // Init initializes mysql, DormantDB amd Snapshot watcher
 func (c *Controller) Init() error {
 	c.initWatcher()
-	c.DrmnQueue = dormantdatabase.NewController(c.Controller, c, c.Config, nil).AddEventHandlerFunc(c.selector)
+	c.DrmnQueue = drmnc.NewController(c.Controller, c, c.Config, nil).AddEventHandlerFunc(c.selector)
 	c.SnapQueue, c.JobQueue = snapc.NewController(c.Controller, c, c.Config, nil).AddEventHandlerFunc(c.selector)
 
 	return nil

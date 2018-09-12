@@ -10,9 +10,11 @@ import (
 	"github.com/appscode/go/log"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/mysql/pkg/controller"
+	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	store "kmodules.xyz/objectstore-api/api/v1"
 )
 
@@ -148,4 +150,25 @@ func (f *Framework) GetMySQLRootPassword(mysql *api.MySQL) (string, error) {
 
 func (f *Framework) DeleteSecret(meta metav1.ObjectMeta) error {
 	return f.kubeClient.CoreV1().Secrets(meta.Namespace).Delete(meta.Name, deleteInBackground())
+}
+
+func (f *Framework) EventuallyDBSecretCount(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+	labelMap := map[string]string{
+		api.LabelDatabaseKind: api.ResourceKindMySQL,
+		api.LabelDatabaseName: meta.Name,
+	}
+	labelSelector := labels.SelectorFromSet(labelMap)
+	return Eventually(
+		func() int {
+			secretList, err := f.kubeClient.CoreV1().Secrets(meta.Namespace).List(
+				metav1.ListOptions{
+					LabelSelector: labelSelector.String(),
+				},
+			)
+			Expect(err).NotTo(HaveOccurred())
+			return len(secretList.Items)
+		},
+		time.Minute*5,
+		time.Second*5,
+	)
 }
