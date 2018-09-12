@@ -126,7 +126,7 @@ func (c *Controller) createDormantDatabase(mysql *api.MySQL) (*api.DormantDataba
 func (c *Controller) secretsUsedByPeers(meta metav1.ObjectMeta) (sets.String, error) {
 	secretUsed := sets.NewString()
 
-	dbList, err := c.myLister.List(labels.Everything())
+	dbList, err := c.myLister.MySQLs(meta.Namespace).List(labels.Everything())
 	if err != nil {
 		return nil, err
 	}
