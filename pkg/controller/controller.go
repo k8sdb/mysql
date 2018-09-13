@@ -22,10 +22,8 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	clientsetscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/record"
-	"k8s.io/client-go/tools/reference"
 )
 
 type Controller struct {
@@ -145,16 +143,14 @@ func (c *Controller) StartAndRunControllers(stopCh <-chan struct{}) {
 }
 
 func (c *Controller) pushFailureEvent(mysql *api.MySQL, reason string) {
-	if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-		c.recorder.Eventf(
-			ref,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToStart,
-			`Fail to be ready MySQL: "%v". Reason: %v`,
-			mysql.Name,
-			reason,
-		)
-	}
+	c.recorder.Eventf(
+		mysql,
+		core.EventTypeWarning,
+		eventer.EventReasonFailedToStart,
+		`Fail to be ready MySQL: "%v". Reason: %v`,
+		mysql.Name,
+		reason,
+	)
 
 	my, err := kutildb.UpdateMySQLStatus(c.ExtClient, mysql, func(in *api.MySQLStatus) *api.MySQLStatus {
 		in.Phase = api.DatabasePhaseFailed
@@ -162,15 +158,14 @@ func (c *Controller) pushFailureEvent(mysql *api.MySQL, reason string) {
 		in.ObservedGeneration = types.NewIntHash(mysql.Generation, meta_util.GenerationHash(mysql))
 		return in
 	}, api.EnableStatusSubresource)
+
 	if err != nil {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-			c.recorder.Eventf(
-				ref,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToUpdate,
-				err.Error(),
-			)
-		}
+		c.recorder.Eventf(
+			mysql,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			err.Error(),
+		)
 	}
 	mysql.Status = my.Status
 }

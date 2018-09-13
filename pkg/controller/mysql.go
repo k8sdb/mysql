@@ -24,13 +24,11 @@ import (
 
 func (c *Controller) create(mysql *api.MySQL) error {
 	if err := validator.ValidateMySQL(c.Client, c.ExtClient, mysql); err != nil {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-			c.recorder.Event(
-				ref,
-				core.EventTypeWarning,
-				eventer.EventReasonInvalid,
-				err.Error())
-		}
+		c.recorder.Event(
+			mysql,
+			core.EventTypeWarning,
+			eventer.EventReasonInvalid,
+			err.Error())
 		log.Errorln(err)
 		return nil
 	}
@@ -55,16 +53,14 @@ func (c *Controller) create(mysql *api.MySQL) error {
 
 	// Delete Matching DormantDatabase if exists any
 	if err := c.deleteMatchingDormantDatabase(mysql); err != nil {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-			c.recorder.Eventf(
-				ref,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToCreate,
-				`Failed to delete dormant Database : "%v". Reason: %v`,
-				mysql.Name,
-				err,
-			)
-		}
+		c.recorder.Eventf(
+			mysql,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			`Failed to delete dormant Database : "%v". Reason: %v`,
+			mysql.Name,
+			err,
+		)
 		return err
 	}
 
@@ -74,14 +70,12 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			return in
 		}, api.EnableStatusSubresource)
 		if err != nil {
-			if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-				c.recorder.Eventf(
-					ref,
-					core.EventTypeWarning,
-					eventer.EventReasonFailedToUpdate,
-					err.Error(),
-				)
-			}
+			c.recorder.Eventf(
+				mysql,
+				core.EventTypeWarning,
+				eventer.EventReasonFailedToUpdate,
+				err.Error(),
+			)
 			return err
 		}
 		mysql.Status = my.Status
@@ -90,16 +84,14 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	// create Governing Service
 	governingService := c.GoverningService
 	if err := c.CreateGoverningService(governingService, mysql.Namespace); err != nil {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-			c.recorder.Eventf(
-				ref,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToCreate,
-				`Failed to create Service: "%v". Reason: %v`,
-				governingService,
-				err,
-			)
-		}
+		c.recorder.Eventf(
+			mysql,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			`Failed to create Service: "%v". Reason: %v`,
+			governingService,
+			err,
+		)
 		return err
 	}
 
@@ -120,23 +112,19 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	}
 
 	if vt1 == kutil.VerbCreated && vt2 == kutil.VerbCreated {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-			c.recorder.Event(
-				ref,
-				core.EventTypeNormal,
-				eventer.EventReasonSuccessful,
-				"Successfully created MySQL",
-			)
-		}
+		c.recorder.Event(
+			mysql,
+			core.EventTypeNormal,
+			eventer.EventReasonSuccessful,
+			"Successfully created MySQL",
+		)
 	} else if vt1 == kutil.VerbPatched || vt2 == kutil.VerbPatched {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-			c.recorder.Event(
-				ref,
-				core.EventTypeNormal,
-				eventer.EventReasonSuccessful,
-				"Successfully patched MySQL",
-			)
-		}
+		c.recorder.Event(
+			mysql,
+			core.EventTypeNormal,
+			eventer.EventReasonSuccessful,
+			"Successfully patched MySQL",
+		)
 	}
 
 	if _, err := meta_util.GetString(mysql.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
@@ -167,14 +155,12 @@ func (c *Controller) create(mysql *api.MySQL) error {
 		return in
 	}, api.EnableStatusSubresource)
 	if err != nil {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-			c.recorder.Eventf(
-				ref,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToUpdate,
-				err.Error(),
-			)
-		}
+		c.recorder.Eventf(
+			mysql,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			err.Error(),
+		)
 		return err
 	}
 	mysql.Status = my.Status
@@ -184,29 +170,25 @@ func (c *Controller) create(mysql *api.MySQL) error {
 
 	// ensure StatsService for desired monitoring
 	if _, err := c.ensureStatsService(mysql); err != nil {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-			c.recorder.Eventf(
-				ref,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToCreate,
-				"Failed to manage monitoring system. Reason: %v",
-				err,
-			)
-		}
+		c.recorder.Eventf(
+			mysql,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			"Failed to manage monitoring system. Reason: %v",
+			err,
+		)
 		log.Errorln(err)
 		return nil
 	}
 
 	if err := c.manageMonitor(mysql); err != nil {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-			c.recorder.Eventf(
-				ref,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToCreate,
-				"Failed to manage monitoring system. Reason: %v",
-				err,
-			)
-		}
+		c.recorder.Eventf(
+			mysql,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToCreate,
+			"Failed to manage monitoring system. Reason: %v",
+			err,
+		)
 		log.Errorln(err)
 		return nil
 	}
@@ -220,15 +202,13 @@ func (c *Controller) ensureBackupScheduler(mysql *api.MySQL) {
 		err := c.cronController.ScheduleBackup(mysql, mysql.ObjectMeta, mysql.Spec.BackupSchedule)
 		if err != nil {
 			log.Errorln(err)
-			if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-				c.recorder.Eventf(
-					ref,
-					core.EventTypeWarning,
-					eventer.EventReasonFailedToSchedule,
-					"Failed to schedule snapshot. Reason: %v",
-					err,
-				)
-			}
+			c.recorder.Eventf(
+				mysql,
+				core.EventTypeWarning,
+				eventer.EventReasonFailedToSchedule,
+				"Failed to schedule snapshot. Reason: %v",
+				err,
+			)
 		}
 	} else {
 		c.cronController.StopBackupScheduling(mysql.ObjectMeta)
@@ -241,29 +221,25 @@ func (c *Controller) initialize(mysql *api.MySQL) error {
 		return in
 	}, api.EnableStatusSubresource)
 	if err != nil {
-		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-			c.recorder.Eventf(
-				ref,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToUpdate,
-				err.Error(),
-			)
-		}
+		c.recorder.Eventf(
+			mysql,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToUpdate,
+			err.Error(),
+		)
 		return err
 	}
 	mysql.Status = my.Status
 
 	snapshotSource := mysql.Spec.Init.SnapshotSource
 	// Event for notification that kubernetes objects are creating
-	if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
-		c.recorder.Eventf(
-			ref,
-			core.EventTypeNormal,
-			eventer.EventReasonInitializing,
-			`Initializing from Snapshot: "%v"`,
-			snapshotSource.Name,
-		)
-	}
+	c.recorder.Eventf(
+		mysql,
+		core.EventTypeNormal,
+		eventer.EventReasonInitializing,
+		`Initializing from Snapshot: "%v"`,
+		snapshotSource.Name,
+	)
 
 	namespace := snapshotSource.Namespace
 	if namespace == "" {
