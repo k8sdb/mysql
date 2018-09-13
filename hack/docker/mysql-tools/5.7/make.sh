@@ -8,15 +8,23 @@ source "$REPO_ROOT/hack/libbuild/common/lib.sh"
 source "$REPO_ROOT/hack/libbuild/common/kubedb_image.sh"
 
 DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
+
 IMG=mysql-tools
-TAG=5.7
+SUFFIX=v1
+
+DB_VERSION=5.7
+TAG="$DB_VERSION-$SUFFIX"
+
+ALT_VERSION=5
+ALT_TAG="$ALT_VERSION-$SUFFIX"
+
 OSM_VER=${OSM_VER:-0.7.1}
 
 DIST=$REPO_ROOT/dist
 mkdir -p $DIST
 
 build() {
-  pushd "$REPO_ROOT/hack/docker/mysql-tools/$TAG"
+  pushd "$REPO_ROOT/hack/docker/mysql-tools/$DB_VERSION"
 
   # Download osm
   wget https://cdn.appscode.com/binaries/osm/${OSM_VER}/osm-alpine-amd64
@@ -28,6 +36,15 @@ build() {
 
   rm osm
   popd
+}
+
+docker_push() {
+  local cmd="docker tag $DOCKER_REGISTRY/$IMG:$TAG $DOCKER_REGISTRY/$IMG:$ALT_TAG"
+  echo $cmd; $cmd
+  cmd="docker push $DOCKER_REGISTRY/$IMG:$ALT_TAG"
+  echo $cmd; $cmd
+
+  hub_canary
 }
 
 binary_repo $@

@@ -35,7 +35,7 @@ func init() {
 	scheme.AddToScheme(clientSetScheme.Scheme)
 
 	flag.StringVar(&storageClass, "storageclass", "standard", "Kubernetes StorageClass name")
-	flag.StringVar(&framework.DBVersion, "my-version", "8.0", "MySQL version")
+	flag.StringVar(&framework.DBVersion, "my-version", "8.0-v1", "MySQL version")
 	flag.StringVar(&framework.DockerRegistry, "docker-registry", "kubedbci", "User provided docker repository")
 	flag.StringVar(&framework.ExporterTag, "exporter-tag", "v0.11.0", "Tag of official exporter image")
 	flag.BoolVar(&framework.SelfHostedOperator, "selfhosted-operator", false, "Enable this for provided controller")

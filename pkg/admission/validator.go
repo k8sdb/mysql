@@ -264,7 +264,6 @@ func getPreconditionFunc() []mergepatch.PreconditionFunc {
 }
 
 var preconditionSpecFields = []string{
-	"spec.version",
 	"spec.storageType",
 	"spec.storage",
 	"spec.databaseSecret",
