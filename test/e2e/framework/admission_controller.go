@@ -75,7 +75,7 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 	}
 
 	sh := shell.NewSession()
-	args := []interface{}{"--minikube"}
+	args := []interface{}{"--minikube", fmt.Sprintf("--docker-registry=%v", DockerRegistry)}
 	SetupServer := filepath.Join("..", "..", "hack", "deploy", "setup.sh")
 
 	By("Creating API server and webhook stuffs")
@@ -99,7 +99,7 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 func (f *Framework) CleanAdmissionConfigs() {
 	// delete validating Webhook
 	if err := f.kubeClient.AdmissionregistrationV1beta1().ValidatingWebhookConfigurations().DeleteCollection(
-		deleteInBackground(), metav1.ListOptions{
+		deleteInForeground(), metav1.ListOptions{
 			LabelSelector: "app=kubedb",
 		}); err != nil && !kerr.IsNotFound(err) {
 		fmt.Printf("error in deletion of Validating Webhook. Error: %v", err)
@@ -107,7 +107,7 @@ func (f *Framework) CleanAdmissionConfigs() {
 
 	// delete mutating Webhook
 	if err := f.kubeClient.AdmissionregistrationV1beta1().MutatingWebhookConfigurations().DeleteCollection(
-		deleteInBackground(), metav1.ListOptions{
+		deleteInForeground(), metav1.ListOptions{
 			LabelSelector: "app=kubedb",
 		}); err != nil && !kerr.IsNotFound(err) {
 		fmt.Printf("error in deletion of Mutating Webhook. Error: %v", err)
@@ -115,7 +115,7 @@ func (f *Framework) CleanAdmissionConfigs() {
 
 	// Delete APIService
 	if err := f.kaClient.ApiregistrationV1beta1().APIServices().DeleteCollection(
-		deleteInBackground(), metav1.ListOptions{
+		deleteInForeground(), metav1.ListOptions{
 			LabelSelector: "app=kubedb",
 		}); err != nil && !kerr.IsNotFound(err) {
 		fmt.Printf("error in deletion of APIService. Error: %v", err)
@@ -129,7 +129,7 @@ func (f *Framework) CleanAdmissionConfigs() {
 
 	// Delete EndPoints
 	if err := f.kubeClient.CoreV1().Endpoints("kube-system").DeleteCollection(
-		deleteInBackground(), metav1.ListOptions{
+		deleteInForeground(), metav1.ListOptions{
 			LabelSelector: "app=kubedb",
 		}); err != nil && !kerr.IsNotFound(err) {
 		fmt.Printf("error in deletion of Endpoints. Error: %v", err)

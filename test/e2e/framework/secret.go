@@ -148,8 +148,12 @@ func (f *Framework) GetMySQLRootPassword(mysql *api.MySQL) (string, error) {
 	return password, nil
 }
 
+func (f *Framework) GetSecret(meta metav1.ObjectMeta) (*core.Secret, error) {
+	return f.kubeClient.CoreV1().Secrets(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+}
+
 func (f *Framework) DeleteSecret(meta metav1.ObjectMeta) error {
-	return f.kubeClient.CoreV1().Secrets(meta.Namespace).Delete(meta.Name, deleteInBackground())
+	return f.kubeClient.CoreV1().Secrets(meta.Namespace).Delete(meta.Name, deleteInForeground())
 }
 
 func (f *Framework) EventuallyDBSecretCount(meta metav1.ObjectMeta) GomegaAsyncAssertion {

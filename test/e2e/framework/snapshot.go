@@ -84,18 +84,20 @@ func (f *Framework) EventuallySnapshotDataFound(snapshot *api.Snapshot) GomegaAs
 	)
 }
 
-func (f *Framework) EventuallySnapshotCount(meta metav1.ObjectMeta) GomegaAsyncAssertion {
-
+func (f *Framework) GetSnapshotList(meta metav1.ObjectMeta) (*api.SnapshotList, error) {
 	labelMap := map[string]string{
 		api.LabelDatabaseKind: api.ResourceKindMySQL,
 		api.LabelDatabaseName: meta.Name,
 	}
+	return f.extClient.Snapshots(meta.Namespace).List(metav1.ListOptions{
+		LabelSelector: labels.SelectorFromSet(labelMap).String(),
+	})
+}
 
+func (f *Framework) EventuallySnapshotCount(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() int {
-			snapshotList, err := f.extClient.Snapshots(meta.Namespace).List(metav1.ListOptions{
-				LabelSelector: labels.SelectorFromSet(labelMap).String(),
-			})
+			snapshotList, err := f.GetSnapshotList(meta)
 			Expect(err).NotTo(HaveOccurred())
 
 			return len(snapshotList.Items)
@@ -182,7 +184,7 @@ func (f *Framework) CleanSnapshot() {
 			fmt.Printf("error Patching Snapshot. error: %v", err)
 		}
 	}
-	if err := f.extClient.Snapshots(f.namespace).DeleteCollection(deleteInBackground(), metav1.ListOptions{}); err != nil {
+	if err := f.extClient.Snapshots(f.namespace).DeleteCollection(deleteInForeground(), metav1.ListOptions{}); err != nil {
 		fmt.Printf("error in deletion of Snapshot. Error: %v", err)
 	}
 }

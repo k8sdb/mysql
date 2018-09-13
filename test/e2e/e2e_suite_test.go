@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/appscode/go/homedir"
-	"github.com/appscode/go/log"
 	logs "github.com/appscode/go/log/golog"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/monitoring/v1"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/scheme"
@@ -36,8 +35,8 @@ func init() {
 	scheme.AddToScheme(clientSetScheme.Scheme)
 
 	flag.StringVar(&storageClass, "storageclass", "standard", "Kubernetes StorageClass name")
-	flag.StringVar(&framework.DockerRegistry, "docker-registry", "kubedb", "User provided docker repository")
-	flag.StringVar(&framework.DBVersion, "my-version", "8.0", "MongoDB version")
+	flag.StringVar(&framework.DBVersion, "my-version", "8.0", "MySQL version")
+	flag.StringVar(&framework.DockerRegistry, "docker-registry", "kubedbci", "User provided docker repository")
 	flag.StringVar(&framework.ExporterTag, "exporter-tag", "v0.11.0", "Tag of official exporter image")
 	flag.BoolVar(&framework.SelfHostedOperator, "selfhosted-operator", false, "Enable this for provided controller")
 }
@@ -78,9 +77,7 @@ var _ = BeforeSuite(func() {
 	kubeClient := kubernetes.NewForConfigOrDie(config)
 	extClient := cs.NewForConfigOrDie(config)
 	kaClient := ka.NewForConfigOrDie(config)
-	if err != nil {
-		log.Fatalln(err)
-	}
+
 	// Framework
 	root = framework.New(config, kubeClient, extClient, kaClient, storageClass)
 

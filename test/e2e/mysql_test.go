@@ -108,6 +108,27 @@ var _ = Describe("MySQL", func() {
 		// Create and wait for running MySQL
 		createAndWaitForRunning()
 
+		By("Create Secret")
+		err := f.CreateSecret(secret)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Create Snapshot")
+		err = f.CreateSnapshot(snapshot)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Check for Succeed snapshot")
+		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+
+		if !skipDataChecking {
+			By("Check for snapshot data")
+			f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+		}
+	}
+
+	var shouldInsertDataAndTakeSnapshot = func() {
+		// Create and wait for running MySQL
+		createAndWaitForRunning()
+
 		By("Creating Table")
 		f.EventuallyCreateTable(mysql.ObjectMeta, dbName).Should(BeTrue())
 
@@ -168,12 +189,7 @@ var _ = Describe("MySQL", func() {
 		f.EventuallyWipedOut(mysql.ObjectMeta).Should(Succeed())
 	}
 
-	var deleteSnapshotAndSecret = func() {
-		By("Deleting secret: " + secret.Name)
-		err := f.DeleteSecret(secret.ObjectMeta)
-		if err != nil && !kerr.IsNotFound(err) {
-			Expect(err).NotTo(HaveOccurred())
-		}
+	var deleteSnapshot = func() {
 
 		By("Deleting Snapshot: " + snapshot.Name)
 		err = f.DeleteSnapshot(snapshot.ObjectMeta)
@@ -182,6 +198,14 @@ var _ = Describe("MySQL", func() {
 		}
 
 		if !skipDataChecking {
+			// do not try to check snapshot data if secret does not exist
+			_, err = f.GetSecret(secret.ObjectMeta)
+			if err != nil && kerr.IsNotFound(err) {
+				log.Infof("Skipping checking snapshot data. Reason: secret %s not found", secret.Name)
+				return
+			}
+			Expect(err).NotTo(HaveOccurred())
+
 			By("Checking Snapshot's data wiped out from backend")
 			f.EventuallySnapshotDataFound(snapshot).Should(BeFalse())
 		}
@@ -251,7 +275,14 @@ var _ = Describe("MySQL", func() {
 			})
 
 			AfterEach(func() {
-				deleteSnapshotAndSecret()
+				// delete snapshot and check for data wipeOut
+				deleteSnapshot()
+
+				By("Deleting secret: " + secret.Name)
+				err := f.DeleteSecret(secret.ObjectMeta)
+				if err != nil && !kerr.IsNotFound(err) {
+					Expect(err).NotTo(HaveOccurred())
+				}
 			})
 
 			Context("In Local", func() {
@@ -268,7 +299,7 @@ var _ = Describe("MySQL", func() {
 					}
 				})
 
-				It("should take Snapshot successfully", shouldTakeSnapshot)
+				It("should take Snapshot successfully", shouldInsertDataAndTakeSnapshot)
 			})
 
 			Context("In S3", func() {
@@ -280,7 +311,7 @@ var _ = Describe("MySQL", func() {
 					}
 				})
 
-				It("should take Snapshot successfully", shouldTakeSnapshot)
+				It("should take Snapshot successfully", shouldInsertDataAndTakeSnapshot)
 			})
 
 			Context("In GCS", func() {
@@ -293,7 +324,7 @@ var _ = Describe("MySQL", func() {
 				})
 
 				Context("Without Init", func() {
-					It("should take Snapshot successfully", shouldTakeSnapshot)
+					It("should take Snapshot successfully", shouldInsertDataAndTakeSnapshot)
 				})
 
 				Context("With Init", func() {
@@ -388,7 +419,7 @@ var _ = Describe("MySQL", func() {
 					}
 				})
 
-				It("should take Snapshot successfully", shouldTakeSnapshot)
+				It("should take Snapshot successfully", shouldInsertDataAndTakeSnapshot)
 			})
 
 			Context("In Swift", func() {
@@ -400,7 +431,7 @@ var _ = Describe("MySQL", func() {
 					}
 				})
 
-				It("should take Snapshot successfully", shouldTakeSnapshot)
+				It("should take Snapshot successfully", shouldInsertDataAndTakeSnapshot)
 			})
 		})
 
@@ -431,7 +462,14 @@ var _ = Describe("MySQL", func() {
 
 			Context("With Snapshot", func() {
 				AfterEach(func() {
-					deleteSnapshotAndSecret()
+					// delete snapshot and check for data wipeOut
+					deleteSnapshot()
+
+					By("Deleting secret: " + secret.Name)
+					err := f.DeleteSecret(secret.ObjectMeta)
+					if err != nil && !kerr.IsNotFound(err) {
+						Expect(err).NotTo(HaveOccurred())
+					}
 				})
 
 				BeforeEach(func() {
@@ -446,7 +484,7 @@ var _ = Describe("MySQL", func() {
 
 				It("should run successfully", func() {
 					// Create MySQL and take Snapshot
-					shouldTakeSnapshot()
+					shouldInsertDataAndTakeSnapshot()
 
 					oldMySQL, err := f.GetMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
@@ -622,7 +660,14 @@ var _ = Describe("MySQL", func() {
 			Context("With Snapshot Init", func() {
 
 				AfterEach(func() {
-					deleteSnapshotAndSecret()
+					// delete snapshot and check for data wipeOut
+					deleteSnapshot()
+
+					By("Deleting secret: " + secret.Name)
+					err := f.DeleteSecret(secret.ObjectMeta)
+					if err != nil && !kerr.IsNotFound(err) {
+						Expect(err).NotTo(HaveOccurred())
+					}
 				})
 
 				BeforeEach(func() {
@@ -637,7 +682,7 @@ var _ = Describe("MySQL", func() {
 
 				It("should resume successfully", func() {
 					// Create MySQL and take Snapshot
-					shouldTakeSnapshot()
+					shouldInsertDataAndTakeSnapshot()
 
 					oldMySQL, err := f.GetMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
@@ -763,7 +808,21 @@ var _ = Describe("MySQL", func() {
 			})
 
 			AfterEach(func() {
-				deleteSnapshotAndSecret()
+				snapshotList, err := f.GetSnapshotList(mysql.ObjectMeta)
+				Expect(err).NotTo(HaveOccurred())
+
+				for _, snap := range snapshotList.Items {
+					snapshot = &snap
+
+					// delete snapshot and check for data wipeOut
+					deleteSnapshot()
+				}
+
+				By("Deleting secret: " + secret.Name)
+				err = f.DeleteSecret(secret.ObjectMeta)
+				if err != nil && !kerr.IsNotFound(err) {
+					Expect(err).NotTo(HaveOccurred())
+				}
 			})
 
 			Context("With Startup", func() {
@@ -824,7 +883,7 @@ var _ = Describe("MySQL", func() {
 						}
 					})
 
-					It("should run schedular successfully", shouldStartupSchedular)
+					It("should run scheduler successfully", shouldStartupSchedular)
 				})
 			})
 
@@ -960,23 +1019,30 @@ var _ = Describe("MySQL", func() {
 
 			BeforeEach(func() {
 				skipDataChecking = false
-				secret = f.SecretForS3Backend()
+				secret = f.SecretForGCSBackend()
 				snapshot.Spec.StorageSecretName = secret.Name
-				snapshot.Spec.S3 = &store.S3Spec{
-					Bucket: os.Getenv(S3_BUCKET_NAME),
+				snapshot.Spec.GCS = &store.GCSSpec{
+					Bucket: os.Getenv(GCS_BUCKET_NAME),
 				}
 				snapshot.Spec.DatabaseName = mysql.Name
 			})
 
-			AfterEach(func() {
-				deleteSnapshotAndSecret()
-			})
-
 			Context("with TerminationPolicyPause (default)", func() {
+
+				AfterEach(func() {
+					// delete snapshot and check for data wipeOut
+					deleteSnapshot()
+
+					By("Deleting secret: " + secret.Name)
+					err := f.DeleteSecret(secret.ObjectMeta)
+					if err != nil && !kerr.IsNotFound(err) {
+						Expect(err).NotTo(HaveOccurred())
+					}
+				})
 
 				It("should create DormantDatabase and resume from it", func() {
 					// Run MySQL and take snapshot
-					shouldTakeSnapshot()
+					shouldInsertDataAndTakeSnapshot()
 
 					By("Deleting MySQL crd")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
@@ -986,8 +1052,14 @@ var _ = Describe("MySQL", func() {
 					By("Waiting for mysql to be paused")
 					f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
 
-					By("Checking snapshot hasn't been removed")
-					f.EventuallySnapshotCount(snapshot.ObjectMeta).Should(Equal(1))
+					By("Checking PVC hasn't been deleted")
+					f.EventuallyPVCCount(mysql.ObjectMeta).Should(Equal(1))
+
+					By("Checking Secret hasn't been deleted")
+					f.EventuallyDBSecretCount(mysql.ObjectMeta).Should(Equal(1))
+
+					By("Checking snapshot hasn't been deleted")
+					f.EventuallySnapshot(snapshot.ObjectMeta).Should(BeTrue())
 
 					if !skipDataChecking {
 						By("Check for snapshot data")
@@ -1016,9 +1088,20 @@ var _ = Describe("MySQL", func() {
 					mysql.Spec.TerminationPolicy = api.TerminationPolicyDelete
 				})
 
+				AfterEach(func() {
+					// delete snapshot and check for data wipeOut
+					deleteSnapshot()
+
+					By("Deleting secret: " + secret.Name)
+					err := f.DeleteSecret(secret.ObjectMeta)
+					if err != nil && !kerr.IsNotFound(err) {
+						Expect(err).NotTo(HaveOccurred())
+					}
+				})
+
 				It("should not create DormantDatabase and should not delete secret and snapshot", func() {
 					// Run MySQL and take snapshot
-					shouldTakeSnapshot()
+					shouldInsertDataAndTakeSnapshot()
 
 					By("Delete mysql")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
@@ -1033,11 +1116,11 @@ var _ = Describe("MySQL", func() {
 					By("Checking PVC has been deleted")
 					f.EventuallyPVCCount(mysql.ObjectMeta).Should(Equal(0))
 
-					By("Checking Secrets is not deleted")
-					f.EventuallyDBSecretCount(mysql.ObjectMeta).ShouldNot(Equal(0))
+					By("Checking Secret hasn't been deleted")
+					f.EventuallyDBSecretCount(mysql.ObjectMeta).Should(Equal(1))
 
-					By("Checking Snapshot hasn't been removed")
-					f.EventuallySnapshotCount(snapshot.ObjectMeta).Should(Equal(1))
+					By("Checking Snapshot hasn't been deleted")
+					f.EventuallySnapshot(snapshot.ObjectMeta).Should(BeTrue())
 
 					if !skipDataChecking {
 						By("Check for intact snapshot data")
@@ -1054,7 +1137,7 @@ var _ = Describe("MySQL", func() {
 
 				It("should not create DormantDatabase and should wipeOut all", func() {
 					// Run MySQL and take snapshot
-					shouldTakeSnapshot()
+					shouldInsertDataAndTakeSnapshot()
 
 					By("Delete mysql")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
@@ -1069,16 +1152,11 @@ var _ = Describe("MySQL", func() {
 					By("Checking PVCs has been deleted")
 					f.EventuallyPVCCount(mysql.ObjectMeta).Should(Equal(0))
 
+					By("Checking Snapshots has been deleted")
+					f.EventuallySnapshot(snapshot.ObjectMeta).Should(BeFalse())
+
 					By("Checking Secrets has been deleted")
 					f.EventuallyDBSecretCount(mysql.ObjectMeta).Should(Equal(0))
-
-					By("Checking Snapshots has been deleted")
-					f.EventuallySnapshotCount(snapshot.ObjectMeta).Should(Equal(0))
-
-					if !skipDataChecking {
-						By("Check for deleted snapshot data")
-						f.EventuallySnapshotDataFound(snapshot).Should(BeFalse())
-					}
 				})
 			})
 		})

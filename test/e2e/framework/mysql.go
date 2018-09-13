@@ -104,7 +104,7 @@ func (f *Framework) CleanMySQL() {
 			fmt.Printf("error Patching MySQL. error: %v", err)
 		}
 	}
-	if err := f.extClient.MySQLs(f.namespace).DeleteCollection(deleteInBackground(), metav1.ListOptions{}); err != nil {
+	if err := f.extClient.MySQLs(f.namespace).DeleteCollection(deleteInForeground(), metav1.ListOptions{}); err != nil {
 		fmt.Printf("error in deletion of MySQL. Error: %v", err)
 	}
 }

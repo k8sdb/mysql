@@ -26,7 +26,7 @@ func (f *Framework) PatchDormantDatabase(meta metav1.ObjectMeta, transform func(
 }
 
 func (f *Framework) DeleteDormantDatabase(meta metav1.ObjectMeta) error {
-	return f.extClient.DormantDatabases(meta.Namespace).Delete(meta.Name, deleteInBackground())
+	return f.extClient.DormantDatabases(meta.Namespace).Delete(meta.Name, deleteInForeground())
 }
 
 func (f *Framework) EventuallyDormantDatabase(meta metav1.ObjectMeta) GomegaAsyncAssertion {
@@ -132,7 +132,7 @@ func (f *Framework) CleanDormantDatabase() {
 			fmt.Printf("error Patching DormantDatabase. error: %v", err)
 		}
 	}
-	if err := f.extClient.DormantDatabases(f.namespace).DeleteCollection(deleteInBackground(), metav1.ListOptions{}); err != nil {
+	if err := f.extClient.DormantDatabases(f.namespace).DeleteCollection(deleteInForeground(), metav1.ListOptions{}); err != nil {
 		fmt.Printf("error in deletion of Dormant Database. Error: %v", err)
 	}
 }
