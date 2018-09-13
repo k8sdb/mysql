@@ -35,6 +35,24 @@ func (c *Controller) create(mysql *api.MySQL) error {
 		return nil
 	}
 
+	// Check if mysqlVersion is deprecated.
+	// If deprecated, add event and return nil (stop processing.)
+	mysqlVersion, err := c.ExtClient.MySQLVersions().Get(string(mysql.Spec.Version), metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+	if mysqlVersion.Spec.Deprecated {
+		c.recorder.Eventf(
+			mysql,
+			core.EventTypeWarning,
+			eventer.EventReasonInvalid,
+			"DBVersion %v is deprecated. Skipped processing.",
+			mysqlVersion.Name,
+		)
+		log.Errorf("DBVersion %v is deprecated. Skipped processing.", mysqlVersion.Name)
+		return nil
+	}
+
 	// Delete Matching DormantDatabase if exists any
 	if err := c.deleteMatchingDormantDatabase(mysql); err != nil {
 		if ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql); rerr == nil {
