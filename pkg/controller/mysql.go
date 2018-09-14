@@ -44,10 +44,10 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			mysql,
 			core.EventTypeWarning,
 			eventer.EventReasonInvalid,
-			"DBVersion %v is deprecated. Skipped processing.",
+			"MySQLVersion %v is deprecated. Skipped processing.",
 			mysqlVersion.Name,
 		)
-		log.Errorf("DBVersion %v is deprecated. Skipped processing.", mysqlVersion.Name)
+		log.Errorf("MySQL %s/%s is using deprecated version %v. Skipped processing.", mysql.Namespace, mysql.Name, mysqlVersion.Name)
 		return nil
 	}
 

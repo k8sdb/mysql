@@ -15,9 +15,6 @@ SUFFIX=v1
 DB_VERSION=5.7
 TAG="$DB_VERSION-$SUFFIX"
 
-ALT_VERSION=5
-ALT_TAG="$ALT_VERSION-$SUFFIX"
-
 OSM_VER=${OSM_VER:-0.7.1}
 
 DIST=$REPO_ROOT/dist
@@ -36,15 +33,6 @@ build() {
 
   rm osm
   popd
-}
-
-docker_push() {
-  local cmd="docker tag $DOCKER_REGISTRY/$IMG:$TAG $DOCKER_REGISTRY/$IMG:$ALT_TAG"
-  echo $cmd; $cmd
-  cmd="docker push $DOCKER_REGISTRY/$IMG:$ALT_TAG"
-  echo $cmd; $cmd
-
-  hub_canary
 }
 
 binary_repo $@

@@ -30,7 +30,8 @@ pushd "$GOPATH"/src/github.com/$ORG_NAME/$REPO_NAME
 ./hack/deploy/setup.sh --uninstall --purge
 
 # run tests
-./hack/deploy/setup.sh --docker-registry=kubedbci
+./hack/deploy/setup.sh --docker-registry=${DOCKER_REGISTRY}
+
 ./hack/make.py test e2e \
   --v=1 \
   --storageclass=${StorageClass:-standard} \
