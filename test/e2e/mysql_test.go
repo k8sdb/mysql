@@ -47,6 +47,7 @@ var _ = Describe("MySQL", func() {
 		mysqlVersion = f.MySQLVersion()
 		snapshot = f.Snapshot()
 		skipMessage = ""
+		skipDataChecking = true
 		dbName = "mysql"
 	})
 
@@ -291,15 +292,54 @@ var _ = Describe("MySQL", func() {
 					skipDataChecking = true
 					secret = f.SecretForLocalBackend()
 					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.Local = &store.LocalSpec{
-						MountPath: "/repo",
-						VolumeSource: core.VolumeSource{
-							EmptyDir: &core.EmptyDirVolumeSource{},
-						},
-					}
 				})
 
-				It("should take Snapshot successfully", shouldInsertDataAndTakeSnapshot)
+				Context("With EmptyDir as Snapshot's backend", func() {
+					BeforeEach(func() {
+						snapshot.Spec.Local = &store.LocalSpec{
+							MountPath: "/repo",
+							VolumeSource: core.VolumeSource{
+								EmptyDir: &core.EmptyDirVolumeSource{},
+							},
+						}
+					})
+
+					It("should take Snapshot successfully", shouldTakeSnapshot)
+				})
+
+				Context("With PVC as Snapshot's backend", func() {
+					var snapPVC *core.PersistentVolumeClaim
+
+					BeforeEach(func() {
+						snapPVC = f.GetPersistentVolumeClaim()
+						err := f.CreatePersistentVolumeClaim(snapPVC)
+						Expect(err).NotTo(HaveOccurred())
+
+						snapshot.Spec.Local = &store.LocalSpec{
+							MountPath: "/repo",
+							VolumeSource: core.VolumeSource{
+								PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+									ClaimName: snapPVC.Name,
+								},
+							},
+						}
+					})
+
+					AfterEach(func() {
+						f.DeletePersistentVolumeClaim(snapPVC.ObjectMeta)
+					})
+
+					It("should delete Snapshot successfully", func() {
+						shouldTakeSnapshot()
+
+						By("Deleting Snapshot")
+						err := f.DeleteSnapshot(snapshot.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Waiting for Snapshot to be deleted")
+						f.EventuallySnapshot(snapshot.ObjectMeta).Should(BeFalse())
+					})
+				})
 			})
 
 			Context("In S3", func() {
@@ -461,6 +501,7 @@ var _ = Describe("MySQL", func() {
 			})
 
 			Context("With Snapshot", func() {
+
 				AfterEach(func() {
 					// delete snapshot and check for data wipeOut
 					deleteSnapshot()
@@ -472,17 +513,7 @@ var _ = Describe("MySQL", func() {
 					}
 				})
 
-				BeforeEach(func() {
-					skipDataChecking = false
-					secret = f.SecretForGCSBackend()
-					snapshot.Spec.StorageSecretName = secret.Name
-					snapshot.Spec.GCS = &store.GCSSpec{
-						Bucket: os.Getenv(GCS_BUCKET_NAME),
-					}
-					snapshot.Spec.DatabaseName = mysql.Name
-				})
-
-				It("should run successfully", func() {
+				var shouldInitializeFromSnapshot = func() {
 					// Create MySQL and take Snapshot
 					shouldInsertDataAndTakeSnapshot()
 
@@ -512,6 +543,54 @@ var _ = Describe("MySQL", func() {
 
 					By("Checking Row Count of Table")
 					f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
+				}
+
+				Context("From Local backend", func() {
+					var snapPVC *core.PersistentVolumeClaim
+
+					BeforeEach(func() {
+
+						skipDataChecking = true
+						snapPVC = f.GetPersistentVolumeClaim()
+						err := f.CreatePersistentVolumeClaim(snapPVC)
+						Expect(err).NotTo(HaveOccurred())
+
+						secret = f.SecretForLocalBackend()
+						snapshot.Spec.DatabaseName = mysql.Name
+						snapshot.Spec.StorageSecretName = secret.Name
+
+						snapshot.Spec.Local = &store.LocalSpec{
+							MountPath: "/repo",
+							VolumeSource: core.VolumeSource{
+								PersistentVolumeClaim: &core.PersistentVolumeClaimVolumeSource{
+									ClaimName: snapPVC.Name,
+								},
+							},
+						}
+					})
+
+					AfterEach(func() {
+						f.DeletePersistentVolumeClaim(snapPVC.ObjectMeta)
+					})
+
+					It("should initialize successfully", shouldInitializeFromSnapshot)
+				})
+
+				Context("From GCS backend", func() {
+
+					BeforeEach(func() {
+
+						skipDataChecking = false
+						secret = f.SecretForGCSBackend()
+						snapshot.Spec.StorageSecretName = secret.Name
+						snapshot.Spec.DatabaseName = mysql.Name
+
+						snapshot.Spec.GCS = &store.GCSSpec{
+							Bucket: os.Getenv(GCS_BUCKET_NAME),
+						}
+					})
+
+					It("should initialize successfully", shouldInitializeFromSnapshot)
 				})
 			})
 		})
