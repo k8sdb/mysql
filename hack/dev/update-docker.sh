@@ -63,7 +63,9 @@ done
 
 dbversions=(
   5.7
+  5
   8.0
+  8
 )
 
 exporters=(
