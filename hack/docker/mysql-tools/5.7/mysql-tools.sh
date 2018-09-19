@@ -34,8 +34,13 @@ DB_DATA_DIR=${DB_DATA_DIR:-/var/data}
 OSM_CONFIG_FILE=/etc/osm/config
 ENABLE_ANALYTICS=${ENABLE_ANALYTICS:-true}
 
+# script.sh --k1=v1 --k2=v2 -- --s1=r1
+
 op=$1
 shift
+
+# --k1=v1 --k2=v2 -- --s1=r1
+# --k2=v2 -- --s1=r1 --s2=r2
 
 while test $# -gt 0; do
   case "$1" in
@@ -71,6 +76,10 @@ while test $# -gt 0; do
       export ENABLE_ANALYTICS=$(echo $1 | sed -e 's/^[^=]*=//g')
       shift
       ;;
+    --)
+      shift
+      break
+      ;;
     *)
       show_help
       exit 1
@@ -97,7 +106,8 @@ rm -rf *
 
 case "$op" in
   backup)
-    mysqldump -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" --all-databases >dumpfile.sql
+    cmd="mysqldump -u ${DB_USER} -p ${DB_PASSWORD} -h ${DB_HOST} --all-databases $@"
+    $cmd >dumpfile.sql
     osm push --enable-analytics="$ENABLE_ANALYTICS" --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_DATA_DIR" "$DB_FOLDER/$DB_SNAPSHOT"
     ;;
   restore)
