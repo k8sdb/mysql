@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eou pipefail
+set -xeou pipefail
 
 # ref: https://stackoverflow.com/a/7069755/244009
 # ref: https://jonalmeida.com/posts/2013/05/26/different-ways-to-implement-flags-in-bash/
@@ -34,13 +34,8 @@ DB_DATA_DIR=${DB_DATA_DIR:-/var/data}
 OSM_CONFIG_FILE=/etc/osm/config
 ENABLE_ANALYTICS=${ENABLE_ANALYTICS:-true}
 
-# script.sh --k1=v1 --k2=v2 -- --s1=r1
-
 op=$1
 shift
-
-# --k1=v1 --k2=v2 -- --s1=r1
-# --k2=v2 -- --s1=r1 --s2=r2
 
 while test $# -gt 0; do
   case "$1" in

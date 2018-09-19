@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eou pipefail
+set -xeou pipefail
 
 # ref: https://stackoverflow.com/a/7069755/244009
 # ref: https://jonalmeida.com/posts/2013/05/26/different-ways-to-implement-flags-in-bash/
@@ -71,6 +71,10 @@ while test $# -gt 0; do
       export ENABLE_ANALYTICS=$(echo $1 | sed -e 's/^[^=]*=//g')
       shift
       ;;
+    --)
+      shift
+      break
+      ;;
     *)
       show_help
       exit 1
@@ -97,7 +101,8 @@ rm -rf *
 
 case "$op" in
   backup)
-    mysqldump -u "$DB_USER" -p"$DB_PASSWORD" -h "$DB_HOST" --all-databases >dumpfile.sql
+    cmd="mysqldump -u ${DB_USER} -p ${DB_PASSWORD} -h ${DB_HOST} --all-databases $@"
+    $cmd >dumpfile.sql
     osm push --enable-analytics="$ENABLE_ANALYTICS" --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_DATA_DIR" "$DB_FOLDER/$DB_SNAPSHOT"
     ;;
   restore)

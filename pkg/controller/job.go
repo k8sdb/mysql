@@ -79,8 +79,7 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 								fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
 								"--",
-								snapshot.Spec.PodTemplate.Spec.Args...,
-							}, snapshot.Spec.PodTemplate.Spec.Args, "--enable-analytics"),
+							}, mysql.Spec.Init.SnapshotSource.Args, "--enable-analytics"),
 							Env: []core.EnvVar{
 								{
 									Name:  analytics.Key,
@@ -222,6 +221,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 								fmt.Sprintf(`--folder=%s`, folderName),
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 								fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
+								"--",
 							}, snapshot.Spec.PodTemplate.Spec.Args, "--enable-analytics"),
 							Env: []core.EnvVar{
 								{
