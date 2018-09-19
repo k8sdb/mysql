@@ -180,6 +180,11 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 		return nil, err
 	}
 
+	dumpDatabase := ""
+	if snapshot.Spec.PodTemplate.Spec.Args == nil {
+		dumpDatabase = "--all-databases"
+	}
+
 	// Get PersistentVolume object for Backup Util pod.
 	persistentVolume, err := c.getVolumeForSnapshot(mysql.Spec.StorageType, mysql.Spec.Storage, jobName, snapshot.Namespace)
 	if err != nil {
@@ -222,6 +227,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 								fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
 								"--",
+								dumpDatabase,
 							}, snapshot.Spec.PodTemplate.Spec.Args, "--enable-analytics"),
 							Env: []core.EnvVar{
 								{
