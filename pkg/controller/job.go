@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	core_util "github.com/appscode/kutil/core/v1"
-	meta_util "github.com/appscode/kutil/meta"
 	"github.com/appscode/kutil/tools/analytics"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	batch "k8s.io/api/batch/v1"
@@ -69,7 +68,7 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 						{
 							Name:  api.JobTypeRestore,
 							Image: mysqlVersion.Spec.Tools.Image,
-							Args: meta_util.UpsertArgumentList([]string{
+							Args: append([]string{
 								api.JobTypeRestore,
 								fmt.Sprintf(`--host=%s`, mysql.ServiceName()),
 								fmt.Sprintf(`--user=%s`, mysqlUser),
@@ -79,7 +78,7 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 								fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
 								"--",
-							}, mysql.Spec.Init.SnapshotSource.Args, "--enable-analytics"),
+							}, mysql.Spec.Init.SnapshotSource.Args...),
 							Env: []core.EnvVar{
 								{
 									Name:  analytics.Key,
@@ -180,9 +179,9 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 		return nil, err
 	}
 
-	dumpDatabase := ""
-	if snapshot.Spec.PodTemplate.Spec.Args == nil {
-		dumpDatabase = "--all-databases"
+	dumpArgs := snapshot.Spec.PodTemplate.Spec.Args
+	if len(dumpArgs) == 0 {
+		dumpArgs = []string{"--all-databases"}
 	}
 
 	// Get PersistentVolume object for Backup Util pod.
@@ -217,7 +216,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 						{
 							Name:  api.JobTypeBackup,
 							Image: mysqlVersion.Spec.Tools.Image,
-							Args: meta_util.UpsertArgumentList([]string{
+							Args: append([]string{
 								api.JobTypeBackup,
 								fmt.Sprintf(`--host=%s`, mysql.ServiceName()),
 								fmt.Sprintf(`--user=%s`, mysqlUser),
@@ -227,8 +226,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 								fmt.Sprintf(`--snapshot=%s`, snapshot.Name),
 								fmt.Sprintf(`--enable-analytics=%v`, c.EnableAnalytics),
 								"--",
-								dumpDatabase,
-							}, snapshot.Spec.PodTemplate.Spec.Args, "--enable-analytics"),
+							}, dumpArgs...),
 							Env: []core.EnvVar{
 								{
 									Name:  analytics.Key,

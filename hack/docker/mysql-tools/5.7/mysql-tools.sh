@@ -101,8 +101,7 @@ rm -rf *
 
 case "$op" in
   backup)
-    cmd="mysqldump -u ${DB_USER} --password=${DB_PASSWORD} -h ${DB_HOST} $@"
-    $cmd >dumpfile.sql
+    mysqldump -u ${DB_USER} --password=${DB_PASSWORD} -h ${DB_HOST} "$@" >dumpfile.sql
     osm push --enable-analytics="$ENABLE_ANALYTICS" --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_DATA_DIR" "$DB_FOLDER/$DB_SNAPSHOT"
     ;;
   restore)
