@@ -6,7 +6,8 @@ import (
 
 	"github.com/appscode/go/log"
 	meta_util "github.com/appscode/kutil/meta"
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	catalogapi "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
+	dbapi "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/mysql/test/e2e/framework"
 	"github.com/kubedb/mysql/test/e2e/matcher"
@@ -30,10 +31,10 @@ var _ = Describe("MySQL", func() {
 	var (
 		err              error
 		f                *framework.Invocation
-		mysql            *api.MySQL
-		garbageMySQL     *api.MySQLList
-		mysqlVersion     *api.MySQLVersion
-		snapshot         *api.Snapshot
+		mysql            *dbapi.MySQL
+		garbageMySQL     *dbapi.MySQLList
+		mysqlVersion     *catalogapi.MySQLVersion
+		snapshot         *dbapi.Snapshot
 		secret           *core.Secret
 		skipMessage      string
 		skipDataChecking bool
@@ -43,7 +44,7 @@ var _ = Describe("MySQL", func() {
 	BeforeEach(func() {
 		f = root.Invoke()
 		mysql = f.MySQL()
-		garbageMySQL = new(api.MySQLList)
+		garbageMySQL = new(dbapi.MySQLList)
 		mysqlVersion = f.MySQLVersion()
 		snapshot = f.Snapshot()
 		skipMessage = ""
@@ -118,7 +119,7 @@ var _ = Describe("MySQL", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Check for Succeed snapshot")
-		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(dbapi.SnapshotPhaseSucceeded))
 
 		if !skipDataChecking {
 			By("Check for snapshot data")
@@ -148,7 +149,7 @@ var _ = Describe("MySQL", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Check for Succeed snapshot")
-		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+		f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(dbapi.SnapshotPhaseSucceeded))
 
 		if !skipDataChecking {
 			By("Check for snapshot data")
@@ -176,7 +177,7 @@ var _ = Describe("MySQL", func() {
 		f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
 
 		By("WipeOut mysql")
-		_, err := f.PatchDormantDatabase(mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+		_, err := f.PatchDormantDatabase(mysql.ObjectMeta, func(in *dbapi.DormantDatabase) *dbapi.DormantDatabase {
 			in.Spec.WipeOut = true
 			return in
 		})
@@ -261,7 +262,7 @@ var _ = Describe("MySQL", func() {
 				f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
 				By("Update mysql to set DoNotPause=false")
-				f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+				f.PatchMySQL(mysql.ObjectMeta, func(in *dbapi.MySQL) *dbapi.MySQL {
 					in.Spec.DoNotPause = false
 					return in
 				})
@@ -369,8 +370,8 @@ var _ = Describe("MySQL", func() {
 
 				Context("With Init", func() {
 					BeforeEach(func() {
-						mysql.Spec.Init = &api.InitSpec{
-							ScriptSource: &api.ScriptSourceSpec{
+						mysql.Spec.Init = &dbapi.InitSpec{
+							ScriptSource: &dbapi.ScriptSourceSpec{
 								VolumeSource: core.VolumeSource{
 									GitRepo: &core.GitRepoVolumeSource{
 										Repository: "https://github.com/kubedb/mysql-init-scripts.git",
@@ -386,8 +387,8 @@ var _ = Describe("MySQL", func() {
 
 				Context("Delete One Snapshot keeping others", func() {
 					BeforeEach(func() {
-						mysql.Spec.Init = &api.InitSpec{
-							ScriptSource: &api.ScriptSourceSpec{
+						mysql.Spec.Init = &dbapi.InitSpec{
+							ScriptSource: &dbapi.ScriptSourceSpec{
 								VolumeSource: core.VolumeSource{
 									GitRepo: &core.GitRepoVolumeSource{
 										Repository: "https://github.com/kubedb/mysql-init-scripts.git",
@@ -417,7 +418,7 @@ var _ = Describe("MySQL", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						By("Check for Succeeded snapshot")
-						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(dbapi.SnapshotPhaseSucceeded))
 
 						if !skipDataChecking {
 							By("Check for snapshot data")
@@ -479,8 +480,8 @@ var _ = Describe("MySQL", func() {
 
 			Context("With Script", func() {
 				BeforeEach(func() {
-					mysql.Spec.Init = &api.InitSpec{
-						ScriptSource: &api.ScriptSourceSpec{
+					mysql.Spec.Init = &dbapi.InitSpec{
+						ScriptSource: &dbapi.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/kubedb/mysql-init-scripts.git",
@@ -523,8 +524,8 @@ var _ = Describe("MySQL", func() {
 
 					By("Create mysql from snapshot")
 					mysql = f.MySQL()
-					mysql.Spec.Init = &api.InitSpec{
-						SnapshotSource: &api.SnapshotSourceSpec{
+					mysql.Spec.Init = &dbapi.InitSpec{
+						SnapshotSource: &dbapi.SnapshotSourceSpec{
 							Namespace: snapshot.Namespace,
 							Name:      snapshot.Name,
 						},
@@ -686,8 +687,8 @@ var _ = Describe("MySQL", func() {
 
 			Context("with init Script", func() {
 				BeforeEach(func() {
-					mysql.Spec.Init = &api.InitSpec{
-						ScriptSource: &api.ScriptSourceSpec{
+					mysql.Spec.Init = &dbapi.InitSpec{
+						ScriptSource: &dbapi.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/kubedb/mysql-init-scripts.git",
@@ -731,7 +732,7 @@ var _ = Describe("MySQL", func() {
 					Expect(mysql.Spec.Init).NotTo(BeNil())
 
 					By("Checking MySQL crd does not have kubedb.com/initialized annotation")
-					_, err = meta_util.GetString(mysql.Annotations, api.AnnotationInitialized)
+					_, err = meta_util.GetString(mysql.Annotations, dbapi.AnnotationInitialized)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -770,8 +771,8 @@ var _ = Describe("MySQL", func() {
 
 					By("Create mysql from snapshot")
 					mysql = f.MySQL()
-					mysql.Spec.Init = &api.InitSpec{
-						SnapshotSource: &api.SnapshotSourceSpec{
+					mysql.Spec.Init = &dbapi.InitSpec{
+						SnapshotSource: &dbapi.SnapshotSourceSpec{
 							Namespace: snapshot.Namespace,
 							Name:      snapshot.Name,
 						},
@@ -817,7 +818,7 @@ var _ = Describe("MySQL", func() {
 					Expect(mysql.Spec.Init).ShouldNot(BeNil())
 
 					By("Checking MySQL has kubedb.com/initialized annotation")
-					_, err = meta_util.GetString(mysql.Annotations, api.AnnotationInitialized)
+					_, err = meta_util.GetString(mysql.Annotations, dbapi.AnnotationInitialized)
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})
@@ -825,8 +826,8 @@ var _ = Describe("MySQL", func() {
 			Context("Multiple times with init", func() {
 
 				BeforeEach(func() {
-					mysql.Spec.Init = &api.InitSpec{
-						ScriptSource: &api.ScriptSourceSpec{
+					mysql.Spec.Init = &dbapi.InitSpec{
+						ScriptSource: &dbapi.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								GitRepo: &core.GitRepoVolumeSource{
 									Repository: "https://github.com/kubedb/mysql-init-scripts.git",
@@ -873,7 +874,7 @@ var _ = Describe("MySQL", func() {
 						Expect(mysql.Spec.Init).ShouldNot(BeNil())
 
 						By("Checking MySQL crd does not have kubedb.com/initialized annotation")
-						_, err = meta_util.GetString(mysql.Annotations, api.AnnotationInitialized)
+						_, err = meta_util.GetString(mysql.Annotations, dbapi.AnnotationInitialized)
 						Expect(err).To(HaveOccurred())
 					}
 				})
@@ -917,7 +918,7 @@ var _ = Describe("MySQL", func() {
 					f.EventuallySnapshotCount(mysql.ObjectMeta).Should(matcher.MoreThan(3))
 
 					By("Remove Backup Scheduler from MySQL")
-					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *dbapi.MySQL) *dbapi.MySQL {
 						in.Spec.BackupSchedule = nil
 						return in
 					})
@@ -931,7 +932,7 @@ var _ = Describe("MySQL", func() {
 					BeforeEach(func() {
 						skipDataChecking = true
 						secret = f.SecretForLocalBackend()
-						mysql.Spec.BackupSchedule = &api.BackupScheduleSpec{
+						mysql.Spec.BackupSchedule = &dbapi.BackupScheduleSpec{
 							CronExpression: "@every 20s",
 							Backend: store.Backend{
 								StorageSecretName: secret.Name,
@@ -951,7 +952,7 @@ var _ = Describe("MySQL", func() {
 				Context("with GCS", func() {
 					BeforeEach(func() {
 						secret = f.SecretForGCSBackend()
-						mysql.Spec.BackupSchedule = &api.BackupScheduleSpec{
+						mysql.Spec.BackupSchedule = &dbapi.BackupScheduleSpec{
 							CronExpression: "@every 1m",
 							Backend: store.Backend{
 								StorageSecretName: secret.Name,
@@ -981,8 +982,8 @@ var _ = Describe("MySQL", func() {
 					f.CreateSecret(secret)
 
 					By("Update mysql")
-					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
-						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
+					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *dbapi.MySQL) *dbapi.MySQL {
+						in.Spec.BackupSchedule = &dbapi.BackupScheduleSpec{
 							CronExpression: "@every 20s",
 							Backend: store.Backend{
 								StorageSecretName: secret.Name,
@@ -1002,7 +1003,7 @@ var _ = Describe("MySQL", func() {
 					f.EventuallySnapshotCount(mysql.ObjectMeta).Should(matcher.MoreThan(3))
 
 					By("Remove Backup Scheduler from MySQL")
-					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *dbapi.MySQL) *dbapi.MySQL {
 						in.Spec.BackupSchedule = nil
 						return in
 					})
@@ -1028,8 +1029,8 @@ var _ = Describe("MySQL", func() {
 					f.CreateSecret(secret)
 
 					By("Update mysql")
-					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
-						in.Spec.BackupSchedule = &api.BackupScheduleSpec{
+					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *dbapi.MySQL) *dbapi.MySQL {
+						in.Spec.BackupSchedule = &dbapi.BackupScheduleSpec{
 							CronExpression: "@every 20s",
 							Backend: store.Backend{
 								StorageSecretName: secret.Name,
@@ -1082,7 +1083,7 @@ var _ = Describe("MySQL", func() {
 					f.EventuallySnapshotCount(mysql.ObjectMeta).Should(matcher.MoreThan(5))
 
 					By("Remove Backup Scheduler from MySQL")
-					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *dbapi.MySQL) *dbapi.MySQL {
 						in.Spec.BackupSchedule = nil
 						return in
 					})
@@ -1164,7 +1165,7 @@ var _ = Describe("MySQL", func() {
 			Context("with TerminationPolicyDelete", func() {
 
 				BeforeEach(func() {
-					mysql.Spec.TerminationPolicy = api.TerminationPolicyDelete
+					mysql.Spec.TerminationPolicy = dbapi.TerminationPolicyDelete
 				})
 
 				AfterEach(func() {
@@ -1211,7 +1212,7 @@ var _ = Describe("MySQL", func() {
 			Context("with TerminationPolicyWipeOut", func() {
 
 				BeforeEach(func() {
-					mysql.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+					mysql.Spec.TerminationPolicy = dbapi.TerminationPolicyWipeOut
 				})
 
 				It("should not create DormantDatabase and should wipeOut all", func() {
@@ -1298,7 +1299,7 @@ var _ = Describe("MySQL", func() {
 					testGeneralBehaviour()
 
 					By("Patching EnvVar")
-					_, _, err = util.PatchMySQL(f.ExtClient(), mysql, func(in *api.MySQL) *api.MySQL {
+					_, _, err = util.PatchMySQL(f.ExtClient().KubedbV1alpha1(), mysql, func(in *dbapi.MySQL) *dbapi.MySQL {
 						in.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 							{
 								Name:  MYSQL_DATABASE,
