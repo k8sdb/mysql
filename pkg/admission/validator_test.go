@@ -6,7 +6,8 @@ import (
 
 	"github.com/appscode/go/types"
 	"github.com/appscode/kutil/meta"
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
+	catalogapi "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
+	dbapi "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	extFake "github.com/kubedb/apimachinery/client/clientset/versioned/fake"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/scheme"
 	admission "k8s.io/api/admission/v1beta1"
@@ -28,9 +29,9 @@ func init() {
 }
 
 var requestKind = metaV1.GroupVersionKind{
-	Group:   api.SchemeGroupVersion.Group,
-	Version: api.SchemeGroupVersion.Version,
-	Kind:    api.ResourceKindMySQL,
+	Group:   dbapi.SchemeGroupVersion.Group,
+	Version: dbapi.SchemeGroupVersion.Version,
+	Kind:    dbapi.ResourceKindMySQL,
 }
 
 func TestMySQLValidator_Admit(t *testing.T) {
@@ -40,7 +41,7 @@ func TestMySQLValidator_Admit(t *testing.T) {
 
 			validator.initialized = true
 			validator.extClient = extFake.NewSimpleClientset(
-				&api.MySQLVersion{
+				&catalogapi.MySQLVersion{
 					ObjectMeta: metaV1.ObjectMeta{
 						Name: "8.0",
 					},
@@ -60,11 +61,11 @@ func TestMySQLValidator_Admit(t *testing.T) {
 				},
 			)
 
-			objJS, err := meta.MarshalToJson(&c.object, api.SchemeGroupVersion)
+			objJS, err := meta.MarshalToJson(&c.object, dbapi.SchemeGroupVersion)
 			if err != nil {
 				panic(err)
 			}
-			oldObjJS, err := meta.MarshalToJson(&c.oldObject, api.SchemeGroupVersion)
+			oldObjJS, err := meta.MarshalToJson(&c.oldObject, dbapi.SchemeGroupVersion)
 			if err != nil {
 				panic(err)
 			}
@@ -112,8 +113,8 @@ var cases = []struct {
 	objectName string
 	namespace  string
 	operation  admission.Operation
-	object     api.MySQL
-	oldObject  api.MySQL
+	object     dbapi.MySQL
+	oldObject  dbapi.MySQL
 	heatUp     bool
 	result     bool
 }{
@@ -123,7 +124,7 @@ var cases = []struct {
 		"default",
 		admission.Create,
 		sampleMySQL(),
-		api.MySQL{},
+		dbapi.MySQL{},
 		false,
 		true,
 	},
@@ -133,7 +134,7 @@ var cases = []struct {
 		"default",
 		admission.Create,
 		getAwkwardMySQL(),
-		api.MySQL{},
+		dbapi.MySQL{},
 		false,
 		false,
 	},
@@ -203,7 +204,7 @@ var cases = []struct {
 		"default",
 		admission.Delete,
 		sampleMySQL(),
-		api.MySQL{},
+		dbapi.MySQL{},
 		true,
 		false,
 	},
@@ -213,7 +214,7 @@ var cases = []struct {
 		"default",
 		admission.Delete,
 		editSpecDoNotPause(sampleMySQL()),
-		api.MySQL{},
+		dbapi.MySQL{},
 		true,
 		true,
 	},
@@ -222,31 +223,31 @@ var cases = []struct {
 		"foo",
 		"default",
 		admission.Delete,
-		api.MySQL{},
-		api.MySQL{},
+		dbapi.MySQL{},
+		dbapi.MySQL{},
 		false,
 		true,
 	},
 }
 
-func sampleMySQL() api.MySQL {
-	return api.MySQL{
+func sampleMySQL() dbapi.MySQL {
+	return dbapi.MySQL{
 		TypeMeta: metaV1.TypeMeta{
-			Kind:       api.ResourceKindMySQL,
-			APIVersion: api.SchemeGroupVersion.String(),
+			Kind:       dbapi.ResourceKindMySQL,
+			APIVersion: dbapi.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metaV1.ObjectMeta{
 			Name:      "foo",
 			Namespace: "default",
 			Labels: map[string]string{
-				api.LabelDatabaseKind: api.ResourceKindMySQL,
+				dbapi.LabelDatabaseKind: dbapi.ResourceKindMySQL,
 			},
 		},
-		Spec: api.MySQLSpec{
+		Spec: dbapi.MySQLSpec{
 			Version:     "8.0",
 			Replicas:    types.Int32P(1),
 			DoNotPause:  true,
-			StorageType: api.StorageTypeDurable,
+			StorageType: dbapi.StorageTypeDurable,
 			Storage: &core.PersistentVolumeClaimSpec{
 				StorageClassName: types.StringP("standard"),
 				Resources: core.ResourceRequirements{
@@ -255,8 +256,8 @@ func sampleMySQL() api.MySQL {
 					},
 				},
 			},
-			Init: &api.InitSpec{
-				ScriptSource: &api.ScriptSourceSpec{
+			Init: &dbapi.InitSpec{
+				ScriptSource: &dbapi.ScriptSourceSpec{
 					VolumeSource: core.VolumeSource{
 						GitRepo: &core.GitRepoVolumeSource{
 							Repository: "https://github.com/kubedb/mysql-init-scripts.git",
@@ -268,39 +269,39 @@ func sampleMySQL() api.MySQL {
 			UpdateStrategy: apps.StatefulSetUpdateStrategy{
 				Type: apps.RollingUpdateStatefulSetStrategyType,
 			},
-			TerminationPolicy: api.TerminationPolicyPause,
+			TerminationPolicy: dbapi.TerminationPolicyPause,
 		},
 	}
 }
 
-func getAwkwardMySQL() api.MySQL {
+func getAwkwardMySQL() dbapi.MySQL {
 	mysql := sampleMySQL()
 	mysql.Spec.Version = "3.0"
 	return mysql
 }
 
-func editExistingSecret(old api.MySQL) api.MySQL {
+func editExistingSecret(old dbapi.MySQL) dbapi.MySQL {
 	old.Spec.DatabaseSecret = &core.SecretVolumeSource{
 		SecretName: "foo-auth",
 	}
 	return old
 }
 
-func editNonExistingSecret(old api.MySQL) api.MySQL {
+func editNonExistingSecret(old dbapi.MySQL) dbapi.MySQL {
 	old.Spec.DatabaseSecret = &core.SecretVolumeSource{
 		SecretName: "foo-auth-fused",
 	}
 	return old
 }
 
-func editStatus(old api.MySQL) api.MySQL {
-	old.Status = api.MySQLStatus{
-		Phase: api.DatabasePhaseCreating,
+func editStatus(old dbapi.MySQL) dbapi.MySQL {
+	old.Status = dbapi.MySQLStatus{
+		Phase: dbapi.DatabasePhaseCreating,
 	}
 	return old
 }
 
-func editSpecMonitor(old api.MySQL) api.MySQL {
+func editSpecMonitor(old dbapi.MySQL) dbapi.MySQL {
 	old.Spec.Monitor = &mona.AgentSpec{
 		Agent: mona.AgentPrometheusBuiltin,
 		Prometheus: &mona.PrometheusSpec{
@@ -311,14 +312,14 @@ func editSpecMonitor(old api.MySQL) api.MySQL {
 }
 
 // should be failed because more fields required for COreOS Monitoring
-func editSpecInvalidMonitor(old api.MySQL) api.MySQL {
+func editSpecInvalidMonitor(old dbapi.MySQL) dbapi.MySQL {
 	old.Spec.Monitor = &mona.AgentSpec{
 		Agent: mona.AgentCoreOSPrometheus,
 	}
 	return old
 }
 
-func editSpecDoNotPause(old api.MySQL) api.MySQL {
+func editSpecDoNotPause(old dbapi.MySQL) dbapi.MySQL {
 	old.Spec.DoNotPause = false
 	return old
 }
