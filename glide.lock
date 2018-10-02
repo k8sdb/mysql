@@ -1,5 +1,5 @@
 hash: c6368412134064deaf2380db7eb362a4a70e3ab4eecbc713c8b8366c392ed5e9
-updated: 2018-10-01T16:51:40.117913911-07:00
+updated: 2018-10-02T03:25:53.345800474-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -35,7 +35,7 @@ imports:
   - admission/v1beta1
   - registry/admissionreview/v1beta1
 - name: github.com/appscode/kutil
-  version: e112e5a5d9bf8321f07a89cc35a4ec6ce4c0be72
+  version: fc1b7725f8c02211a70c7e5fbc66d9a7a5856aca
   subpackages:
   - apiextensions/v1beta1
   - apps/v1
@@ -216,7 +216,7 @@ imports:
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
 - name: github.com/evanphx/json-patch
-  version: afac545df32f2287a079e2dfb7ba2745a643747e
+  version: 94e38aa1586e8a6c8a75770bddf5ff84c48a106b
 - name: github.com/fatih/structs
   version: 4966fc68f5b7593aafa6cbbba2d65ec6e1416047
 - name: github.com/ghodss/yaml
@@ -987,7 +987,7 @@ imports:
   - api/v1
   - osm
 - name: kmodules.xyz/offshoot-api
-  version: 855b730d52eafc29c891f4e184cca154999c014b
+  version: a7f17189606511a09f9ed3f2e8a464960cd89939
   repo: https://github.com/kmodules/offshoot-api.git
   vcs: git
   subpackages:
