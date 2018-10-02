@@ -7,6 +7,7 @@ import (
 	hooks "github.com/appscode/kubernetes-webhook-util/admission/v1beta1"
 	admissionreview "github.com/appscode/kubernetes-webhook-util/registry/admissionreview/v1beta1"
 	"github.com/kubedb/apimachinery/pkg/admission/dormantdatabase"
+	"github.com/kubedb/apimachinery/pkg/admission/namespace"
 	"github.com/kubedb/apimachinery/pkg/admission/snapshot"
 	myAdmsn "github.com/kubedb/mysql/pkg/admission"
 	"github.com/kubedb/mysql/pkg/controller"
@@ -102,6 +103,7 @@ func (c completedConfig) New() (*MySQLServer, error) {
 		&myAdmsn.MySQLMutator{},
 		&snapshot.SnapshotValidator{},
 		&dormantdatabase.DormantDatabaseValidator{},
+		&namespace.NamespaceValidator{},
 	}
 	ctrl, err := c.OperatorConfig.New()
 	if err != nil {
