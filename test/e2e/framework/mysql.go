@@ -98,7 +98,7 @@ func (f *Framework) CleanMySQL() {
 	for _, e := range mysqlList.Items {
 		if _, _, err := util.PatchMySQL(f.extClient.KubedbV1alpha1(), &e, func(in *api.MySQL) *api.MySQL {
 			in.ObjectMeta.Finalizers = nil
-			in.Spec.DoNotPause = false
+			in.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
 			return in
 		}); err != nil {
 			fmt.Printf("error Patching MySQL. error: %v", err)

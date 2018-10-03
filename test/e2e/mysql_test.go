@@ -242,9 +242,9 @@ var _ = Describe("MySQL", func() {
 			})
 		})
 
-		Context("DoNotPause", func() {
+		Context("DoNotTerminate", func() {
 			BeforeEach(func() {
-				mysql.Spec.DoNotPause = true
+				mysql.Spec.TerminationPolicy = api.TerminationPolicyDoNotTerminate
 			})
 
 			It("should work successfully", func() {
@@ -261,9 +261,9 @@ var _ = Describe("MySQL", func() {
 				By("Check for Running mysql")
 				f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
-				By("Update mysql to set DoNotPause=false")
+				By("Update mysql to set spec.terminationPolicy = Pause")
 				f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
-					in.Spec.DoNotPause = false
+					in.Spec.TerminationPolicy = api.TerminationPolicyPause
 					return in
 				})
 			})

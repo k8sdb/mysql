@@ -188,17 +188,17 @@ var cases = []struct {
 		false,
 		false,
 	},
-	{"Edit Spec.DoNotPause",
+	{"Edit Spec.TerminationPolicy",
 		requestKind,
 		"foo",
 		"default",
 		admission.Update,
-		editSpecDoNotPause(sampleMySQL()),
+		pauseDatabase(sampleMySQL()),
 		sampleMySQL(),
 		false,
 		true,
 	},
-	{"Delete MySQL when Spec.DoNotPause=true",
+	{"Delete MySQL when Spec.TerminationPolicy=DoNotTerminate",
 		requestKind,
 		"foo",
 		"default",
@@ -208,12 +208,12 @@ var cases = []struct {
 		true,
 		false,
 	},
-	{"Delete MySQL when Spec.DoNotPause=false",
+	{"Delete MySQL when Spec.TerminationPolicy=Pause",
 		requestKind,
 		"foo",
 		"default",
 		admission.Delete,
-		editSpecDoNotPause(sampleMySQL()),
+		pauseDatabase(sampleMySQL()),
 		api.MySQL{},
 		true,
 		true,
@@ -246,7 +246,6 @@ func sampleMySQL() api.MySQL {
 		Spec: api.MySQLSpec{
 			Version:     "8.0",
 			Replicas:    types.Int32P(1),
-			DoNotPause:  true,
 			StorageType: api.StorageTypeDurable,
 			Storage: &core.PersistentVolumeClaimSpec{
 				StorageClassName: types.StringP("standard"),
@@ -269,7 +268,7 @@ func sampleMySQL() api.MySQL {
 			UpdateStrategy: apps.StatefulSetUpdateStrategy{
 				Type: apps.RollingUpdateStatefulSetStrategyType,
 			},
-			TerminationPolicy: api.TerminationPolicyPause,
+			TerminationPolicy: api.TerminationPolicyDoNotTerminate,
 		},
 	}
 }
@@ -319,7 +318,7 @@ func editSpecInvalidMonitor(old api.MySQL) api.MySQL {
 	return old
 }
 
-func editSpecDoNotPause(old api.MySQL) api.MySQL {
-	old.Spec.DoNotPause = false
+func pauseDatabase(old api.MySQL) api.MySQL {
+	old.Spec.TerminationPolicy = api.TerminationPolicyPause
 	return old
 }
