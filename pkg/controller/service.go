@@ -114,7 +114,7 @@ func (c *Controller) createService(mysql *api.MySQL) (kutil.VerbType, error) {
 func (c *Controller) ensureStatsService(mysql *api.MySQL) (kutil.VerbType, error) {
 	// return if monitoring is not prometheus
 	if mysql.GetMonitoringVendor() != mona.VendorPrometheus {
-		log.Warningln("spec.monitor.agent is not coreos-operator or builtin.")
+		log.Infoln("spec.monitor.agent is not coreos-operator or builtin.")
 		return kutil.VerbUnchanged, nil
 	}
 

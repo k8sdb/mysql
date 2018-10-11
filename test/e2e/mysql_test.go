@@ -163,6 +163,16 @@ var _ = Describe("MySQL", func() {
 			return
 		}
 
+		By("Check if mysql " + mysql.Name + " exists.")
+		my, err := f.GetMySQL(mysql.ObjectMeta)
+		if err != nil {
+			if kerr.IsNotFound(err) {
+				// MySQL was not created. Hence, rest of cleanup is not necessary.
+				return
+			}
+			Expect(err).NotTo(HaveOccurred())
+		}
+
 		By("Delete mysql")
 		err = f.DeleteMySQL(mysql.ObjectMeta)
 		if err != nil {
@@ -173,19 +183,21 @@ var _ = Describe("MySQL", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
-		By("Wait for mysql to be paused")
-		f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+		if my.Spec.TerminationPolicy == api.TerminationPolicyPause {
+			By("Wait for mysql to be paused")
+			f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
 
-		By("WipeOut mysql")
-		_, err := f.PatchDormantDatabase(mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
-			in.Spec.WipeOut = true
-			return in
-		})
-		Expect(err).NotTo(HaveOccurred())
+			By("WipeOut mysql")
+			_, err := f.PatchDormantDatabase(mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
+				in.Spec.WipeOut = true
+				return in
+			})
+			Expect(err).NotTo(HaveOccurred())
 
-		By("Delete Dormant Database")
-		err = f.DeleteDormantDatabase(mysql.ObjectMeta)
-		Expect(err).NotTo(HaveOccurred())
+			By("Delete Dormant Database")
+			err = f.DeleteDormantDatabase(mysql.ObjectMeta)
+			Expect(err).NotTo(HaveOccurred())
+		}
 
 		By("Wait for mysql resources to be wipedOut")
 		f.EventuallyWipedOut(mysql.ObjectMeta).Should(Succeed())
@@ -239,33 +251,6 @@ var _ = Describe("MySQL", func() {
 
 			Context("-", func() {
 				It("should run successfully", testGeneralBehaviour)
-			})
-		})
-
-		Context("DoNotTerminate", func() {
-			BeforeEach(func() {
-				mysql.Spec.TerminationPolicy = api.TerminationPolicyDoNotTerminate
-			})
-
-			It("should work successfully", func() {
-				// Create and wait for running MySQL
-				createAndWaitForRunning()
-
-				By("Delete mysql")
-				err = f.DeleteMySQL(mysql.ObjectMeta)
-				Expect(err).Should(HaveOccurred())
-
-				By("MySQL is not paused. Check for mysql")
-				f.EventuallyMySQL(mysql.ObjectMeta).Should(BeTrue())
-
-				By("Check for Running mysql")
-				f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
-
-				By("Update mysql to set spec.terminationPolicy = Pause")
-				f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
-					in.Spec.TerminationPolicy = api.TerminationPolicyPause
-					return in
-				})
 			})
 		})
 
@@ -1107,6 +1092,34 @@ var _ = Describe("MySQL", func() {
 				snapshot.Spec.DatabaseName = mysql.Name
 			})
 
+			Context("with TerminationDoNotTerminate", func() {
+				BeforeEach(func() {
+					skipDataChecking = true
+					mysql.Spec.TerminationPolicy = api.TerminationPolicyDoNotTerminate
+				})
+
+				It("should work successfully", func() {
+					// Create and wait for running MySQL
+					createAndWaitForRunning()
+
+					By("Delete mysql")
+					err = f.DeleteMySQL(mysql.ObjectMeta)
+					Expect(err).Should(HaveOccurred())
+
+					By("MySQL is not paused. Check for mysql")
+					f.EventuallyMySQL(mysql.ObjectMeta).Should(BeTrue())
+
+					By("Check for Running mysql")
+					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+
+					By("Update mysql to set spec.terminationPolicy = Pause")
+					f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+						in.Spec.TerminationPolicy = api.TerminationPolicyPause
+						return in
+					})
+				})
+			})
+
 			Context("with TerminationPolicyPause (default)", func() {
 
 				AfterEach(func() {
@@ -1356,6 +1369,57 @@ var _ = Describe("MySQL", func() {
 					for _, cfg := range customConfigs {
 						f.EventuallyMySQLVariable(mysql.ObjectMeta, dbName, cfg).Should(matcher.UseCustomConfig(cfg))
 					}
+				})
+			})
+		})
+
+		Context("StorageType ", func() {
+
+			var shouldRunSuccessfully = func() {
+
+				if skipMessage != "" {
+					Skip(skipMessage)
+				}
+
+				// Create MySQL
+				createAndWaitForRunning()
+
+				By("Creating Table")
+				f.EventuallyCreateTable(mysql.ObjectMeta, dbName).Should(BeTrue())
+
+				By("Inserting Rows")
+				f.EventuallyInsertRow(mysql.ObjectMeta, dbName, 3).Should(BeTrue())
+
+				By("Checking Row Count of Table")
+				f.EventuallyCountRow(mysql.ObjectMeta, dbName).Should(Equal(3))
+			}
+
+			Context("Ephemeral", func() {
+
+				Context("General Behaviour", func() {
+
+					BeforeEach(func() {
+						mysql.Spec.StorageType = api.StorageTypeEphemeral
+						mysql.Spec.Storage = nil
+						mysql.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+					})
+
+					It("should run successfully", shouldRunSuccessfully)
+				})
+
+				Context("with TerminationPolicyPause", func() {
+
+					BeforeEach(func() {
+						mysql.Spec.StorageType = api.StorageTypeEphemeral
+						mysql.Spec.TerminationPolicy = api.TerminationPolicyPause
+					})
+
+					It("should reject to create MySQL object", func() {
+
+						By("Creating MySQL: " + mysql.Name)
+						err := f.CreateMySQL(mysql)
+						Expect(err).To(HaveOccurred())
+					})
 				})
 			})
 		})

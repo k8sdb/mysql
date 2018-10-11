@@ -156,7 +156,7 @@ var cases = []struct {
 		editNonExistingSecret(sampleMySQL()),
 		sampleMySQL(),
 		false,
-		false,
+		true,
 	},
 	{"Edit Status",
 		requestKind,
