@@ -1407,10 +1407,11 @@ var _ = Describe("MySQL", func() {
 					It("should run successfully", shouldRunSuccessfully)
 				})
 
-				Context("with TerminationPolicyPause", func() {
+				Context("With TerminationPolicyPause", func() {
 
 					BeforeEach(func() {
 						mysql.Spec.StorageType = api.StorageTypeEphemeral
+						mysql.Spec.Storage = nil
 						mysql.Spec.TerminationPolicy = api.TerminationPolicyPause
 					})
 
