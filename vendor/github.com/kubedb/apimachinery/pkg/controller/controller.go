@@ -17,7 +17,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
-	_ "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1/util"
 )
 
 type Controller struct {
@@ -48,16 +47,18 @@ type Config struct {
 	SnapQueue    *queue.Worker
 	SnapInformer cache.SharedIndexInformer
 
-	EnableRBAC        bool
-	OperatorNamespace string
-	GoverningService  string
-	ResyncPeriod      time.Duration
-	MaxNumRequeues    int
-	NumThreads        int
-	LoggerOptions     golog.Options
-	EnableAnalytics   bool
-	AnalyticsClientID string
-	WatchNamespace    string
+	EnableRBAC              bool
+	OperatorNamespace       string
+	GoverningService        string
+	ResyncPeriod            time.Duration
+	MaxNumRequeues          int
+	NumThreads              int
+	LoggerOptions           golog.Options
+	EnableAnalytics         bool
+	AnalyticsClientID       string
+	WatchNamespace          string
+	EnableValidatingWebhook bool
+	EnableMutatingWebhook   bool
 }
 
 type Snapshotter interface {
