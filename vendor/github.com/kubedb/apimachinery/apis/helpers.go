@@ -1,6 +1,7 @@
 package apis
 
 import (
+	_ "github.com/appscode/kutil/admissionregistration/v1beta1"
 	"github.com/go-openapi/spec"
 	"k8s.io/kube-openapi/pkg/common"
 )

@@ -144,6 +144,9 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 	if mysql.Spec.StorageType == "" {
 		return fmt.Errorf(`'spec.storageType' is missing`)
 	}
+	if mysql.Spec.StorageType != api.StorageTypeDurable && mysql.Spec.StorageType != api.StorageTypeEphemeral {
+		return fmt.Errorf(`'spec.storageType' %s is invalid`, mysql.Spec.StorageType)
+	}
 	if err := amv.ValidateStorage(client, mysql.Spec.StorageType, mysql.Spec.Storage); err != nil {
 		return err
 	}
