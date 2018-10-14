@@ -1,5 +1,5 @@
-hash: 110406e24c95e758c16ef2c41896c9285971b80f0f51d3f9c941173fab3f19de
-updated: 2018-10-13T14:04:10.667122421-07:00
+hash: d9bfb27210066872b18dbfd1f97c61d94c2319c6ed9b46281fb5e0c9750ea373
+updated: 2018-10-14T08:26:44.364814603-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -36,7 +36,7 @@ imports:
   - admission/v1beta1
   - registry/admissionreview/v1beta1
 - name: github.com/appscode/kutil
-  version: 303298aa86dad096fed4c49ba117700e506eca2c
+  version: 25382b15981e816818803a66b6e1a1270efa89ab
   subpackages:
   - admissionregistration/v1beta1
   - apiextensions/v1beta1
@@ -243,7 +243,7 @@ imports:
 - name: github.com/ghodss/yaml
   version: 0ca9ea5df5451ffdf184b4428c902747c2c11cd7
 - name: github.com/go-ini/ini
-  version: 300e940a926eb277d3901b20bdfcc54928ad3642
+  version: 20b96f641a5ea98f2f8619ff4f3e061cff4833bd
 - name: github.com/go-openapi/jsonpointer
   version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
 - name: github.com/go-openapi/jsonreference
@@ -496,7 +496,7 @@ imports:
   subpackages:
   - doc
 - name: github.com/spf13/pflag
-  version: 583c0c0531f06d5278b7d917446061adc344b5cd
+  version: 298182f68c66c05229eb03ac171abe6e309ee79a
 - name: github.com/ugorji/go
   version: ded73eae5db7e7a0ef6f55aace87a2873c5d2b74
   subpackages:
@@ -625,7 +625,7 @@ imports:
 - name: gopkg.in/tomb.v1
   version: c131134a1947e9afd9cecfe11f4c6dff0732ae58
 - name: gopkg.in/yaml.v2
-  version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
+  version: 670d4cfef0544295bc27a114dbac37980d83185a
 - name: k8s.io/api
   version: fd83cbc87e7632ccd8bbab63d2b673d4e0c631cc
   subpackages:
@@ -1032,7 +1032,7 @@ imports:
   - client/clientset/versioned/scheme
   - client/clientset/versioned/typed/appcatalog/v1alpha1
 - name: kmodules.xyz/monitoring-agent-api
-  version: cb29a44ae61b9096ce83750c2b070d57daa8d953
+  version: 626ef00ec8baebe0d2b451cf8f06450c2588f237
   repo: https://github.com/kmodules/monitoring-agent-api.git
   vcs: git
   subpackages:
