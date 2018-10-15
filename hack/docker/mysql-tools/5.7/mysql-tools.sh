@@ -101,12 +101,22 @@ rm -rf *
 
 case "$op" in
   backup)
+    echo "Dumping database......"
     mysqldump -u ${DB_USER} --password=${DB_PASSWORD} -h ${DB_HOST} "$@" >dumpfile.sql
+
+    echo "Uploading dump file to the backend......."
     osm push --enable-analytics="$ENABLE_ANALYTICS" --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_DATA_DIR" "$DB_FOLDER/$DB_SNAPSHOT"
+
+    echo "Backup successful"
     ;;
   restore)
+    echo "Pulling backup file from the backend"
     osm pull --enable-analytics="$ENABLE_ANALYTICS" --osmconfig="$OSM_CONFIG_FILE" -c "$DB_BUCKET" "$DB_FOLDER/$DB_SNAPSHOT" "$DB_DATA_DIR"
-    mysql -u "$DB_USER" --password="${DB_PASSWORD}" -h "$DB_HOST" "$@" -f <dumpfile.sql
+
+    echo "Inserting data into database........"
+    mysql -u "$DB_USER" --password=${DB_PASSWORD} -h "$DB_HOST" "$@" -f <dumpfile.sql
+
+    echo "Recovery successful"
     ;;
   *)
     (10)

@@ -192,7 +192,7 @@ func (c completedConfig) New() (*MySQLServer, error) {
 					xray := reg_util.NewCreateValidatingWebhookXray(c.OperatorConfig.ClientConfig, apiserviceName, &api.MySQL{
 						TypeMeta: metav1.TypeMeta{
 							APIVersion: api.SchemeGroupVersion.String(),
-							Kind:       api.ResourceKindRedis,
+							Kind:       api.ResourceKindMySQL,
 						},
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "test-mysql-for-webhook-xray",
