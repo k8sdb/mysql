@@ -6,5 +6,5 @@ export CLI_BRANCH="master"
 
 # provide CUSTOM_OPERATOR_TAG for kubedb installer.
 # if APPSCODE_ENV=dev then git_tag will be used as CUSTOM_OPERATOR_TAG
-export CUSTOM_OPERATOR_TAG="0.1.0"
+export CUSTOM_OPERATOR_TAG="0.2.0-rc.0"
 export KUBEDB_CATALOG="mysql"
