@@ -1043,6 +1043,9 @@ var _ = Describe("MySQL", func() {
 					By("Count multiple Snapshot Object")
 					f.EventuallySnapshotCount(mysql.ObjectMeta).Should(matcher.MoreThan(3))
 
+					By("Verify multiple Succeeded Snapshot")
+					f.EventuallyMultipleSnapshotFinishedProcessing(mysql.ObjectMeta).Should(Succeed())
+
 					By("Delete mysql")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
