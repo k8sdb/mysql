@@ -91,6 +91,8 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 	serverOpt.RecommendedOptions.SecureServing.BindAddress = net.ParseIP("127.0.0.1")
 	serverOpt.RecommendedOptions.Authorization.RemoteKubeConfigFile = kubeconfigPath
 	serverOpt.RecommendedOptions.Authentication.RemoteKubeConfigFile = kubeconfigPath
+	serverOpt.ExtraOptions.EnableMutatingWebhook = true
+	serverOpt.ExtraOptions.EnableValidatingWebhook = true
 
 	err = serverOpt.Run(stopCh)
 	Expect(err).NotTo(HaveOccurred())

@@ -140,6 +140,8 @@ if [ "$MINIKUBE" -eq 1 ]; then
     my-operator run --v=4 \
       --secure-port=8443 \
       --enable-status-subresource=true \
+      --enable-mutating-webhook=true \
+      --enable-validating-webhook=true \
       --kubeconfig="$HOME/.kube/config" \
       --authorization-kubeconfig="$HOME/.kube/config" \
       --authentication-kubeconfig="$HOME/.kube/config"

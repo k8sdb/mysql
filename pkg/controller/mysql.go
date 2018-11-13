@@ -29,8 +29,11 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			mysql,
 			core.EventTypeWarning,
 			eventer.EventReasonInvalid,
-			err.Error())
+			err.Error(),
+		)
 		log.Errorln(err)
+		// stop Scheduler in case there is any.
+		c.cronController.StopBackupScheduling(mysql.ObjectMeta)
 		return nil
 	}
 
@@ -180,11 +183,22 @@ func (c *Controller) create(mysql *api.MySQL) error {
 }
 
 func (c *Controller) ensureBackupScheduler(mysql *api.MySQL) {
+	mysqlVersion, err := c.ExtClient.CatalogV1alpha1().MySQLVersions().Get(string(mysql.Spec.Version), metav1.GetOptions{})
+	if err != nil {
+		c.recorder.Eventf(
+			mysql,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToSchedule,
+			"Failed to get MySQLVersion for %v. Reason: %v",
+			mysql.Spec.Version, err,
+		)
+		log.Errorln(err)
+		return
+	}
 	// Setup Schedule backup
 	if mysql.Spec.BackupSchedule != nil {
-		err := c.cronController.ScheduleBackup(mysql, mysql.ObjectMeta, mysql.Spec.BackupSchedule)
+		err := c.cronController.ScheduleBackup(mysql, mysql.ObjectMeta, mysql.Spec.BackupSchedule, mysqlVersion)
 		if err != nil {
-			log.Errorln(err)
 			c.recorder.Eventf(
 				mysql,
 				core.EventTypeWarning,
@@ -192,6 +206,7 @@ func (c *Controller) ensureBackupScheduler(mysql *api.MySQL) {
 				"Failed to schedule snapshot. Reason: %v",
 				err,
 			)
+			log.Errorln(err)
 		}
 	} else {
 		c.cronController.StopBackupScheduling(mysql.ObjectMeta)

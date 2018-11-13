@@ -1,5 +1,5 @@
-hash: baae1521271ecd932cefa4648cfb362116a37c3b135206c68076b77b7c7510d8
-updated: 2018-11-01T10:50:47.085091768+06:00
+hash: a04a911b1db09cabe6109fadbdbad26ba08e018ddf146ee983876089f319b269
+updated: 2018-11-13T10:51:53.33127921+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -283,7 +283,7 @@ imports:
 - name: github.com/google/btree
   version: 7d79101e329e5a3adf994758c578dab82b90c017
 - name: github.com/google/go-cmp
-  version: 875f8df8b7965f1eac1098d36d677f807ac0b49e
+  version: 745b8ec8378318d64f3f04949d010ee8d2fc71e2
   subpackages:
   - cmp
   - cmp/internal/diff
@@ -346,7 +346,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: 7d6ac75d29a6f7c7adfec09c056043c913807c01
+  version: a307c803f3cea5ae7418ba24343b97057c13fb0c
   subpackages:
   - apis
   - apis/authorization
@@ -669,7 +669,7 @@ imports:
   - pkg/client/clientset/clientset/scheme
   - pkg/client/clientset/clientset/typed/apiextensions/v1beta1
 - name: k8s.io/apimachinery
-  version: 8d7a0c3d7f0948197f384288363dfe20cd1f00e4
+  version: 00edbc532482e56a75224c794deaa1366dd292cb
   repo: https://github.com/kmodules/apimachinery.git
   vcs: git
   subpackages:
@@ -1023,7 +1023,7 @@ imports:
   - pkg/util
   - pkg/util/proto
 - name: kmodules.xyz/custom-resources
-  version: 043b10a889fd23491f5f4ed5f91a3220f83dd96e
+  version: 6d398bd2d81b1d6a811ad026c1dd24f1564a1f3c
   repo: https://github.com/kmodules/custom-resources.git
   vcs: git
   subpackages:
