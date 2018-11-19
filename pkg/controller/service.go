@@ -27,14 +27,7 @@ func (c *Controller) ensureService(mysql *api.MySQL) (kutil.VerbType, error) {
 	// create database Service
 	vt, err := c.createService(mysql)
 	if err != nil {
-		c.recorder.Eventf(
-			mysql,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			"Failed to create Service. Reason: %v",
-			err,
-		)
-		return kutil.VerbUnchanged, err
+		return kutil.VerbUnchanged, fmt.Errorf("failed to createOrPatch Service. Reason: %v", err)
 	} else if vt != kutil.VerbUnchanged {
 		c.recorder.Eventf(
 			mysql,
@@ -148,14 +141,7 @@ func (c *Controller) ensureStatsService(mysql *api.MySQL) (kutil.VerbType, error
 		return in
 	})
 	if err != nil {
-		c.recorder.Eventf(
-			mysql,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			"Failed to reconcile stats service. Reason: %v",
-			err,
-		)
-		return kutil.VerbUnchanged, err
+		return kutil.VerbUnchanged, fmt.Errorf("failed to reconcile stats service. Reason: %v", err)
 	} else if vt != kutil.VerbUnchanged {
 		c.recorder.Eventf(
 			mysql,

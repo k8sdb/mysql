@@ -56,12 +56,6 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			return in
 		}, apis.EnableStatusSubresource)
 		if err != nil {
-			c.recorder.Eventf(
-				mysql,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToUpdate,
-				err.Error(),
-			)
 			return err
 		}
 		mysql.Status = my.Status
@@ -70,15 +64,7 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	// create Governing Service
 	governingService := c.GoverningService
 	if err := c.CreateGoverningService(governingService, mysql.Namespace); err != nil {
-		c.recorder.Eventf(
-			mysql,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			`Failed to create Service: "%v". Reason: %v`,
-			governingService,
-			err,
-		)
-		return err
+		return fmt.Errorf(`failed to create Service: "%v". Reason: %v`, governingService, err)
 	}
 
 	// ensure database Service
@@ -141,18 +127,21 @@ func (c *Controller) create(mysql *api.MySQL) error {
 		return in
 	}, apis.EnableStatusSubresource)
 	if err != nil {
-		c.recorder.Eventf(
-			mysql,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			err.Error(),
-		)
 		return err
 	}
 	mysql.Status = my.Status
 
 	// Ensure Schedule backup
-	c.ensureBackupScheduler(mysql)
+	if err := c.ensureBackupScheduler(mysql); err != nil {
+		c.recorder.Eventf(
+			mysql,
+			core.EventTypeWarning,
+			eventer.EventReasonFailedToSchedule,
+			err.Error(),
+		)
+		log.Errorln(err)
+		// Don't return error. Continue processing rest.
+	}
 
 	// ensure StatsService for desired monitoring
 	if _, err := c.ensureStatsService(mysql); err != nil {
@@ -182,35 +171,21 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	return nil
 }
 
-func (c *Controller) ensureBackupScheduler(mysql *api.MySQL) {
+func (c *Controller) ensureBackupScheduler(mysql *api.MySQL) error {
 	mysqlVersion, err := c.ExtClient.CatalogV1alpha1().MySQLVersions().Get(string(mysql.Spec.Version), metav1.GetOptions{})
 	if err != nil {
-		c.recorder.Eventf(
-			mysql,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToSchedule,
-			"Failed to get MySQLVersion for %v. Reason: %v",
-			mysql.Spec.Version, err,
-		)
-		log.Errorln(err)
-		return
+		return fmt.Errorf("failed to get MySQLVersion for %v. Reason: %v", mysql.Spec.Version, err)
 	}
 	// Setup Schedule backup
 	if mysql.Spec.BackupSchedule != nil {
-		err := c.cronController.ScheduleBackup(mysql, mysql.ObjectMeta, mysql.Spec.BackupSchedule, mysqlVersion)
+		err := c.cronController.ScheduleBackup(mysql, mysql.Spec.BackupSchedule, mysqlVersion)
 		if err != nil {
-			c.recorder.Eventf(
-				mysql,
-				core.EventTypeWarning,
-				eventer.EventReasonFailedToSchedule,
-				"Failed to schedule snapshot. Reason: %v",
-				err,
-			)
-			log.Errorln(err)
+			return fmt.Errorf("failed to schedule snapshot. Reason: %v", err)
 		}
 	} else {
 		c.cronController.StopBackupScheduling(mysql.ObjectMeta)
 	}
+	return nil
 }
 
 func (c *Controller) initialize(mysql *api.MySQL) error {
@@ -219,12 +194,6 @@ func (c *Controller) initialize(mysql *api.MySQL) error {
 		return in
 	}, apis.EnableStatusSubresource)
 	if err != nil {
-		c.recorder.Eventf(
-			mysql,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToUpdate,
-			err.Error(),
-		)
 		return err
 	}
 	mysql.Status = my.Status
