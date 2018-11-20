@@ -27,7 +27,7 @@ func (c *Controller) ensureService(mysql *api.MySQL) (kutil.VerbType, error) {
 	// create database Service
 	vt, err := c.createService(mysql)
 	if err != nil {
-		return kutil.VerbUnchanged, fmt.Errorf("failed to createOrPatch Service. Reason: %v", err)
+		return kutil.VerbUnchanged, err
 	} else if vt != kutil.VerbUnchanged {
 		c.recorder.Eventf(
 			mysql,
@@ -51,7 +51,7 @@ func (c *Controller) checkService(mysql *api.MySQL, serviceName string) error {
 
 	if service.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL ||
 		service.Labels[api.LabelDatabaseName] != mysql.Name {
-		return fmt.Errorf(`intended service "%v" already exists`, serviceName)
+		return fmt.Errorf(`intended service "%v/%v" already exists`, mysql.Namespace, serviceName)
 	}
 
 	return nil
@@ -141,7 +141,7 @@ func (c *Controller) ensureStatsService(mysql *api.MySQL) (kutil.VerbType, error
 		return in
 	})
 	if err != nil {
-		return kutil.VerbUnchanged, fmt.Errorf("failed to reconcile stats service. Reason: %v", err)
+		return kutil.VerbUnchanged, err
 	} else if vt != kutil.VerbUnchanged {
 		c.recorder.Eventf(
 			mysql,

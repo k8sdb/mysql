@@ -24,8 +24,7 @@ func (c *Controller) ensureDatabaseSecret(mysql *api.MySQL) error {
 	if mysql.Spec.DatabaseSecret == nil {
 		secretVolumeSource, err := c.createDatabaseSecret(mysql)
 		if err != nil {
-			return fmt.Errorf(`failed to create Database Secret. Reason: %v`, err.Error())
-
+			return err
 		}
 
 		ms, _, err := util.PatchMySQL(c.ExtClient.KubedbV1alpha1(), mysql, func(in *api.MySQL) *api.MySQL {
@@ -85,7 +84,7 @@ func (c *Controller) checkSecret(secretName string, mysql *api.MySQL) (*core.Sec
 
 	if secret.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL ||
 		secret.Labels[api.LabelDatabaseName] != mysql.Name {
-		return nil, fmt.Errorf(`intended secret "%v" already exists`, secretName)
+		return nil, fmt.Errorf(`intended secret "%v/%v" already exists`, mysql.Namespace, secretName)
 	}
 	return secret, nil
 }

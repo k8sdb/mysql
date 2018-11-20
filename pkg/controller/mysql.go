@@ -39,15 +39,7 @@ func (c *Controller) create(mysql *api.MySQL) error {
 
 	// Delete Matching DormantDatabase if exists any
 	if err := c.deleteMatchingDormantDatabase(mysql); err != nil {
-		c.recorder.Eventf(
-			mysql,
-			core.EventTypeWarning,
-			eventer.EventReasonFailedToCreate,
-			`Failed to delete dormant Database : "%v". Reason: %v`,
-			mysql.Name,
-			err,
-		)
-		return err
+		return fmt.Errorf(`failed to delete dormant Database : "%v/%v". Reason: %v`, mysql.Namespace, mysql.Name, err)
 	}
 
 	if mysql.Status.Phase == "" {
@@ -64,7 +56,7 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	// create Governing Service
 	governingService := c.GoverningService
 	if err := c.CreateGoverningService(governingService, mysql.Namespace); err != nil {
-		return fmt.Errorf(`failed to create Service: "%v". Reason: %v`, governingService, err)
+		return fmt.Errorf(`failed to create Service: "%v/%v". Reason: %v`, mysql.Namespace, governingService, err)
 	}
 
 	// ensure database Service
@@ -116,7 +108,7 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			return nil
 		}
 		if err := c.initialize(mysql); err != nil {
-			return fmt.Errorf("failed to complete initialization. Reason: %v", err)
+			return fmt.Errorf("failed to complete initialization for %v/%v. Reason: %v", mysql.Namespace, mysql.Name, err)
 		}
 		return nil
 	}
@@ -174,13 +166,13 @@ func (c *Controller) create(mysql *api.MySQL) error {
 func (c *Controller) ensureBackupScheduler(mysql *api.MySQL) error {
 	mysqlVersion, err := c.ExtClient.CatalogV1alpha1().MySQLVersions().Get(string(mysql.Spec.Version), metav1.GetOptions{})
 	if err != nil {
-		return fmt.Errorf("failed to get MySQLVersion for %v. Reason: %v", mysql.Spec.Version, err)
+		return fmt.Errorf("failed to get MySQLVersion %v for %v/%v. Reason: %v", mysql.Spec.Version, mysql.Namespace, mysql.Name, err)
 	}
 	// Setup Schedule backup
 	if mysql.Spec.BackupSchedule != nil {
 		err := c.cronController.ScheduleBackup(mysql, mysql.Spec.BackupSchedule, mysqlVersion)
 		if err != nil {
-			return fmt.Errorf("failed to schedule snapshot. Reason: %v", err)
+			return fmt.Errorf("failed to schedule snapshot for %v/%v. Reason: %v", mysql.Namespace, mysql.Name, err)
 		}
 	} else {
 		c.cronController.StopBackupScheduling(mysql.ObjectMeta)
@@ -265,7 +257,7 @@ func (c *Controller) terminate(mysql *api.MySQL) error {
 					return fmt.Errorf(`DormantDatabase "%v" of kind %v already exists`, mysql.Name, val)
 				}
 			} else {
-				return fmt.Errorf(`failed to create DormantDatabase: "%v". Reason: %v`, mysql.Name, err)
+				return fmt.Errorf(`failed to create DormantDatabase: "%v/%v". Reason: %v`, mysql.Namespace, mysql.Name, err)
 			}
 		}
 	} else {
