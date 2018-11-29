@@ -66,6 +66,13 @@ var _ = Describe("MySQL", func() {
 
 		By("Waiting for database to be ready")
 		f.EventuallyDatabaseReady(mysql.ObjectMeta, dbName).Should(BeTrue())
+
+		By("Wait for AppBinding to create")
+		f.EventuallyAppBinding(mysql.ObjectMeta).Should(BeTrue())
+
+		By("Check valid AppBinding Specs")
+		err := f.CheckAppBindingSpec(mysql.ObjectMeta)
+		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var testGeneralBehaviour = func() {
@@ -312,7 +319,8 @@ var _ = Describe("MySQL", func() {
 					})
 
 					AfterEach(func() {
-						f.DeletePersistentVolumeClaim(snapPVC.ObjectMeta)
+						err := f.DeletePersistentVolumeClaim(snapPVC.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
 					})
 
 					It("should delete Snapshot successfully", func() {
@@ -556,7 +564,8 @@ var _ = Describe("MySQL", func() {
 					})
 
 					AfterEach(func() {
-						f.DeletePersistentVolumeClaim(snapPVC.ObjectMeta)
+						err := f.DeletePersistentVolumeClaim(snapPVC.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
 					})
 
 					It("should initialize successfully", shouldInitializeFromSnapshot)
@@ -894,7 +903,8 @@ var _ = Describe("MySQL", func() {
 
 				var shouldStartupSchedular = func() {
 					By("Create Secret")
-					f.CreateSecret(secret)
+					err := f.CreateSecret(secret)
+					Expect(err).NotTo(HaveOccurred())
 
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
@@ -964,7 +974,8 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					By("Create Secret")
-					f.CreateSecret(secret)
+					err := f.CreateSecret(secret)
+					Expect(err).NotTo(HaveOccurred())
 
 					By("Update mysql")
 					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
@@ -1011,7 +1022,8 @@ var _ = Describe("MySQL", func() {
 					createAndWaitForRunning()
 
 					By("Create Secret")
-					f.CreateSecret(secret)
+					err := f.CreateSecret(secret)
+					Expect(err).NotTo(HaveOccurred())
 
 					By("Update mysql")
 					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
@@ -1116,10 +1128,11 @@ var _ = Describe("MySQL", func() {
 					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Update mysql to set spec.terminationPolicy = Pause")
-					f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+					_, err := f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
 						in.Spec.TerminationPolicy = api.TerminationPolicyPause
 						return in
 					})
+					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 
@@ -1345,7 +1358,9 @@ var _ = Describe("MySQL", func() {
 
 				AfterEach(func() {
 					By("Deleting configMap: " + userConfig.Name)
-					f.DeleteConfigMap(userConfig.ObjectMeta)
+					err := f.DeleteConfigMap(userConfig.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
 				})
 
 				It("should set configuration provided in configMap", func() {
