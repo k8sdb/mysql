@@ -346,6 +346,32 @@ var _ = Describe("MySQL", func() {
 				})
 
 				It("should take Snapshot successfully", shouldInsertDataAndTakeSnapshot)
+
+				Context("faulty snapshot", func() {
+					BeforeEach(func() {
+						skipDataChecking = true
+						snapshot.Spec.StorageSecretName = secret.Name
+						snapshot.Spec.S3 = &store.S3Spec{
+							Bucket: "nonexisting",
+						}
+					})
+
+					It("snapshot should fail", func() {
+						// Create and wait for running db
+						createAndWaitForRunning()
+
+						By("Create Secret")
+						err := f.CreateSecret(secret)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Create Snapshot")
+						err = f.CreateSnapshot(snapshot)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Check for failed snapshot")
+						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseFailed))
+					})
+				})
 			})
 
 			Context("In GCS", func() {
