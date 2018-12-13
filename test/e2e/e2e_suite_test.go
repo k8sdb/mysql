@@ -27,7 +27,7 @@ import (
 )
 
 var (
-	storageClass string
+	storageClass = "standard"
 
 	prometheusCrdGroup = pcm.Group
 	prometheusCrdKinds = pcm.DefaultCrdKinds
@@ -36,11 +36,11 @@ var (
 func init() {
 	scheme.AddToScheme(clientSetScheme.Scheme)
 
-	flag.StringVar(&storageClass, "storageclass", "standard", "Kubernetes StorageClass name")
-	flag.StringVar(&framework.DBVersion, "my-version", "8.0-v1", "MySQL version")
-	flag.StringVar(&framework.DockerRegistry, "docker-registry", "kubedbci", "User provided docker repository")
-	flag.StringVar(&framework.ExporterTag, "exporter-tag", "v0.11.0", "Tag of official exporter image")
-	flag.BoolVar(&framework.SelfHostedOperator, "selfhosted-operator", false, "Enable this for provided controller")
+	flag.StringVar(&storageClass, "storageclass", storageClass, "Kubernetes StorageClass name")
+	flag.StringVar(&framework.DBVersion, "my-version", framework.DBVersion, "MySQL version")
+	flag.StringVar(&framework.DockerRegistry, "docker-registry", framework.DockerRegistry, "User provided docker repository")
+	flag.StringVar(&framework.ExporterTag, "exporter-tag", framework.ExporterTag, "Tag of official exporter image")
+	flag.BoolVar(&framework.SelfHostedOperator, "selfhosted-operator", framework.SelfHostedOperator, "Enable this for provided controller")
 }
 
 const (

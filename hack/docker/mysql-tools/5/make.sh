@@ -4,7 +4,7 @@ set -xeou pipefail
 DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
 
 IMG=mysql-tools
-SUFFIX=v1
+SUFFIX=v2
 
 DB_VERSION=5
 PATCH=5.7

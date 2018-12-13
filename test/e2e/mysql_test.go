@@ -64,15 +64,15 @@ var _ = Describe("MySQL", func() {
 		By("Wait for Running mysql")
 		f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
-		By("Waiting for database to be ready")
-		f.EventuallyDatabaseReady(mysql.ObjectMeta, dbName).Should(BeTrue())
-
 		By("Wait for AppBinding to create")
 		f.EventuallyAppBinding(mysql.ObjectMeta).Should(BeTrue())
 
 		By("Check valid AppBinding Specs")
 		err := f.CheckAppBindingSpec(mysql.ObjectMeta)
 		Expect(err).NotTo(HaveOccurred())
+
+		By("Waiting for database to be ready")
+		f.EventuallyDatabaseReady(mysql.ObjectMeta, dbName).Should(BeTrue())
 	}
 
 	var testGeneralBehaviour = func() {
