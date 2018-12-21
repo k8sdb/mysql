@@ -1338,7 +1338,7 @@ var _ = Describe("MySQL", func() {
 
 			Context("Update EnvVar", func() {
 
-				It("should reject to update EvnVar", func() {
+				It("should not reject to update EvnVar", func() {
 					if skipMessage != "" {
 						Skip(skipMessage)
 					}
@@ -1363,7 +1363,7 @@ var _ = Describe("MySQL", func() {
 						}
 						return in
 					})
-					Expect(err).To(HaveOccurred())
+					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 		})
