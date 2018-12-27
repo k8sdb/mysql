@@ -372,6 +372,65 @@ var _ = Describe("MySQL", func() {
 						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseFailed))
 					})
 				})
+
+				Context("Delete One Snapshot keeping others", func() {
+					BeforeEach(func() {
+						mysql.Spec.Init = &api.InitSpec{
+							ScriptSource: &api.ScriptSourceSpec{
+								VolumeSource: core.VolumeSource{
+									GitRepo: &core.GitRepoVolumeSource{
+										Repository: "https://github.com/kubedb/mysql-init-scripts.git",
+										Directory:  ".",
+									},
+								},
+							},
+						}
+					})
+
+					It("Delete One Snapshot keeping others", func() {
+						// Create MySQL and take Snapshot
+						shouldTakeSnapshot()
+
+						oldSnapshot := snapshot.DeepCopy()
+
+						// New snapshot that has old snapshot's name in prefix
+						snapshot.Name += "-2"
+
+						By(fmt.Sprintf("Create Snapshot %v", snapshot.Name))
+						err = f.CreateSnapshot(snapshot)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Check for Succeeded snapshot")
+						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+
+						if !skipDataChecking {
+							By("Check for snapshot data")
+							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+						}
+
+						// delete old snapshot
+						By(fmt.Sprintf("Delete old Snapshot %v", oldSnapshot.Name))
+						err = f.DeleteSnapshot(oldSnapshot.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Waiting for old Snapshot to be deleted")
+						f.EventuallySnapshot(oldSnapshot.ObjectMeta).Should(BeFalse())
+						if !skipDataChecking {
+							By(fmt.Sprintf("Check data for old snapshot %v", oldSnapshot.Name))
+							f.EventuallySnapshotDataFound(oldSnapshot).Should(BeFalse())
+						}
+
+						// check remaining snapshot
+						By(fmt.Sprintf("Checking another Snapshot %v still exists", snapshot.Name))
+						_, err = f.GetSnapshot(snapshot.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						if !skipDataChecking {
+							By(fmt.Sprintf("Check data for remaining snapshot %v", snapshot.Name))
+							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+						}
+					})
+				})
 			})
 
 			Context("In GCS", func() {
@@ -422,17 +481,12 @@ var _ = Describe("MySQL", func() {
 						// Create MySQL and take Snapshot
 						shouldTakeSnapshot()
 
-						oldSnapshot := snapshot
+						oldSnapshot := snapshot.DeepCopy()
 
-						// create new Snapshot
-						snapshot := f.Snapshot()
-						snapshot.Spec.DatabaseName = mysql.Name
-						snapshot.Spec.StorageSecretName = secret.Name
-						snapshot.Spec.GCS = &store.GCSSpec{
-							Bucket: os.Getenv(GCS_BUCKET_NAME),
-						}
+						// New snapshot that has old snapshot's name in prefix
+						snapshot.Name += "-2"
 
-						By("Create Snapshot")
+						By(fmt.Sprintf("Create Snapshot %v", snapshot.Name))
 						err = f.CreateSnapshot(snapshot)
 						Expect(err).NotTo(HaveOccurred())
 
@@ -444,25 +498,25 @@ var _ = Describe("MySQL", func() {
 							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
 						}
 
-						By(fmt.Sprintf("Delete Snapshot %v", snapshot.Name))
-						err = f.DeleteSnapshot(snapshot.ObjectMeta)
+						// delete old snapshot
+						By(fmt.Sprintf("Delete old Snapshot %v", oldSnapshot.Name))
+						err = f.DeleteSnapshot(oldSnapshot.ObjectMeta)
 						Expect(err).NotTo(HaveOccurred())
 
-						By("Waiting for Snapshot to be deleted")
-						f.EventuallySnapshot(mysql.ObjectMeta).Should(BeFalse())
+						By("Waiting for old Snapshot to be deleted")
+						f.EventuallySnapshot(oldSnapshot.ObjectMeta).Should(BeFalse())
 						if !skipDataChecking {
-							By("Check for snapshot data")
-							f.EventuallySnapshotDataFound(snapshot).Should(BeFalse())
+							By(fmt.Sprintf("Check data for old snapshot %v", oldSnapshot.Name))
+							f.EventuallySnapshotDataFound(oldSnapshot).Should(BeFalse())
 						}
 
-						snapshot = oldSnapshot
-
-						By(fmt.Sprintf("Checking old Snapshot %v still exists", snapshot.Name))
+						// check remaining snapshot
+						By(fmt.Sprintf("Checking another Snapshot %v still exists", snapshot.Name))
 						_, err = f.GetSnapshot(snapshot.ObjectMeta)
 						Expect(err).NotTo(HaveOccurred())
 
 						if !skipDataChecking {
-							By(fmt.Sprintf("Check for old snapshot %v data", snapshot.Name))
+							By(fmt.Sprintf("Check data for remaining snapshot %v", snapshot.Name))
 							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
 						}
 					})
@@ -480,6 +534,65 @@ var _ = Describe("MySQL", func() {
 				})
 
 				It("should take Snapshot successfully", shouldInsertDataAndTakeSnapshot)
+
+				Context("Delete One Snapshot keeping others", func() {
+					BeforeEach(func() {
+						mysql.Spec.Init = &api.InitSpec{
+							ScriptSource: &api.ScriptSourceSpec{
+								VolumeSource: core.VolumeSource{
+									GitRepo: &core.GitRepoVolumeSource{
+										Repository: "https://github.com/kubedb/mysql-init-scripts.git",
+										Directory:  ".",
+									},
+								},
+							},
+						}
+					})
+
+					It("Delete One Snapshot keeping others", func() {
+						// Create MySQL and take Snapshot
+						shouldTakeSnapshot()
+
+						oldSnapshot := snapshot.DeepCopy()
+
+						// New snapshot that has old snapshot's name in prefix
+						snapshot.Name += "-2"
+
+						By(fmt.Sprintf("Create Snapshot %v", snapshot.Name))
+						err = f.CreateSnapshot(snapshot)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Check for Succeeded snapshot")
+						f.EventuallySnapshotPhase(snapshot.ObjectMeta).Should(Equal(api.SnapshotPhaseSucceeded))
+
+						if !skipDataChecking {
+							By("Check for snapshot data")
+							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+						}
+
+						// delete old snapshot
+						By(fmt.Sprintf("Delete old Snapshot %v", oldSnapshot.Name))
+						err = f.DeleteSnapshot(oldSnapshot.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Waiting for old Snapshot to be deleted")
+						f.EventuallySnapshot(oldSnapshot.ObjectMeta).Should(BeFalse())
+						if !skipDataChecking {
+							By(fmt.Sprintf("Check data for old snapshot %v", oldSnapshot.Name))
+							f.EventuallySnapshotDataFound(oldSnapshot).Should(BeFalse())
+						}
+
+						// check remaining snapshot
+						By(fmt.Sprintf("Checking another Snapshot %v still exists", snapshot.Name))
+						_, err = f.GetSnapshot(snapshot.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+
+						if !skipDataChecking {
+							By(fmt.Sprintf("Check data for remaining snapshot %v", snapshot.Name))
+							f.EventuallySnapshotDataFound(snapshot).Should(BeTrue())
+						}
+					})
+				})
 			})
 
 			Context("In Swift", func() {
