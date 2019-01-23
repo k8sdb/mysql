@@ -13,9 +13,9 @@ import (
 var (
 	DockerRegistry     = "kubedbci"
 	SelfHostedOperator = false
-	DBCatalogName      = "8.0-v1"
-	DBVersion          = "8.0-v1"
-	DBToolsTag         = "8.0-v2"
+	DBCatalogName      = "8.0-v2"
+	DBVersion          = "8.0-v2"
+	DBToolsTag         = "8.0-v3"
 	ExporterTag        = "v0.11.0"
 )
 
