@@ -347,7 +347,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: 5d5229ee06907308f61d61b09ff07ea7aa8c2c0c
+  version: 93ee997d13112ef1e11544b1151aed9af4588fc9
   subpackages:
   - apis
   - apis/authorization

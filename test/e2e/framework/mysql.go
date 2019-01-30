@@ -16,6 +16,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+var (
+	JobPvcStorageSize = "2Gi"
+	DBPvcStorageSize  = "1Gi"
+)
+
 func (f *Invocation) MySQL() *api.MySQL {
 	return &api.MySQL{
 		ObjectMeta: metav1.ObjectMeta{
@@ -30,7 +35,7 @@ func (f *Invocation) MySQL() *api.MySQL {
 			Storage: &core.PersistentVolumeClaimSpec{
 				Resources: core.ResourceRequirements{
 					Requests: core.ResourceList{
-						core.ResourceStorage: resource.MustParse("1Gi"),
+						core.ResourceStorage: resource.MustParse(DBPvcStorageSize),
 					},
 				},
 				StorageClassName: types.StringP(f.StorageClass),
