@@ -36,12 +36,15 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 	}
 
 	// Get PersistentVolume object for Backup Util pod.
-	pvcSpec := mysql.Spec.Storage
-	persistentVolume, err := c.GetVolumeForSnapshot(
-		mysql.Spec.StorageType,
-		pvcSpec, snapshot.Spec.PodVolumeClaimSpec,
-		jobName, snapshot.Namespace,
-	)
+	pvcSpec := snapshot.Spec.PodVolumeClaimSpec
+	if pvcSpec == nil {
+		pvcSpec = mysql.Spec.Storage
+	}
+	st := snapshot.Spec.StorageType
+	if st == nil {
+		st = &mysql.Spec.StorageType
+	}
+	persistentVolume, err := c.GetVolumeForSnapshot(*st, pvcSpec, jobName, snapshot.Namespace)
 	if err != nil {
 		return nil, err
 	}
@@ -206,12 +209,15 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 	}
 
 	// Get PersistentVolume object for Backup Util pod.
-	pvcSpec := mysql.Spec.Storage
-	persistentVolume, err := c.GetVolumeForSnapshot(
-		mysql.Spec.StorageType,
-		pvcSpec, snapshot.Spec.PodVolumeClaimSpec,
-		jobName, snapshot.Namespace,
-	)
+	pvcSpec := snapshot.Spec.PodVolumeClaimSpec
+	if pvcSpec == nil {
+		pvcSpec = mysql.Spec.Storage
+	}
+	st := snapshot.Spec.StorageType
+	if st == nil {
+		st = &mysql.Spec.StorageType
+	}
+	persistentVolume, err := c.GetVolumeForSnapshot(*st, pvcSpec, jobName, snapshot.Namespace)
 	if err != nil {
 		return nil, err
 	}

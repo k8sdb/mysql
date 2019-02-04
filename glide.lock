@@ -1,5 +1,5 @@
 hash: e643010f836c6443f1a56a58dea29a324dc7ea0ff758f0e9b8c2bd829af53164
-updated: 2019-01-23T11:41:09.517957784+06:00
+updated: 2019-02-04T14:57:15.511787048+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -36,7 +36,7 @@ imports:
   - admission/v1beta1
   - registry/admissionreview/v1beta1
 - name: github.com/appscode/kutil
-  version: c2edb24c3c1c6f97bbe8d0616dc2eee59a11c665
+  version: b5b6fa2ff0180040757643f9a498ea84d7bd8dd6
   subpackages:
   - admissionregistration/v1beta1
   - apiextensions/v1beta1
@@ -252,7 +252,7 @@ imports:
 - name: github.com/go-sql-driver/mysql
   version: 72cd26f257d44c1114970e19afddcd812016007e
 - name: github.com/go-xorm/builder
-  version: 03eb88feccce3e477c318ce7f6f1b386544ab20b
+  version: 1d658d7596c25394aab557ef5b50ef35bf706384
 - name: github.com/go-xorm/core
   version: c10e21e7e1cec20e09398f2dfae385e58c8df555
 - name: github.com/go-xorm/xorm
@@ -347,7 +347,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: 93ee997d13112ef1e11544b1151aed9af4588fc9
+  version: 2ba704f42f3a01216fbcf234001398d4e5b14544
   subpackages:
   - apis
   - apis/authorization
@@ -409,7 +409,7 @@ imports:
 - name: github.com/modern-go/reflect2
   version: 05fbef0ca5da472bbf96c9322b84a53edc03c9fd
 - name: github.com/ncw/swift
-  version: b2a130b7215bd352e6c48f86bb2a2fd42edf577a
+  version: ba19fe35e796969e50f19bd748a770ec5d191ece
 - name: github.com/NYTimes/gziphandler
   version: 56545f4a5d46df9a6648819d1664c3a03a13ffdb
 - name: github.com/onsi/ginkgo
@@ -572,7 +572,7 @@ imports:
   - googleapi/internal/uritemplates
   - storage/v1
 - name: google.golang.org/appengine
-  version: e9657d882bb81064595ca3b56cbe2546bbabf7b1
+  version: 2d2298565d5a399bdfec98dbc259d6393e3cf8ba
   subpackages:
   - cloudsql
   - internal
