@@ -176,6 +176,11 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 		}
 		job.Spec.Template.Spec.Volumes = append(job.Spec.Template.Spec.Volumes, volume)
 	}
+
+	if c.EnableRBAC {
+		job.Spec.Template.Spec.ServiceAccountName = mysql.OffshootName()
+	}
+
 	return c.Client.BatchV1().Jobs(mysql.Namespace).Create(job)
 }
 
@@ -348,5 +353,10 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 			VolumeSource: snapshot.Spec.Backend.Local.VolumeSource,
 		})
 	}
+
+	if c.EnableRBAC {
+		job.Spec.Template.Spec.ServiceAccountName = mysql.OffshootName()
+	}
+
 	return job, nil
 }
