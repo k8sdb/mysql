@@ -10,7 +10,7 @@ import (
 	"k8s.io/client-go/tools/reference"
 )
 
-func (c *Controller) createServiceAccount(mysql *api.MySQL) error {
+func (c *Controller) createServiceAccount(mysql *api.MySQL, saName string) error {
 	ref, rerr := reference.GetReference(clientsetscheme.Scheme, mysql)
 	if rerr != nil {
 		return rerr
@@ -19,7 +19,7 @@ func (c *Controller) createServiceAccount(mysql *api.MySQL) error {
 	_, _, err := core_util.CreateOrPatchServiceAccount(
 		c.Client,
 		metav1.ObjectMeta{
-			Name:      mysql.OffshootName(),
+			Name:      saName,
 			Namespace: mysql.Namespace,
 		},
 		func(in *core.ServiceAccount) *core.ServiceAccount {
@@ -32,7 +32,14 @@ func (c *Controller) createServiceAccount(mysql *api.MySQL) error {
 
 func (c *Controller) ensureRBACStuff(mysql *api.MySQL) error {
 	// Create New ServiceAccount
-	if err := c.createServiceAccount(mysql); err != nil {
+	if err := c.createServiceAccount(mysql, mysql.OffshootName()); err != nil {
+		if !kerr.IsAlreadyExists(err) {
+			return err
+		}
+	}
+
+	// Create New SNapshot ServiceAccount
+	if err := c.createServiceAccount(mysql, mysql.SnapshotSAName()); err != nil {
 		if !kerr.IsAlreadyExists(err) {
 			return err
 		}

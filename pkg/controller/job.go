@@ -178,7 +178,7 @@ func (c *Controller) createRestoreJob(mysql *api.MySQL, snapshot *api.Snapshot) 
 	}
 
 	if c.EnableRBAC {
-		job.Spec.Template.Spec.ServiceAccountName = mysql.OffshootName()
+		job.Spec.Template.Spec.ServiceAccountName = mysql.SnapshotSAName()
 	}
 
 	return c.Client.BatchV1().Jobs(mysql.Namespace).Create(job)
@@ -355,7 +355,7 @@ func (c *Controller) getSnapshotterJob(snapshot *api.Snapshot) (*batch.Job, erro
 	}
 
 	if c.EnableRBAC {
-		job.Spec.Template.Spec.ServiceAccountName = mysql.OffshootName()
+		job.Spec.Template.Spec.ServiceAccountName = mysql.SnapshotSAName()
 	}
 
 	return job, nil
