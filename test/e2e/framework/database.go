@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/appscode/kutil/tools/portforward"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"kmodules.xyz/client-go/tools/portforward"
 )
 
 type KubedbTable struct {
