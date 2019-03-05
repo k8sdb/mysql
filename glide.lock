@@ -211,7 +211,7 @@ imports:
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
 - name: github.com/evanphx/json-patch
-  version: 36442dbdb585210f8d5a1b45e67aa323c197d5c4
+  version: 72bf35d0ff611848c1dc9df0f976c81192392fa5
 - name: github.com/fatih/structs
   version: 878a968ab22548362a09bdb3322f98b00f470d46
 - name: github.com/ghodss/yaml
@@ -461,7 +461,8 @@ imports:
 - name: github.com/satori/go.uuid
   version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/sergi/go-diff
-  version: 97b2266dfe4bd4ea1b81a463322f04f8b724801e
+  version: 24e2351369ec4949b2ed0dc5c477afdd4c4034e8
+  repo: https://github.com/sergi/go-diff
   subpackages:
   - diffmatchpatch
 - name: github.com/sirupsen/logrus
@@ -473,11 +474,12 @@ imports:
 - name: github.com/spf13/pflag
   version: 298182f68c66c05229eb03ac171abe6e309ee79a
 - name: github.com/yudai/gojsondiff
-  version: 7b1b7adf999dab73a6eb02669c3d82dbb27a3dd6
+  version: 0525c875b75ca60b9e67ddc44496aa16f21066b0
   subpackages:
   - formatter
 - name: github.com/yudai/golcs
   version: d1c525dea8ce39ea9a783d33cf08932305373f2c
+  repo: https://github.com/yudai/golcs
 - name: golang.org/x/crypto
   version: de0752318171da717af4ce24d0a2e8626afaeb11
   subpackages:
@@ -996,7 +998,7 @@ imports:
   - util/retry
   - util/workqueue
 - name: k8s.io/klog
-  version: b9b56d5dfc9208f60ea747056670942d8b0afdc8
+  version: e324edd5198f2a2f225036ac573a0f543e439836
 - name: k8s.io/kube-aggregator
   version: 71ff10f5febb8733ad25fc112736ff5f8cd97beb
   subpackages:
@@ -1029,6 +1031,8 @@ imports:
   - dynamic
   - logs
   - meta
+  - policy/v1beta1
+  - rbac/v1beta1
   - tools/analytics
   - tools/cli
   - tools/clientcmd
