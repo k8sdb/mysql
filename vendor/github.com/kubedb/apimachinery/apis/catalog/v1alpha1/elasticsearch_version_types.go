@@ -35,6 +35,8 @@ type ElasticsearchVersionSpec struct {
 	// Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.
 	// +optional
 	Deprecated bool `json:"deprecated,omitempty"`
+	// Init container Image
+	InitContainer ElasticsearchVersionInitContainer `json:"initContainer"`
 }
 
 // ElasticsearchVersionDatabase is the Elasticsearch Database image
@@ -60,4 +62,9 @@ type ElasticsearchVersionList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// Items is a list of ElasticsearchVersion CRD objects
 	Items []ElasticsearchVersion `json:"items,omitempty"`
+}
+
+// ElasticsearchVersionInitContainer is the Elasticsearch Container initializer
+type ElasticsearchVersionInitContainer struct {
+	Image string `json:"image"`
 }

@@ -35,6 +35,8 @@ type MySQLVersionSpec struct {
 	// Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.
 	// +optional
 	Deprecated bool `json:"deprecated,omitempty"`
+	// Init container Image
+	InitContainer MySQLVersionInitContainer `json:"initContainer"`
 }
 
 // MySQLVersionDatabase is the MySQL Database image
@@ -60,4 +62,9 @@ type MySQLVersionList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// Items is a list of MySQLVersion CRD objects
 	Items []MySQLVersion `json:"items,omitempty"`
+}
+
+// MySQLVersionInitContainer is the Elasticsearch Container initializer
+type MySQLVersionInitContainer struct {
+	Image string `json:"image"`
 }

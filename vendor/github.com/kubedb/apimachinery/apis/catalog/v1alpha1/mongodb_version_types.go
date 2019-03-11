@@ -35,6 +35,8 @@ type MongoDBVersionSpec struct {
 	// Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.
 	// +optional
 	Deprecated bool `json:"deprecated,omitempty"`
+	// Init container Image
+	InitContainer MongoDBVersionInitContainer `json:"initContainer"`
 }
 
 // MongoDBVersionDatabase is the MongoDB Database image
@@ -60,4 +62,9 @@ type MongoDBVersionList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// Items is a list of MongoDBVersion CRD objects
 	Items []MongoDBVersion `json:"items,omitempty"`
+}
+
+// MongoDBVersionInitContainer is the Elasticsearch Container initializer
+type MongoDBVersionInitContainer struct {
+	Image string `json:"image"`
 }
