@@ -54,6 +54,11 @@ type MySQLVersionTools struct {
 	Image string `json:"image"`
 }
 
+// MySQLVersionInitContainer is the Elasticsearch Container initializer
+type MySQLVersionInitContainer struct {
+	Image string `json:"image"`
+}
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // MySQLVersionList is a list of MySQLVersions
@@ -62,9 +67,4 @@ type MySQLVersionList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// Items is a list of MySQLVersion CRD objects
 	Items []MySQLVersion `json:"items,omitempty"`
-}
-
-// MySQLVersionInitContainer is the Elasticsearch Container initializer
-type MySQLVersionInitContainer struct {
-	Image string `json:"image"`
 }

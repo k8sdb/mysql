@@ -54,6 +54,11 @@ type ElasticsearchVersionTools struct {
 	Image string `json:"image"`
 }
 
+// ElasticsearchVersionInitContainer is the Elasticsearch Container initializer
+type ElasticsearchVersionInitContainer struct {
+	Image string `json:"image"`
+}
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // ElasticsearchVersionList is a list of ElasticsearchVersions
@@ -62,9 +67,4 @@ type ElasticsearchVersionList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// Items is a list of ElasticsearchVersion CRD objects
 	Items []ElasticsearchVersion `json:"items,omitempty"`
-}
-
-// ElasticsearchVersionInitContainer is the Elasticsearch Container initializer
-type ElasticsearchVersionInitContainer struct {
-	Image string `json:"image"`
 }

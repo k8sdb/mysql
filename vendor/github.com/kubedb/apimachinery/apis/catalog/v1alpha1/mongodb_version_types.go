@@ -54,6 +54,11 @@ type MongoDBVersionTools struct {
 	Image string `json:"image"`
 }
 
+// MongoDBVersionInitContainer is the Elasticsearch Container initializer
+type MongoDBVersionInitContainer struct {
+	Image string `json:"image"`
+}
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // MongoDBVersionList is a list of MongoDBVersions
@@ -62,9 +67,4 @@ type MongoDBVersionList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// Items is a list of MongoDBVersion CRD objects
 	Items []MongoDBVersion `json:"items,omitempty"`
-}
-
-// MongoDBVersionInitContainer is the Elasticsearch Container initializer
-type MongoDBVersionInitContainer struct {
-	Image string `json:"image"`
 }
