@@ -1,5 +1,5 @@
-hash: 941cedeb6a53d872e89f5c9200669598df6147a542e509ea2496a491237786bf
-updated: 2019-03-12T11:00:19.792708193+06:00
+hash: 7f2589c5b8bd6a38c2d3092a4cfc468ce24616f07e2fc7b86a716749b289b866
+updated: 2019-03-12T14:54:33.927368271-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -211,7 +211,7 @@ imports:
 - name: github.com/emicklei/go-restful-swagger12
   version: dcef7f55730566d41eae5db10e7d6981829720f6
 - name: github.com/evanphx/json-patch
-  version: 72bf35d0ff611848c1dc9df0f976c81192392fa5
+  version: 36442dbdb585210f8d5a1b45e67aa323c197d5c4
 - name: github.com/fatih/structs
   version: 878a968ab22548362a09bdb3322f98b00f470d46
 - name: github.com/ghodss/yaml
@@ -242,7 +242,7 @@ imports:
   - protoc-gen-gogo/descriptor
   - sortkeys
 - name: github.com/golang/glog
-  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
+  version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - name: github.com/golang/groupcache
   version: 02826c3e79038b59d737d3b1c0a1d937f71a4433
   subpackages:
@@ -326,7 +326,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-  version: c5edeb50df6529f5dd8e28c202dfe484f53ac1a5
+  version: 947c3c783b4e4a20f6d01282ccc9a61364bf9f65
   subpackages:
   - apis
   - apis/authorization
@@ -461,8 +461,7 @@ imports:
 - name: github.com/satori/go.uuid
   version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/sergi/go-diff
-  version: 24e2351369ec4949b2ed0dc5c477afdd4c4034e8
-  repo: https://github.com/sergi/go-diff
+  version: 97b2266dfe4bd4ea1b81a463322f04f8b724801e
   subpackages:
   - diffmatchpatch
 - name: github.com/sirupsen/logrus
@@ -474,12 +473,11 @@ imports:
 - name: github.com/spf13/pflag
   version: 298182f68c66c05229eb03ac171abe6e309ee79a
 - name: github.com/yudai/gojsondiff
-  version: 0525c875b75ca60b9e67ddc44496aa16f21066b0
+  version: 7b1b7adf999dab73a6eb02669c3d82dbb27a3dd6
   subpackages:
   - formatter
 - name: github.com/yudai/golcs
   version: d1c525dea8ce39ea9a783d33cf08932305373f2c
-  repo: https://github.com/yudai/golcs
 - name: golang.org/x/crypto
   version: de0752318171da717af4ce24d0a2e8626afaeb11
   subpackages:
@@ -548,7 +546,7 @@ imports:
   - googleapi/internal/uritemplates
   - storage/v1
 - name: google.golang.org/appengine
-  version: 54a98f90d1c46b7731eb8fb305d2a321c30ef610
+  version: 12d5545dc1cfa6047a286d5e853841b6471f4c19
   subpackages:
   - cloudsql
   - internal
@@ -998,7 +996,7 @@ imports:
   - util/retry
   - util/workqueue
 - name: k8s.io/klog
-  version: 291f19f84ceb3e47785d3b4bda653cfcd58622a1
+  version: b9b56d5dfc9208f60ea747056670942d8b0afdc8
 - name: k8s.io/kube-aggregator
   version: 71ff10f5febb8733ad25fc112736ff5f8cd97beb
   subpackages:
@@ -1020,7 +1018,7 @@ imports:
 - name: k8s.io/utils
   version: 66066c83e385e385ccc3c964b44fd7dcd413d0ed
 - name: kmodules.xyz/client-go
-  version: 4e95b64335e75800ba52ff9e44188066da251420
+  version: b4cd767776cc2c7cc31df6721ebad3cb6f728baa
   subpackages:
   - admissionregistration/v1beta1
   - apiextensions/v1beta1
