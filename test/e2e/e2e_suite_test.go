@@ -27,8 +27,6 @@ import (
 
 var (
 	storageClass = "standard"
-	//prometheusCrdGroup = pcm.Group
-	//prometheusCrdKinds = pcm.DefaultCrdKinds
 )
 
 func init() {
