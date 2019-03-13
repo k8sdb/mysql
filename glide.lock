@@ -1,5 +1,5 @@
 hash: 7f2589c5b8bd6a38c2d3092a4cfc468ce24616f07e2fc7b86a716749b289b866
-updated: 2019-03-12T14:54:33.927368271-07:00
+updated: 2019-03-13T10:25:34.636729302+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -242,7 +242,7 @@ imports:
   - protoc-gen-gogo/descriptor
   - sortkeys
 - name: github.com/golang/glog
-  version: 44145f04b68cf362d9c4df2182967c2275eaefed
+  version: 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 - name: github.com/golang/groupcache
   version: 02826c3e79038b59d737d3b1c0a1d937f71a4433
   subpackages:
@@ -548,7 +548,7 @@ imports:
   - googleapi/internal/uritemplates
   - storage/v1
 - name: google.golang.org/appengine
-  version: 12d5545dc1cfa6047a286d5e853841b6471f4c19
+  version: 54a98f90d1c46b7731eb8fb305d2a321c30ef610
   subpackages:
   - cloudsql
   - internal
@@ -998,7 +998,7 @@ imports:
   - util/retry
   - util/workqueue
 - name: k8s.io/klog
-  version: e324edd5198f2a2f225036ac573a0f543e439836
+  version: 291f19f84ceb3e47785d3b4bda653cfcd58622a1
 - name: k8s.io/kube-aggregator
   version: 71ff10f5febb8733ad25fc112736ff5f8cd97beb
   subpackages:
@@ -1020,7 +1020,7 @@ imports:
 - name: k8s.io/utils
   version: 66066c83e385e385ccc3c964b44fd7dcd413d0ed
 - name: kmodules.xyz/client-go
-  version: b4cd767776cc2c7cc31df6721ebad3cb6f728baa
+  version: 4ce549910ced217769d198b777f79de119b10896
   subpackages:
   - admissionregistration/v1beta1
   - apiextensions/v1beta1

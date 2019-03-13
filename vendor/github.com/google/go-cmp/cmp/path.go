@@ -163,25 +163,6 @@ func (ps pathStep) String() string {
 	}
 	return fmt.Sprintf("{%s}", s)
 }
-func (ps pathStep) isPathStep() {}
-
-func (sf structField) Values() (vx, vy reflect.Value) {
-	if !sf.unexported {
-		return sf.vx, sf.vy // CanInterface reports true
-	}
-
-	// Forcibly obtain read-write access to an unexported struct field.
-	if sf.mayForce {
-		vx = retrieveUnexportedField(sf.pvx, sf.field)
-		vy = retrieveUnexportedField(sf.pvy, sf.field)
-		return vx, vy // CanInterface reports true
-	}
-	return sf.vx, sf.vy // CanInterface reports false
-}
-func (sf structField) String() string { return fmt.Sprintf(".%s", sf.name) }
-func (sf structField) Name() string   { return sf.name }
-func (sf structField) Index() int     { return sf.idx }
-func (sf structField) isStructField() {}
 
 // StructField represents a struct field access on a field called Name.
 type StructField struct{ *structField }
