@@ -28,6 +28,13 @@ func (i *Invocation) MySQLVersion() *api.MySQLVersion {
 			Tools: api.MySQLVersionTools{
 				Image: fmt.Sprintf("%s/mysql-tools:%s", DockerRegistry, DBToolsTag),
 			},
+			InitContainer: api.MySQLVersionInitContainer{
+				Image: "kubedb/busybox",
+			},
+			PodSecurityPolicies: api.MySQLVersionPodSecurityPolicy{
+				SnapshotterPolicyName: "mysql-snapshot",
+				DatabasePolicyName:    "mysql-db",
+			},
 		},
 	}
 }
