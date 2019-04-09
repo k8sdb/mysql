@@ -56,6 +56,10 @@ func (m MySQL) ServiceName() string {
 	return m.OffshootName()
 }
 
+func (m MySQL) GoverningServiceName() string {
+	return m.OffshootName() + "-gvr"
+}
+
 // Snapshot service account name.
 func (m MySQL) SnapshotSAName() string {
 	return fmt.Sprintf("%v-snapshot", m.OffshootName())

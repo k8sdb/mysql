@@ -86,7 +86,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		in.Annotations = mysql.Spec.PodTemplate.Controller.Annotations
 		core_util.EnsureOwnerReference(&in.ObjectMeta, ref)
 
-		in.Spec.Replicas = types.Int32P(1)
+		in.Spec.Replicas = mysql.Spec.Replicas
 		in.Spec.ServiceName = c.GoverningService
 		in.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: mysql.OffshootSelectors(),
@@ -118,11 +118,15 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 				mysql.Spec.PodTemplate.Spec.InitContainers...,
 			),
 		)
+		mysqldArgs := strings.Join(mysql.Spec.PodTemplate.Spec.Args, " ")
 		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
 			Name:            api.ResourceSingularMySQL,
 			Image:           mysqlVersion.Spec.DB.Image,
 			ImagePullPolicy: core.PullIfNotPresent,
-			Args:            mysql.Spec.PodTemplate.Spec.Args,
+			Args:            []string{
+				fmt.Sprintf("-service=%s", c.GoverningService),
+				fmt.Sprintf("-on-change=/on-change.sh %s", mysqldArgs),
+			},
 			Resources:       mysql.Spec.PodTemplate.Spec.Resources,
 			LivenessProbe:   mysql.Spec.PodTemplate.Spec.LivenessProbe,
 			ReadinessProbe:  mysql.Spec.PodTemplate.Spec.ReadinessProbe,
@@ -130,7 +134,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			Ports: []core.ContainerPort{
 				{
 					Name:          "db",
-					ContainerPort: 3306,
+					ContainerPort: api.MySQLNodePort,
 					Protocol:      core.ProtocolTCP,
 				},
 			},
@@ -163,7 +167,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			})
 		}
 		// Set Admin Secret as MYSQL_ROOT_PASSWORD env variable
-		in = upsertEnv(in, mysql)
+		in = c.upsertEnv(in, mysql)
 		in = upsertDataVolume(in, mysql)
 		in = upsertCustomConfig(in, mysql)
 
@@ -246,7 +250,7 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.Sta
 	return statefulSet
 }
 
-func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {
+func (c *Controller) upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularMySQL || container.Name == "exporter" {
 			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, []core.EnvVar{
@@ -273,6 +277,31 @@ func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSe
 					},
 				},
 			}...)
+
+			if container.Name == api.ResourceSingularMySQL {
+				statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, []core.EnvVar{
+					{
+						Name: "BASE_NAME",
+						ValueFrom: &core.EnvVarSource{
+							FieldRef: &core.ObjectFieldSelector{
+								FieldPath: "metadata.name",
+							},
+						},
+					},
+					{
+						Name: "GOV_SVC",
+						Value: c.GoverningService,
+					},
+					{
+						Name: "POD_NAMESPACE",
+						ValueFrom: &core.EnvVarSource{
+							FieldRef: &core.ObjectFieldSelector{
+								FieldPath: "metadata.namespace",
+							},
+						},
+					},
+				}...)
+			}
 		}
 	}
 	return statefulSet

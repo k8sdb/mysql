@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 hash: 80cec8834d5ba0fd13d7efaba2ed2c5b51b7c14e7f69f464a4c95834dd8bd1a7
 updated: 2019-04-23T02:36:08.357857592-07:00
+=======
+hash: a832dc28bb6443c4e6cc836ef807fecce9b7bc7afde01719aa74b818794dc0a3
+updated: 2019-04-09T16:25:19.347888524+06:00
+>>>>>>> Configuring StatefulSet and Governing svc
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -94,7 +99,11 @@ imports:
 - name: github.com/codegangsta/inject
   version: 33e0aa1cb7c019ccc3fbe049a8262a6403d30504
 - name: github.com/codeskyblue/go-sh
+<<<<<<< HEAD
   version: 76bd3d59ff27c0518096e0af6c165bf626b809ec
+=======
+  version: f4ce45e7999ee02d582441c916f1b32fb548dba6
+>>>>>>> Configuring StatefulSet and Governing svc
 - name: github.com/coreos/etcd
   version: 27fc7e2296f506182f58ce846e48f36b34fe6842
   subpackages:
@@ -223,7 +232,7 @@ imports:
 - name: github.com/go-openapi/jsonreference
   version: 8483a886a90412cd6858df4ea3483dce9c8e35a3
 - name: github.com/go-openapi/spec
-  version: 5bae59e25b21498baea7f9d46e9c147ec106a42e
+  version: 1de3e0542de65ad8d75452a595886fdd0befb363
 - name: github.com/go-openapi/swag
   version: 5899d5c5e619fda5fa86e14795a835f473ca284c
 - name: github.com/go-sql-driver/mysql
@@ -231,7 +240,7 @@ imports:
 - name: github.com/go-xorm/builder
   version: 145c9968bfe732a56d7160439d25154c5aaa2f35
 - name: github.com/go-xorm/core
-  version: c10e21e7e1cec20e09398f2dfae385e58c8df555
+  version: ccc80c1adf1f6172bbc548877f50a1163041a40a
 - name: github.com/go-xorm/xorm
   version: d85bb4911c725a53b135fc12862748a41b6c07da
 - name: github.com/gogo/protobuf
@@ -326,7 +335,11 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
+<<<<<<< HEAD
   version: 84ad380b12d81c148855ff56811e6811c293a9c9
+=======
+  version: 0b6ae7091f0e61c750a7c052e377b5829a654df3
+>>>>>>> Configuring StatefulSet and Governing svc
   subpackages:
   - apis
   - apis/authorization
@@ -388,7 +401,11 @@ imports:
 - name: github.com/modern-go/reflect2
   version: 94122c33edd36123c84d5368cfb2b69df93a0ec8
 - name: github.com/ncw/swift
+<<<<<<< HEAD
   version: 753d2090bb62619675997bd87a8e3af423a00f2d
+=======
+  version: 24e3012fc8a71f004a6455bce2088031d50bf2b6
+>>>>>>> Configuring StatefulSet and Governing svc
 - name: github.com/NYTimes/gziphandler
   version: 56545f4a5d46df9a6648819d1664c3a03a13ffdb
 - name: github.com/onsi/ginkgo
@@ -459,9 +476,10 @@ imports:
 - name: github.com/russross/blackfriday
   version: 05f3235734ad95d0016f6a23902f06461fcf567a
 - name: github.com/satori/go.uuid
-  version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
+  version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/sergi/go-diff
-  version: 97b2266dfe4bd4ea1b81a463322f04f8b724801e
+  version: 24e2351369ec4949b2ed0dc5c477afdd4c4034e8
+  repo: https://github.com/sergi/go-diff
   subpackages:
   - diffmatchpatch
 - name: github.com/sirupsen/logrus
@@ -473,11 +491,12 @@ imports:
 - name: github.com/spf13/pflag
   version: 298182f68c66c05229eb03ac171abe6e309ee79a
 - name: github.com/yudai/gojsondiff
-  version: 7b1b7adf999dab73a6eb02669c3d82dbb27a3dd6
+  version: 0525c875b75ca60b9e67ddc44496aa16f21066b0
   subpackages:
   - formatter
 - name: github.com/yudai/golcs
   version: d1c525dea8ce39ea9a783d33cf08932305373f2c
+  repo: https://github.com/yudai/golcs
 - name: golang.org/x/crypto
   version: de0752318171da717af4ce24d0a2e8626afaeb11
   subpackages:
@@ -813,7 +832,11 @@ imports:
   - plugin/pkg/authenticator/token/webhook
   - plugin/pkg/authorizer/webhook
 - name: k8s.io/cli-runtime
+<<<<<<< HEAD
   version: f2b4781c3ae1e55b0657ab4fa0c8b702282d018f
+=======
+  version: 79bf4e0b64544d8c490247abae089bea572ddae6
+>>>>>>> Configuring StatefulSet and Governing svc
   subpackages:
   - pkg/genericclioptions
   - pkg/genericclioptions/printers
@@ -1004,7 +1027,7 @@ imports:
   - util/retry
   - util/workqueue
 - name: k8s.io/klog
-  version: b9b56d5dfc9208f60ea747056670942d8b0afdc8
+  version: aaeac2fedbead93263ae78b80849cac7ff5a5fbb
 - name: k8s.io/kube-aggregator
   version: 5268a8efdb65d805d4ba7fab84c47291ef797fe6
   subpackages:

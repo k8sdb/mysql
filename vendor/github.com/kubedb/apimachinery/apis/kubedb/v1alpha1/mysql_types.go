@@ -33,7 +33,12 @@ type MySQLSpec struct {
 	Version types.StrYo `json:"version"`
 
 	// Number of instances to deploy for a MySQL database.
+	// In case of MySQL group replication, max replicas is 9. The preferred # of replicas is 3.
+	// (see ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-frequently-asked-questions.html)
 	Replicas *int32 `json:"replicas,omitempty"`
+
+	// Group replication info for MySQL
+	Group *MySQLGroup `json:"group,omitempty"`
 
 	// StorageType can be durable (default) or ephemeral
 	StorageType StorageType `json:"storageType,omitempty"`
@@ -76,6 +81,24 @@ type MySQLSpec struct {
 	// TerminationPolicy controls the delete operation for database
 	// +optional
 	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty"`
+<<<<<<< HEAD
+=======
+}
+
+type MySQLGroup struct {
+	// An uuid for MySQL Group
+	// ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_group_name
+	GroupName *string `json:"groupName,omitempty"`
+
+	// On a replication master and each replication slave, the --server-id
+	// option must be specified to establish a unique replication ID in the
+	// range from 1 to 2^32 − 1. “Unique”, means that each ID must be different
+	// from every other ID in use by any other replication master or slave.
+	// ref: https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_server_id
+	//
+	// So, BaseServerID is needed to calculate a unique server_id for each member.
+	BaseServerID *int `json:"baseServerID,omitempty"`
+>>>>>>> Configuring StatefulSet and Governing svc
 }
 
 type MySQLStatus struct {

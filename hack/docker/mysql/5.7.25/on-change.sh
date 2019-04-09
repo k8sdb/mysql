@@ -96,7 +96,7 @@ while read -ra line; do
     fi
     peers=("${peers[@]}" "$line")
 done
-#echo "================= args: '${peers[*]}'"
+echo "================= args: '${peers[*]}'"
 
 #wait_for_each_instance_be_ready ${GROUP_SIZE} ${BASE_NAME} ${GOV_SVC} ${NAMESPACE}
 
@@ -158,7 +158,8 @@ EOL
 
 log "INFO" "Starting mysql server..."
 /etc/init.d/mysql stop
-docker-entrypoint.sh mysqld >/dev/null 2>&1 &
+echo "docker-entrypoint.sh mysqld $@"
+docker-entrypoint.sh mysqld $@ >/dev/null 2>&1 &
 pid=$!
 echo $pid
 sleep 5
@@ -176,6 +177,7 @@ for host in ${peers[*]}; do
     done
 
     if [[ "$i" = "0" ]]; then
+        echo ""
         log "ERROR" "Server ${host} start failed..."
         exit 1
     fi

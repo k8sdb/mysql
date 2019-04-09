@@ -37,6 +37,12 @@ const (
 	MongoDBConfigdbPort = 27017
 	MongoDBMongosPort   = 27017
 
+<<<<<<< HEAD
+=======
+	MySQLNodePort = 3306
+	MySQLGroupComPort = 33060
+
+>>>>>>> Configuring StatefulSet and Governing svc
 	RedisShardKey   = RedisKey + "/shard"
 	RedisNodePort   = 6379
 	RedisGossipPort = 16379
