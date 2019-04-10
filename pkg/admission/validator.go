@@ -3,6 +3,7 @@ package admission
 import (
 	"fmt"
 	"github.com/coreos/go-semver/semver"
+	"github.com/google/uuid"
 	"strings"
 	"sync"
 
@@ -146,7 +147,7 @@ func recursivelyVersionCompare(versionA []int64, versionB []int64) int {
 func validateVersion(version string) error {
 	recommended, err := semver.NewVersion(api.MySQLGRRecommendedVersion)
 	if err != nil {
-		return fmt.Errorf("unable to parse recommended MySQL version: %v", err)
+		return fmt.Errorf("unable to parse recommended MySQL version %s: %v",api.MySQLGRRecommendedVersion, err)
 	}
 
 	given, err := semver.NewVersion(version)
@@ -155,14 +156,15 @@ func validateVersion(version string) error {
 	}
 
 	if cmp := recursivelyVersionCompare(recommended.Slice(), given.Slice()); cmp != 0 {
-		return fmt.Errorf("current MySQL server version for group replication is %s", api.MySQLGRRecommendedVersion)
+		return fmt.Errorf("currently supported MySQL server version for group replication is %s, but used %s",
+			api.MySQLGRRecommendedVersion, version)
 	}
 
 	return nil
 }
 
 func validateBaseServerID(baseServerID uint) error {
-	if baseServerID <= api.MySQLMaxBaseServerID {
+	if uint(0) < baseServerID && baseServerID <= api.MySQLMaxBaseServerID {
 		return nil
 	}
 	return fmt.Errorf("invalid baseServerId specified, should be in range [1, %d]", api.MySQLMaxBaseServerID)
@@ -183,22 +185,23 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 	}
 
 	if mysql.Spec.Replicas == nil {
-		return fmt.Errorf(`spec.replicas "%v" invalid. Value must be greater than 0`, mysql.Spec.Replicas)
+		return fmt.Errorf(`spec.replicas "%v" invalid. Value must be greater than 0, but for group replication this value shouldn't be more than %d'`,
+			mysql.Spec.Replicas, api.MySQLMaxGroupMembers)
 	}
 	if *mysql.Spec.Replicas == 1 && mysql.Spec.Group != nil {
-		return fmt.Errorf("group shouldn't start with 1 member, recommended group size is from %d to %d",
-			api.MySQLDefaultGroupSize, api.MySQLMaxGroupMembers)
+		return fmt.Errorf("group shouldn't start with 1 member, accepted value of 'spec.replicas' for group replication is in range [2, %d], default is %d if not specified",
+			api.MySQLMaxGroupMembers, api.MySQLDefaultGroupSize)
 	}
-	if *mysql.Spec.Replicas > api.MySQLMaxGroupMembers {
+	if *mysql.Spec.Replicas > api.MySQLMaxGroupMembers && mysql.Spec.Group != nil {
 		return fmt.Errorf("group size can't be greater than max size %d (see https://dev.mysql.com/doc/refman/5.7/en/group-replication-frequently-asked-questions.html",
 			api.MySQLMaxGroupMembers)
 	}
-	if *mysql.Spec.Replicas > 1 {
+	if mysql.Spec.Group != nil {
 		if err = validateVersion(myVer.Spec.Version); err != nil {
 			return err
 		}
-		if mysql.Spec.Group.GroupName == "" {
-			return errors.New("invalid group name is set")
+		if _, err = uuid.Parse(mysql.Spec.Group.GroupName); err != nil {
+			return errors.Wrapf(err, "invalid group name is set")
 		}
 		if err = validateBaseServerID(*mysql.Spec.Group.BaseServerID); err != nil {
 			return err

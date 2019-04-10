@@ -38,18 +38,23 @@ const (
 	MongoDBMongosPort   = 27017
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 	MySQLNodePort = 3306
 	MySQLGroupComPort = 33060
+=======
+	MySQLNodePort        = 3306
+	MySQLGroupComPort    = 33060
+>>>>>>> Update mutator and add validator unit tests
 	MySQLMaxGroupMembers = 9
 	// The recommended MySQL server version for group replication (GR)
 	MySQLGRRecommendedVersion = "5.7.25"
-	MySQLDefaultGroupSize = 3
-	MySQLDefaultBaseServerID = 1
+	MySQLDefaultGroupSize     = 3
+	MySQLDefaultBaseServerID  = uint(1)
 	// The server id for each group member must be unique and in the range [1, 2^32 - 1]
 	// And the maximum group size is 9. So MySQLMaxBaseServerID is the maximum safe value
 	// for BaseServerID calculated as max MySQL server_id value - max Replication Group size.
-	MySQLMaxBaseServerID = 4294967295 - 9
+	MySQLMaxBaseServerID = uint(4294967295 - 9)
 
 >>>>>>> Configuring StatefulSet and Governing svc
 	RedisShardKey   = RedisKey + "/shard"

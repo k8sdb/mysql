@@ -45,6 +45,25 @@ func TestMySQLValidator_Admit(t *testing.T) {
 					ObjectMeta: metaV1.ObjectMeta{
 						Name: "8.0",
 					},
+					Spec: catalog.MySQLVersionSpec{
+						Version: "8.0.0",
+					},
+				},
+				&catalog.MySQLVersion{
+					ObjectMeta: metaV1.ObjectMeta{
+						Name: "5.6",
+					},
+					Spec: catalog.MySQLVersionSpec{
+						Version: "5.6",
+					},
+				},
+				&catalog.MySQLVersion{
+					ObjectMeta: metaV1.ObjectMeta{
+						Name: "5.7.25",
+					},
+					Spec: catalog.MySQLVersionSpec{
+						Version: "5.7.25",
+					},
 				},
 			)
 			validator.client = fake.NewSimpleClientset(
@@ -228,6 +247,98 @@ var cases = []struct {
 		false,
 		true,
 	},
+
+	// For MySQL Group Replication
+	{"Create valid group",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		validGroup(sampleMySQL()),
+		api.MySQL{},
+		false,
+		true,
+	},
+	{"Create group with single replica",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		groupWithSingleReplica(),
+		api.MySQL{},
+		false,
+		false,
+	},
+	{"Create group with replicas more than max group size",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		groupWithOverReplicas(),
+		api.MySQL{},
+		false,
+		false,
+	},
+	{"Create group with invalid MySQL server version",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		groupWithUnequalServerVersion(),
+		api.MySQL{},
+		false,
+		false,
+	},
+	{"Create group with invalid MySQL server version",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		groupWithNonTriFormatedServerVersion(),
+		api.MySQL{},
+		false,
+		false,
+	},
+	{"Create group with empty group name",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		groupWithEmptyGroupName(),
+		api.MySQL{},
+		false,
+		false,
+	},
+	{"Create group with invalid group name",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		groupWithInvalidGroupName(),
+		api.MySQL{},
+		false,
+		false,
+	},
+	{"Create group with baseServerID 0",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		groupWithBaseServerIDZero(),
+		api.MySQL{},
+		false,
+		false,
+	},
+	{"Create group with baseServerID exceeded max limit",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		groupWithBaseServerIDExceededMaxLimit(),
+		api.MySQL{},
+		false,
+		false,
+	},
 }
 
 func sampleMySQL() api.MySQL {
@@ -320,5 +431,72 @@ func editSpecInvalidMonitor(old api.MySQL) api.MySQL {
 
 func pauseDatabase(old api.MySQL) api.MySQL {
 	old.Spec.TerminationPolicy = api.TerminationPolicyPause
+	return old
+}
+
+func validGroup(old api.MySQL) api.MySQL {
+	old.Spec.Version = api.MySQLGRRecommendedVersion
+	old.Spec.Replicas = types.Int32P(api.MySQLDefaultGroupSize)
+	old.Spec.Group = &api.MySQLGroup{
+		GroupName: "dc002fc3-c412-4d18-b1d4-66c1fbfbbc9b",
+		BaseServerID: types.UIntP(api.MySQLDefaultBaseServerID),
+	}
+
+	return old
+}
+
+func groupWithSingleReplica() api.MySQL {
+	old := validGroup(sampleMySQL())
+	old.Spec.Replicas = types.Int32P(1)
+
+	return old
+}
+
+func groupWithOverReplicas() api.MySQL {
+	old := validGroup(sampleMySQL())
+	old.Spec.Replicas = types.Int32P(api.MySQLMaxGroupMembers + 1)
+
+	return old
+}
+
+func groupWithUnequalServerVersion() api.MySQL {
+	old := validGroup(sampleMySQL())
+	old.Spec.Version = "8.0"
+
+	return old
+}
+
+func groupWithNonTriFormatedServerVersion() api.MySQL {
+	old := validGroup(sampleMySQL())
+	old.Spec.Version = "5.6"
+
+	return old
+}
+
+func groupWithEmptyGroupName() api.MySQL {
+	old := validGroup(sampleMySQL())
+	old.Spec.Group.GroupName = ""
+
+	return old
+}
+
+func groupWithInvalidGroupName() api.MySQL {
+	old := validGroup(sampleMySQL())
+	old.Spec.Group.GroupName = "a-a-a-a-a"
+
+	return old
+}
+
+func groupWithBaseServerIDZero() api.MySQL {
+	old := validGroup(sampleMySQL())
+	old.Spec.Group.BaseServerID = types.UIntP(0)
+
+	return old
+}
+
+func groupWithBaseServerIDExceededMaxLimit() api.MySQL {
+	old := validGroup(sampleMySQL())
+	old.Spec.Group.BaseServerID = types.UIntP(api.MySQLMaxBaseServerID +1)
+
 	return old
 }
