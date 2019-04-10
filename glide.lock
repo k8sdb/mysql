@@ -1,10 +1,15 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 hash: 80cec8834d5ba0fd13d7efaba2ed2c5b51b7c14e7f69f464a4c95834dd8bd1a7
 updated: 2019-04-23T02:36:08.357857592-07:00
 =======
 hash: a832dc28bb6443c4e6cc836ef807fecce9b7bc7afde01719aa74b818794dc0a3
 updated: 2019-04-09T16:25:19.347888524+06:00
 >>>>>>> Configuring StatefulSet and Governing svc
+=======
+hash: eb590f561b76aab9ab34b5917577f3576ec68189319c3ea89268690e2e825804
+updated: 2019-04-10T19:37:05.759016489+06:00
+>>>>>>> Add Env for Group name
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -13,7 +18,11 @@ imports:
   subpackages:
   - compute/metadata
 - name: github.com/appscode/go
+<<<<<<< HEAD
   version: 50c98d5fbcddac827713a481a7e34a26df5e4b57
+=======
+  version: 0b57eb4d176d5c0046b60f3a600b0e065c21b9de
+>>>>>>> Add Env for Group name
   subpackages:
   - analytics
   - arrays
@@ -180,6 +189,10 @@ imports:
   - version
   - wal
   - wal/walpb
+- name: github.com/coreos/go-semver
+  version: 568e959cd89871e61434c1143528d9162da89ef2
+  subpackages:
+  - semver
 - name: github.com/coreos/go-systemd
   version: 39ca1b05acc7ad1220e09f133283b8859a8b71ab
   subpackages:
@@ -336,10 +349,14 @@ imports:
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
 <<<<<<< HEAD
+<<<<<<< HEAD
   version: 84ad380b12d81c148855ff56811e6811c293a9c9
 =======
   version: 0b6ae7091f0e61c750a7c052e377b5829a654df3
 >>>>>>> Configuring StatefulSet and Governing svc
+=======
+  version: 6208909ecbf4bd00f74345c526a44889da719cef
+>>>>>>> Add Env for Group name
   subpackages:
   - apis
   - apis/authorization
@@ -476,7 +493,7 @@ imports:
 - name: github.com/russross/blackfriday
   version: 05f3235734ad95d0016f6a23902f06461fcf567a
 - name: github.com/satori/go.uuid
-  version: 879c5887cd475cd7864858769793b2ceb0d44feb
+  version: f58768cc1a7a7e77a3bd49e98cdd21419399b6a3
 - name: github.com/sergi/go-diff
   version: 24e2351369ec4949b2ed0dc5c477afdd4c4034e8
   repo: https://github.com/sergi/go-diff

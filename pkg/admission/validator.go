@@ -2,10 +2,12 @@ package admission
 
 import (
 	"fmt"
+	"github.com/coreos/go-semver/semver"
 	"strings"
 	"sync"
 
 	"github.com/appscode/go/log"
+	cat_api "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
 	amv "github.com/kubedb/apimachinery/pkg/validator"
@@ -124,18 +126,83 @@ func (a *MySQLValidator) Admit(req *admission.AdmissionRequest) *admission.Admis
 	return status
 }
 
+func recursivelyVersionCompare(versionA []int64, versionB []int64) int {
+	if len(versionA) == 0 {
+		return 0
+	}
+
+	a := versionA[0]
+	b := versionB[0]
+
+	if a > b {
+		return 1
+	} else if a < b {
+		return -1
+	}
+
+	return recursivelyVersionCompare(versionA[1:], versionB[1:])
+}
+
+func validateVersion(version string) error {
+	recommended, err := semver.NewVersion(api.MySQLGRRecommendedVersion)
+	if err != nil {
+		return fmt.Errorf("unable to parse recommended MySQL version: %v", err)
+	}
+
+	given, err := semver.NewVersion(version)
+	if err != nil {
+		return fmt.Errorf("unable to parse given MySQL version %s: %v", version, err)
+	}
+
+	if cmp := recursivelyVersionCompare(recommended.Slice(), given.Slice()); cmp != 0 {
+		return fmt.Errorf("current MySQL server version for group replication is %s", api.MySQLGRRecommendedVersion)
+	}
+
+	return nil
+}
+
+func validateBaseServerID(baseServerID uint) error {
+	if baseServerID <= api.MySQLMaxBaseServerID {
+		return nil
+	}
+	return fmt.Errorf("invalid baseServerId specified, should be in range [1, %d]", api.MySQLMaxBaseServerID)
+}
+
 // ValidateMySQL checks if the object satisfies all the requirements.
 // It is not method of Interface, because it is referenced from controller package too.
 func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *api.MySQL, strictValidation bool) error {
-	if mysql.Spec.Version == "" {
-		return errors.New(`'spec.version' is missing`)
-	}
-	if _, err := extClient.CatalogV1alpha1().MySQLVersions().Get(string(mysql.Spec.Version), metav1.GetOptions{}); err != nil {
+	//if mysql.Spec.Version == "" {
+	//	return errors.New(`'spec.version' is missing`)
+	//}
+	var (
+		err   error
+		myVer *cat_api.MySQLVersion
+	)
+	if myVer, err = extClient.CatalogV1alpha1().MySQLVersions().Get(string(mysql.Spec.Version), metav1.GetOptions{}); err != nil {
 		return err
 	}
 
-	if mysql.Spec.Replicas == nil || *mysql.Spec.Replicas != 1 {
-		return fmt.Errorf(`spec.replicas "%v" invalid. Value must be one`, mysql.Spec.Replicas)
+	if mysql.Spec.Replicas == nil {
+		return fmt.Errorf(`spec.replicas "%v" invalid. Value must be greater than 0`, mysql.Spec.Replicas)
+	}
+	if *mysql.Spec.Replicas == 1 && mysql.Spec.Group != nil {
+		return fmt.Errorf("group shouldn't start with 1 member, recommended group size is from %d to %d",
+			api.MySQLDefaultGroupSize, api.MySQLMaxGroupMembers)
+	}
+	if *mysql.Spec.Replicas > api.MySQLMaxGroupMembers {
+		return fmt.Errorf("group size can't be greater than max size %d (see https://dev.mysql.com/doc/refman/5.7/en/group-replication-frequently-asked-questions.html",
+			api.MySQLMaxGroupMembers)
+	}
+	if *mysql.Spec.Replicas > 1 {
+		if err = validateVersion(myVer.Spec.Version); err != nil {
+			return err
+		}
+		if mysql.Spec.Group.GroupName == "" {
+			return errors.New("invalid group name is set")
+		}
+		if err = validateBaseServerID(*mysql.Spec.Group.BaseServerID); err != nil {
+			return err
+		}
 	}
 
 	if err := amv.ValidateEnvVar(mysql.Spec.PodTemplate.Spec.Env, forbiddenEnvVars, api.ResourceKindMySQL); err != nil {

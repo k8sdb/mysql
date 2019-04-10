@@ -2,6 +2,7 @@ package admission
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"sync"
 
 	"github.com/appscode/go/log"
@@ -103,6 +104,29 @@ func setDefaultValues(client kubernetes.Interface, extClient cs.Interface, mysql
 
 	if mysql.Spec.Replicas == nil {
 		mysql.Spec.Replicas = types.Int32P(1)
+		if mysql.Spec.Group != nil {
+			mysql.Spec.Replicas = types.Int32P(api.MySQLDefaultGroupSize)
+		}
+	}
+
+	var (
+		err    error
+		grName uuid.UUID
+	)
+	if *mysql.Spec.Replicas > 1 && mysql.Spec.Group == nil {
+		mysql.Spec.Group = &api.MySQLGroup{}
+	}
+	if mysql.Spec.Group != nil {
+		if mysql.Spec.Group.GroupName == "" {
+			if grName, err = uuid.NewRandom(); err != nil {
+				return nil, errors.New("failed to generate a new group name")
+			}
+			mysql.Spec.Group.GroupName = grName.String()
+		}
+
+		if mysql.Spec.Group.BaseServerID == nil {
+			mysql.Spec.Group.BaseServerID = types.UIntP(api.MySQLDefaultBaseServerID)
+		}
 	}
 	mysql.SetDefaults()
 

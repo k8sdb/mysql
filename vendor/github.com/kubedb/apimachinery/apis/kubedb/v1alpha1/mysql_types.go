@@ -88,7 +88,7 @@ type MySQLSpec struct {
 type MySQLGroup struct {
 	// An uuid for MySQL Group
 	// ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_group_name
-	GroupName *string `json:"groupName,omitempty"`
+	GroupName string `json:"groupName,omitempty"`
 
 	// On a replication master and each replication slave, the --server-id
 	// option must be specified to establish a unique replication ID in the
@@ -97,8 +97,12 @@ type MySQLGroup struct {
 	// ref: https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_server_id
 	//
 	// So, BaseServerID is needed to calculate a unique server_id for each member.
+<<<<<<< HEAD
 	BaseServerID *int `json:"baseServerID,omitempty"`
 >>>>>>> Configuring StatefulSet and Governing svc
+=======
+	BaseServerID *uint `json:"baseServerID,omitempty"`
+>>>>>>> Add Env for Group name
 }
 
 type MySQLStatus struct {

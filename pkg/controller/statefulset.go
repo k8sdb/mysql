@@ -123,14 +123,14 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			Name:            api.ResourceSingularMySQL,
 			Image:           mysqlVersion.Spec.DB.Image,
 			ImagePullPolicy: core.PullIfNotPresent,
-			Args:            []string{
+			Args: []string{
 				fmt.Sprintf("-service=%s", c.GoverningService),
 				fmt.Sprintf("-on-change=/on-change.sh %s", mysqldArgs),
 			},
-			Resources:       mysql.Spec.PodTemplate.Spec.Resources,
-			LivenessProbe:   mysql.Spec.PodTemplate.Spec.LivenessProbe,
-			ReadinessProbe:  mysql.Spec.PodTemplate.Spec.ReadinessProbe,
-			Lifecycle:       mysql.Spec.PodTemplate.Spec.Lifecycle,
+			Resources:      mysql.Spec.PodTemplate.Spec.Resources,
+			LivenessProbe:  mysql.Spec.PodTemplate.Spec.LivenessProbe,
+			ReadinessProbe: mysql.Spec.PodTemplate.Spec.ReadinessProbe,
+			Lifecycle:      mysql.Spec.PodTemplate.Spec.Lifecycle,
 			Ports: []core.ContainerPort{
 				{
 					Name:          "db",
@@ -289,7 +289,7 @@ func (c *Controller) upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) 
 						},
 					},
 					{
-						Name: "GOV_SVC",
+						Name:  "GOV_SVC",
 						Value: c.GoverningService,
 					},
 					{
@@ -299,6 +299,10 @@ func (c *Controller) upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) 
 								FieldPath: "metadata.namespace",
 							},
 						},
+					},
+					{
+						Name:  "GROUP_NAME",
+						Value: *mysql.Spec.Group.GroupName,
 					},
 				}...)
 			}
