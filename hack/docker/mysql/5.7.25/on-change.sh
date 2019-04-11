@@ -77,6 +77,7 @@ function get_ip_whitelist() {
 
 echo "GROUP_SIZE=$GROUP_SIZE"
 echo "BASE_NAME=$BASE_NAME"
+echo "BASE_SERVER_ID=$BASE_SERVER_ID"
 echo "GOV_SVC=$GOV_SVC"
 echo "NAMESPACE=$POD_NAMESPACE"
 echo "GROUP_NAME=$GROUP_NAME"
@@ -106,7 +107,7 @@ export hosts=`echo -n ${peers[*]} | sed -e "s/ /,/g"`
 export seeds=`echo -n ${hosts} | sed -e "s/,/:33060,/g" && echo -n ":33060"`
 #echo ">>>>>> seeds: $seeds"
 declare -i srv_id=`hostname | sed -e "s/${BASE_NAME}-//g"`
-((srv_id+=1))
+((srv_id+=$BASE_SERVER_ID))
 #echo ">>>>>> srv_id: $srv_id"
 #export cur_host=`echo -n "$(hostname).${GOV_SVC}.${NAMESPACE}.svc.cluster.local"`
 #echo ">>>>>> cur_host: $cur_host"

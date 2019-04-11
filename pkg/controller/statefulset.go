@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/appscode/go/log"
@@ -167,7 +168,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			})
 		}
 		// Set Admin Secret as MYSQL_ROOT_PASSWORD env variable
-		in = c.upsertEnv(in, mysql)
+		in = upsertEnv(in, mysql)
 		in = upsertDataVolume(in, mysql)
 		in = upsertCustomConfig(in, mysql)
 
@@ -250,7 +251,7 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.Sta
 	return statefulSet
 }
 
-func (c *Controller) upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {
+func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularMySQL || container.Name == "exporter" {
 			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, []core.EnvVar{
@@ -290,7 +291,7 @@ func (c *Controller) upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) 
 					},
 					{
 						Name:  "GOV_SVC",
-						Value: c.GoverningService,
+						Value: mysql.GoverningServiceName(),
 					},
 					{
 						Name: "POD_NAMESPACE",
@@ -302,7 +303,11 @@ func (c *Controller) upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) 
 					},
 					{
 						Name:  "GROUP_NAME",
-						Value: *mysql.Spec.Group.GroupName,
+						Value: mysql.Spec.Group.GroupName,
+					},
+					{
+						Name:  "BASE_SERVER_ID",
+						Value: strconv.Itoa(int(*mysql.Spec.Group.BaseServerID)),
 					},
 				}...)
 			}
