@@ -2,8 +2,9 @@ package admission
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"sync"
+
+	"github.com/google/uuid"
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"

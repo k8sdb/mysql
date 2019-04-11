@@ -2,10 +2,11 @@ package admission
 
 import (
 	"fmt"
-	"github.com/coreos/go-semver/semver"
-	"github.com/google/uuid"
 	"strings"
 	"sync"
+
+	"github.com/coreos/go-semver/semver"
+	"github.com/google/uuid"
 
 	"github.com/appscode/go/log"
 	cat_api "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
