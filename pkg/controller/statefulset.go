@@ -193,6 +193,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 
 		in.Spec.UpdateStrategy = mysql.Spec.UpdateStrategy
 		in = upsertUserEnv(in, mysql)
+
 		return in
 	})
 }
@@ -254,7 +255,7 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.Sta
 func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularMySQL || container.Name == "exporter" {
-			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, []core.EnvVar{
+			envs := []core.EnvVar{
 				{
 					Name: "MYSQL_ROOT_PASSWORD",
 					ValueFrom: &core.EnvVarSource{
@@ -277,17 +278,12 @@ func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSe
 						},
 					},
 				},
-			}...)
-
+			}
 			if container.Name == api.ResourceSingularMySQL {
-				statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, []core.EnvVar{
+				envs = append(envs, []core.EnvVar{
 					{
-						Name: "BASE_NAME",
-						ValueFrom: &core.EnvVarSource{
-							FieldRef: &core.ObjectFieldSelector{
-								FieldPath: "metadata.name",
-							},
-						},
+						Name:  "BASE_NAME",
+						Value: mysql.Name,
 					},
 					{
 						Name:  "GOV_SVC",
@@ -311,8 +307,10 @@ func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSe
 					},
 				}...)
 			}
+			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, envs...)
 		}
 	}
+
 	return statefulSet
 }
 
