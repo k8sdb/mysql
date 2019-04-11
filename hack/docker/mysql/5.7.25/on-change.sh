@@ -357,5 +357,18 @@ done
 #$my --host=$h1 -e 'SELECT * FROM playground.equipment;'
 #$my --host=$h2 -e 'SELECT * FROM playground.equipment;'
 
+#my="mysql -u root --password=U2RQRugfYvzgaBi4"
+#h0=my-galera-0.my-galera-gvr.demo.svc.cluster.local
+#h1=my-galera-1.my-galera-gvr.demo.svc.cluster.local
+#h2=my-galera-2.my-galera-gvr.demo.svc.cluster.local
+#h3=my-galera-3.my-galera-gvr.demo.svc.cluster.local
+#$my --host=$h0 -e 'SELECT * FROM performance_schema.replication_group_members;'
+#$my --host=$h1 -e 'SELECT * FROM performance_schema.replication_group_members;'
+#$my --host=$h2 -e 'SELECT * FROM performance_schema.replication_group_members;'
+#$my --host=$h0 -e 'CREATE DATABASE playground; CREATE TABLE playground.equipment ( id INT NOT NULL AUTO_INCREMENT, type VARCHAR(50), quant INT, color VARCHAR(25), PRIMARY KEY(id)); INSERT INTO playground.equipment (type, quant, color) VALUES ("slide", 2, "blue");'
+#$my --host=$h0 -e 'SELECT * FROM playground.equipment;'
+#$my --host=$h1 -e 'SELECT * FROM playground.equipment;'
+#$my --host=$h2 -e 'SELECT * FROM playground.equipment;'
+
 
 # =========================================

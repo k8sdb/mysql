@@ -5,10 +5,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/appscode/go/log"
 	"github.com/coreos/go-semver/semver"
 	"github.com/google/uuid"
-
-	"github.com/appscode/go/log"
 	cat_api "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
@@ -148,7 +147,7 @@ func recursivelyVersionCompare(versionA []int64, versionB []int64) int {
 func validateVersion(version string) error {
 	recommended, err := semver.NewVersion(api.MySQLGRRecommendedVersion)
 	if err != nil {
-		return fmt.Errorf("unable to parse recommended MySQL version %s: %v",api.MySQLGRRecommendedVersion, err)
+		return fmt.Errorf("unable to parse recommended MySQL version %s: %v", api.MySQLGRRecommendedVersion, err)
 	}
 
 	given, err := semver.NewVersion(version)

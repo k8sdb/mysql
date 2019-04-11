@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/google/uuid"
-
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
+	"github.com/google/uuid"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	cs "github.com/kubedb/apimachinery/client/clientset/versioned"
 	"github.com/pkg/errors"

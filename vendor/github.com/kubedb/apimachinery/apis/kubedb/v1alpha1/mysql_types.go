@@ -32,8 +32,8 @@ type MySQLSpec struct {
 	// Version of MySQL to be deployed.
 	Version types.StrYo `json:"version"`
 
-	// Number of instances to deploy for a MySQL database.
-	// In case of MySQL group replication, max replicas is 9. The preferred # of replicas is 3.
+	// Number of instances to deploy for a MySQL database. In case of MySQL group
+	// replication, max allowed value is 9 (default 3).
 	// (see ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-frequently-asked-questions.html)
 	Replicas *int32 `json:"replicas,omitempty"`
 

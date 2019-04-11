@@ -438,7 +438,7 @@ func validGroup(old api.MySQL) api.MySQL {
 	old.Spec.Version = api.MySQLGRRecommendedVersion
 	old.Spec.Replicas = types.Int32P(api.MySQLDefaultGroupSize)
 	old.Spec.Group = &api.MySQLGroup{
-		GroupName: "dc002fc3-c412-4d18-b1d4-66c1fbfbbc9b",
+		GroupName:    "dc002fc3-c412-4d18-b1d4-66c1fbfbbc9b",
 		BaseServerID: types.UIntP(api.MySQLDefaultBaseServerID),
 	}
 
@@ -496,7 +496,7 @@ func groupWithBaseServerIDZero() api.MySQL {
 
 func groupWithBaseServerIDExceededMaxLimit() api.MySQL {
 	old := validGroup(sampleMySQL())
-	old.Spec.Group.BaseServerID = types.UIntP(api.MySQLMaxBaseServerID +1)
+	old.Spec.Group.BaseServerID = types.UIntP(api.MySQLMaxBaseServerID + 1)
 
 	return old
 }

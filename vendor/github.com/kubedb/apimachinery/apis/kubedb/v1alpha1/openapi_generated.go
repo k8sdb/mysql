@@ -2372,7 +2372,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MySQLSpec(ref common.ReferenceCall
 					},
 					"replicas": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Number of instances to deploy for a MySQL database. In case of MySQL group replication, max replicas is 9. The preferred # of replicas is 3. (see ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-frequently-asked-questions.html)",
+							Description: "Number of instances to deploy for a MySQL database. In case of MySQL group replication, max allowed value is 9 (default 3). (see ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-frequently-asked-questions.html)",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
