@@ -173,9 +173,6 @@ func validateBaseServerID(baseServerID uint) error {
 // ValidateMySQL checks if the object satisfies all the requirements.
 // It is not method of Interface, because it is referenced from controller package too.
 func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *api.MySQL, strictValidation bool) error {
-	//if mysql.Spec.Version == "" {
-	//	return errors.New(`'spec.version' is missing`)
-	//}
 	var (
 		err   error
 		myVer *cat_api.MySQLVersion

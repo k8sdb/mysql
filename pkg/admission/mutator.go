@@ -113,9 +113,7 @@ func setDefaultValues(client kubernetes.Interface, extClient cs.Interface, mysql
 		err    error
 		grName uuid.UUID
 	)
-	//if *mysql.Spec.Replicas > 1 && mysql.Spec.Group == nil {
-	//	mysql.Spec.Group = &api.MySQLGroup{}
-	//}
+
 	if mysql.Spec.Group != nil {
 		if mysql.Spec.Group.GroupName == "" {
 			if grName, err = uuid.NewRandom(); err != nil {

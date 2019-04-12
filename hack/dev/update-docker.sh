@@ -62,6 +62,7 @@ while test $# -gt 0; do
 done
 
 dbversions=(
+  5.7.25
   5.7
   8.0.3
   8.0.14
@@ -79,7 +80,8 @@ echo ""
 if [ "$DB_UPDATE" -eq 1 ]; then
   cowsay -f tux "Processing database images" || true
   for db in "${dbversions[@]}"; do
-    ${REPO_ROOT}/hack/docker/mysql/${db}/make.sh
+    ${REPO_ROOT}/hack/docker/mysql/${db}/make.sh build
+    ${REPO_ROOT}/hack/docker/mysql/${db}/make.sh push
   done
 fi
 

@@ -59,11 +59,6 @@ func (c *Controller) create(mysql *api.MySQL) error {
 		return fmt.Errorf(`failed to create Service: "%v/%v". Reason: %v`, mysql.Namespace, governingService, err)
 	}
 	c.GoverningService = governingService
-	//// create Governing Service
-	//governingService := c.GoverningService
-	//if err := c.CreateGoverningService(governingService, mysql.Namespace); err != nil {
-	//	return fmt.Errorf(`failed to create Service: "%v/%v". Reason: %v`, mysql.Namespace, governingService, err)
-	//}
 
 	if c.EnableRBAC {
 		// Ensure ClusterRoles for statefulsets

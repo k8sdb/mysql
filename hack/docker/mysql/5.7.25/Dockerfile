@@ -5,5 +5,4 @@ COPY peer-finder /usr/local/bin/
 
 RUN chmod +x /on-change.sh
 
-#ENTRYPOINT ["/run.sh"]
 ENTRYPOINT ["peer-finder"]

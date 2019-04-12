@@ -21,100 +21,36 @@ function get_host_name() {
     echo -n "$BASE_NAME-$1.$GOV_SVC.$NAMESPACE.svc.cluster.local"
 }
 
-# wait_for_each_instance_be_ready( group_size, base_name, gov_svc, ns)
-# gr_size   = size of the replication group
-# base_name = the name of MySQL CRD object
-# gov_svc   = the governing service for the StatefulSet (representing the group)
-# ns        = the namespace
-function wait_for_each_instance_be_ready() {
-    local gr_size=$1
-    local base_name=$2
-    local gov_svc=$3
-    local ns=$4
-
-    while true; do
-        ready=0
-        for ((i=0;i<$gr_size;i++)); do
-            out=`hostname`
-#            out=`kubectl exec -it -n $ns $base_name-$i -c mysql -- hostname`
-            if [[ "$out" = "" ]]; then
-                ready=1
-                break
-            fi
-        done
-
-        if [[ $ready = 0 ]]; then
-            break
-        fi
-    done
-
-    log "INFO" "All servers are ready :)"
-}
-
-# get_ip_whitelist( group_size, base_name, gov_svc, ns)
-# gr_size   = size of the group
-# base_name = the name of MySQL CRD object
-# gov_svc   = the governing service for the StatefulSet (representing the group)
-# ns        = the namespace
-function get_ip_whitelist() {
-    local gr_size=$1
-    local base_name=$2
-    local gov_svc=$3
-    local ns=$4
-
-    for ((i=0;i<$gr_size;i++)); do
-        if (("$i" > "0")); then
-            echo -n ",";
-        fi
-#        echo -n "$base_name-$i.$gov_svc.$ns.svc"
-        get_host_name "$i"
-    done
-}
-
-# ==============
-# export GROUP_SIZE=5; export BASE_NAME=my-galera; export GOV_SVC=kubedb-gvr; export NAMESPACE=demo
-# ==============
-
-echo "GROUP_SIZE=$GROUP_SIZE"
-echo "BASE_NAME=$BASE_NAME"
-echo "BASE_SERVER_ID=$BASE_SERVER_ID"
-echo "GOV_SVC=$GOV_SVC"
-echo "NAMESPACE=$POD_NAMESPACE"
-echo "GROUP_NAME=$GROUP_NAME"
-echo ""
-echo "USER=$USER"
-echo "PASSWORD=$PASSWORD"
-echo ""
-
+# getting the hostname from stdin sent by peer-finder program
 cur_hostname=$(hostname)
 export cur_host=
 log "INFO" "Reading standard input..."
 while read -ra line; do
-#    echo ">>>>>>>>> line: $line"
     if [[ "${line}" == *"${cur_hostname}"* ]]; then
         cur_host="$line"
         log "INFO" "I am $cur_host"
     fi
     peers=("${peers[@]}" "$line")
 done
-echo "================= args: '${peers[*]}'"
+log "INFO" "Trying to start group with peers'${peers[*]}'"
 
-#wait_for_each_instance_be_ready ${GROUP_SIZE} ${BASE_NAME} ${GOV_SVC} ${NAMESPACE}
+# store the value for the variables those will be written in /etc/mysql/my.cnf file
 
-#export hosts=`get_ip_whitelist ${GROUP_SIZE} ${BASE_NAME} ${GOV_SVC} ${NAMESPACE}`
+# comma separated host names
 export hosts=`echo -n ${peers[*]} | sed -e "s/ /,/g"`
-#echo ">>>>>> ips: '$hosts'"
+
+# comma separated seed addresses of the hosts (host1:port1,host2:port2,...)
 export seeds=`echo -n ${hosts} | sed -e "s/,/:33060,/g" && echo -n ":33060"`
-#echo ">>>>>> seeds: $seeds"
+
+# server-id calculated as $BASE_SERVER_ID + pod index
 declare -i srv_id=`hostname | sed -e "s/${BASE_NAME}-//g"`
 ((srv_id+=$BASE_SERVER_ID))
-#echo ">>>>>> srv_id: $srv_id"
-#export cur_host=`echo -n "$(hostname).${GOV_SVC}.${NAMESPACE}.svc.cluster.local"`
-#echo ">>>>>> cur_host: $cur_host"
-export cur_addr="${cur_host}:33060"
-#echo ">>>>>> cur_addr: $cur_addr"
 
-#echo "/etc/mysql/my.cnf contents are as follows:"
+export cur_addr="${cur_host}:33060"
+
+# the mysqld configurations have take by following
+# 01. official doc: https://dev.mysql.com/doc/refman/5.7/en/group-replication-configuring-instances.html
+# 02. digitalocean doc: https://www.digitalocean.com/community/tutorials/how-to-configure-mysql-group-replication-on-ubuntu-16-04
 log "INFO" "Storing default mysqld config into /etc/mysql/my.cnf"
 cat >> /etc/mysql/my.cnf <<EOL
 
@@ -152,19 +88,18 @@ report_host = "${cur_host}"
 loose-group_replication_local_address = "${cur_addr}"
 EOL
 
-## TODO: remove this
-#echo ""
-#cat /etc/mysql/my.cnf
-#echo ""
+log "INFO" "Starting mysql server with 'docker-entrypoint.sh mysqld $@'..."
 
-log "INFO" "Starting mysql server..."
+# ensure the mysqld process be stopped
 /etc/init.d/mysql stop
-echo "docker-entrypoint.sh mysqld $@"
+
+# run the mysqld process in background with user provided arguments if any
 docker-entrypoint.sh mysqld $@ >/dev/null 2>&1 &
 pid=$!
-echo $pid
+log "INFO" "The process id of mysqld is '$pid'"
 sleep 5
 
+# wait for all mysql servers be running (alive)
 for host in ${peers[*]}; do
     for i in {60..0} ; do
         out=`mysqladmin -u ${USER} --password=${PASSWORD} --host=${host} ping 2> /dev/null`
@@ -186,15 +121,17 @@ done
 
 log "INFO" "All servers (${peers[*]}) are ready"
 
+# now we need to configure a replication user for each server.
+# the procedures for this have been taken by following
+# 01. official doc (section from 17.2.1.3 to 17.2.1.5): https://dev.mysql.com/doc/refman/5.7/en/group-replication-user-credentials.html
+# 02. digitalocean doc: https://www.digitalocean.com/community/tutorials/how-to-configure-mysql-group-replication-on-ubuntu-16-04
 export mysql_header="mysql -u ${USER} --password=${PASSWORD}"
 export member_hosts=( `echo -n ${hosts} | sed -e "s/,/ /g"` )
 
 for host in ${member_hosts[*]} ; do
-#    echo ">>>>>>> host: $host"
     log "INFO" "Initializing the server (${host})..."
 
     mysql="$mysql_header --host=$host"
-#    echo "+++++++++++ $mysql"
 
     out=`${mysql} -N -e "select count(host) from mysql.user where mysql.user.user='repl';" 2> /dev/null | awk '{print$1}'`
     if [[ "$out" -eq "0" ]]; then
@@ -206,39 +143,20 @@ for host in ${member_hosts[*]} ; do
         ${mysql} -N -e "GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';" 2> /dev/null
         ${mysql} -N -e "FLUSH PRIVILEGES;" 2> /dev/null
         ${mysql} -N -e "SET SQL_LOG_BIN=1;" 2> /dev/null
-
-    #    echo ">>>> plugins are as follows:"
-    #    out=`${mysql_header} -N -e "SHOW PLUGINS;" 2> /dev/null || true`
-    #    echo ">>>> plugins= $out"
     else
         log "INFO" "Replication user info exists"
         is_new=("${is_new[@]}" "0")
     fi
 
-    #mysql -u root --password=uWuj7-dbvefZVnJx
-    ## mysql>
-    #SET SQL_LOG_BIN=0;
-    #CREATE USER 'repl'@'%' IDENTIFIED BY 'password' REQUIRE SSL;
-    #GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
-    #FLUSH PRIVILEGES;
-    ## -> from here
-    #SET SQL_LOG_BIN=1;
-
+    # ensure the group replication plugin be installed
     ${mysql} -N -e "CHANGE MASTER TO MASTER_USER='repl', MASTER_PASSWORD='password' FOR CHANNEL 'group_replication_recovery';" 2> /dev/null
     out=`${mysql} -N -e 'SHOW PLUGINS;' 2> /dev/null | grep group_replication`
-#    echo ">>>>>>>>> plugins: $out"
     if [[ -z "$out" ]]; then
         log "INFO" "Installing group replication plugin..."
         ${mysql} -e "INSTALL PLUGIN group_replication SONAME 'group_replication.so';" 2> /dev/null
     else
         log "INFO" "Already group replication plugin is installed"
     fi
-
-##     TODO: it is optional. So remove this
-#    sleep 5
-#    echo ">>>> plugins are as follows:"
-#    out=`${mysql} -N -e "SHOW PLUGINS;" 2> /dev/null`
-#    echo ">>>> plugins $out"
 done
 
 function find_group() {
@@ -249,8 +167,6 @@ function find_group() {
         export mysql="$mysql_header --host=${host}"
         # value may be 'UNDEFINED'
         primary_id=`${mysql} -N -e "SHOW STATUS WHERE Variable_name = 'group_replication_primary_member';" 2>/dev/null | awk '{print $2}'`
-#        ${mysql_header} -N -e "SELECT MEMBER_PORT FROM performance_schema.replication_group_members;"
-
         if [[ -n "$primary_id" ]]; then
             ids=( `${mysql} -N -e "SELECT MEMBER_ID FROM performance_schema.replication_group_members WHERE MEMBER_STATE = 'ONLINE' OR MEMBER_STATE = 'RECOVERING';" 2>/dev/null` )
 
@@ -276,29 +192,21 @@ export primary_host=`get_host_name 0`
 export found=`find_group ${member_hosts[*]}`
 primary_idx=`echo ${primary_host} | sed -e "s/[a-z.-]//g"`
 
+# first start group replication inside the primary
 log "INFO" "Checking whether there exists any replication group or not..."
 if [[ "$found" = "0" ]]; then
     mysql="$mysql_header --host=$primary_host"
-#    echo "+++++++++++ $mysql"
-
-#    out=`${mysql} -N -e "SELECT MEMBER_STATE FROM performance_schema.replication_group_members;"`
     out=`${mysql} -N -e "SELECT MEMBER_STATE FROM performance_schema.replication_group_members WHERE MEMBER_HOST = '$primary_host';"`
-#    echo ">>>>>>> state: $out"
     if [[ -z "$out" || "$out" = "OFFLINE" ]]; then
         log "INFO" "No group is found and bootstrapping one on host '$primary_host'..."
 
         ${mysql} -N -e "STOP GROUP_REPLICATION;" # 2>/dev/null
-#        ${mysql} -N -e 'SET GLOBAL group_replication_ip_whitelist="$hosts"' # 2>/dev/null
-#        ${mysql} -N -e 'SET GLOBAL group_replication_group_seeds="$seeds"' # 2>/dev/null
-#        echo "
-#        ++++++++++ primary_idx: $primary_idx
-#        ++++++++++ is_new[$primary_idx]: ${is_new[$primary_idx]}
-#        "
+
         if [[ "${is_new[$tmp]}" -eq "1" ]]; then
             log "INFO" "RESET MASTER in primary host $primary_host..."
             ${mysql} -N -e "RESET MASTER;" # 2>/dev/null
         fi
-#        ${mysql} -N -e "RESET MASTER;" # 2>/dev/null
+
         ${mysql} -N -e "SET GLOBAL group_replication_bootstrap_group=ON;" # 2>/dev/null
         ${mysql} -N -e "START GROUP_REPLICATION;" # 2>/dev/null
         ${mysql} -N -e "SET GLOBAL group_replication_bootstrap_group=OFF;" # 2>/dev/null
@@ -309,28 +217,22 @@ else
     log "INFO" "A group is found and the primary host is '$primary_host'..."
 fi
 
+# then start group replication inside the others
 declare -i tmp=0
 for host in ${member_hosts[*]}; do
     if [[ "$host" != "$primary_host" ]]; then
         mysql="$mysql_header --host=$host"
-#        echo "+++++++++++ $mysql"
-
-#        out=`${mysql} -N -e "SELECT MEMBER_STATE FROM performance_schema.replication_group_members;"`
         out=`${mysql} -N -e "SELECT MEMBER_STATE FROM performance_schema.replication_group_members WHERE MEMBER_HOST = '$host';"`
-#        echo ">>>>>>> state: $out"
         if [[ -z "$out" || "$out" = "OFFLINE" ]]; then
             log "INFO" "Starting group replication on (${host})..."
 
             ${mysql} -N -e "STOP GROUP_REPLICATION;" # 2>/dev/null
-#            echo "
-#            ++++++++++ tmp: $tmp
-#            ++++++++++ is_new[$tmp]: ${is_new[$tmp]}
-#            "
+
             if [[ "${is_new[$tmp]}" -eq "1" ]]; then
                 log "INFO" "RESET MASTER in host $host..."
                 ${mysql} -N -e "RESET MASTER;" # 2>/dev/null
             fi
-#            ${mysql} -N -e "RESET MASTER;" # 2>/dev/null
+
             ${mysql} -N -e "START GROUP_REPLICATION;" # 2>/dev/null
         else
             log "INFO" "Member state is unknown on host '${host}'..."
@@ -343,32 +245,3 @@ while true; do
     echo -n .
     sleep 1
 done
-
-#my="mysql -u root --password=uWuj7-dbvefZVnJx"
-#h0=my-galera-0.kubedb-gvr.demo.svc.cluster.local
-#h1=my-galera-1.kubedb-gvr.demo.svc.cluster.local
-#h2=my-galera-2.kubedb-gvr.demo.svc.cluster.local
-#h3=my-galera-3.kubedb-gvr.demo.svc.cluster.local
-#$my --host=$h0 -e 'SELECT * FROM performance_schema.replication_group_members;'
-#$my --host=$h1 -e 'SELECT * FROM performance_schema.replication_group_members;'
-#$my --host=$h2 -e 'SELECT * FROM performance_schema.replication_group_members;'
-#$my --host=$h0 -e 'CREATE DATABASE playground; CREATE TABLE playground.equipment ( id INT NOT NULL AUTO_INCREMENT, type VARCHAR(50), quant INT, color VARCHAR(25), PRIMARY KEY(id)); INSERT INTO playground.equipment (type, quant, color) VALUES ("slide", 2, "blue");'
-#$my --host=$h0 -e 'SELECT * FROM playground.equipment;'
-#$my --host=$h1 -e 'SELECT * FROM playground.equipment;'
-#$my --host=$h2 -e 'SELECT * FROM playground.equipment;'
-
-#my="mysql -u root --password=U2RQRugfYvzgaBi4"
-#h0=my-galera-0.my-galera-gvr.demo.svc.cluster.local
-#h1=my-galera-1.my-galera-gvr.demo.svc.cluster.local
-#h2=my-galera-2.my-galera-gvr.demo.svc.cluster.local
-#h3=my-galera-3.my-galera-gvr.demo.svc.cluster.local
-#$my --host=$h0 -e 'SELECT * FROM performance_schema.replication_group_members;'
-#$my --host=$h1 -e 'SELECT * FROM performance_schema.replication_group_members;'
-#$my --host=$h2 -e 'SELECT * FROM performance_schema.replication_group_members;'
-#$my --host=$h0 -e 'CREATE DATABASE playground; CREATE TABLE playground.equipment ( id INT NOT NULL AUTO_INCREMENT, type VARCHAR(50), quant INT, color VARCHAR(25), PRIMARY KEY(id)); INSERT INTO playground.equipment (type, quant, color) VALUES ("slide", 2, "blue");'
-#$my --host=$h0 -e 'SELECT * FROM playground.equipment;'
-#$my --host=$h1 -e 'SELECT * FROM playground.equipment;'
-#$my --host=$h2 -e 'SELECT * FROM playground.equipment;'
-
-
-# =========================================
