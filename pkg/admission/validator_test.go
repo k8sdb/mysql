@@ -279,25 +279,25 @@ var cases = []struct {
 		false,
 		false,
 	},
-	{"Create group with invalid MySQL server version",
+	{"Create group with unsupported MySQL server version",
 		requestKind,
 		"foo",
 		"default",
 		admission.Create,
-		groupWithUnequalServerVersion(),
+		groupWithUnsupportedServerVersion(),
 		api.MySQL{},
 		false,
-		false,
+		true,
 	},
-	{"Create group with invalid MySQL server version",
+	{"Create group with Non-tri formatted MySQL server version",
 		requestKind,
 		"foo",
 		"default",
 		admission.Create,
-		groupWithNonTriFormatedServerVersion(),
+		groupWithNonTriFormattedServerVersion(),
 		api.MySQL{},
 		false,
-		false,
+		true,
 	},
 	{"Create group with empty group name",
 		requestKind,
@@ -459,14 +459,14 @@ func groupWithOverReplicas() api.MySQL {
 	return old
 }
 
-func groupWithUnequalServerVersion() api.MySQL {
+func groupWithUnsupportedServerVersion() api.MySQL {
 	old := validGroup(sampleMySQL())
 	old.Spec.Version = "8.0"
 
 	return old
 }
 
-func groupWithNonTriFormatedServerVersion() api.MySQL {
+func groupWithNonTriFormattedServerVersion() api.MySQL {
 	old := validGroup(sampleMySQL())
 	old.Spec.Version = "5.6"
 

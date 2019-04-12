@@ -197,9 +197,6 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 			api.MySQLMaxGroupMembers)
 	}
 	if mysql.Spec.Group != nil {
-		if err = validateVersion(myVer.Spec.Version); err != nil {
-			return err
-		}
 		if _, err = uuid.Parse(mysql.Spec.Group.GroupName); err != nil {
 			return errors.Wrapf(err, "invalid group name is set")
 		}
@@ -240,6 +237,10 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 
 		if mysqlVersion.Spec.Deprecated {
 			return fmt.Errorf("mysql %s/%s is using deprecated version %v. Skipped processing", mysql.Namespace, mysql.Name, mysqlVersion.Name)
+		}
+
+		if err = validateVersion(myVer.Spec.Version); err != nil {
+			return err
 		}
 	}
 
