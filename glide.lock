@@ -1,5 +1,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 hash: 80cec8834d5ba0fd13d7efaba2ed2c5b51b7c14e7f69f464a4c95834dd8bd1a7
 updated: 2019-04-23T02:36:08.357857592-07:00
 =======
@@ -18,6 +19,10 @@ updated: 2019-04-11T12:29:03.562405178+06:00
 =======
 updated: 2019-04-11T18:56:58.24035804+06:00
 >>>>>>> Others update
+=======
+hash: 708e39ee7becf1416f5ced5f061c4f92200bfa5c4c7e4de32398e81c733630d6
+updated: 2019-04-15T11:51:13.845594907+06:00
+>>>>>>> revendor
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -27,10 +32,14 @@ imports:
   - compute/metadata
 - name: github.com/appscode/go
 <<<<<<< HEAD
+<<<<<<< HEAD
   version: 50c98d5fbcddac827713a481a7e34a26df5e4b57
 =======
   version: 0b57eb4d176d5c0046b60f3a600b0e065c21b9de
 >>>>>>> Add Env for Group name
+=======
+  version: 50c98d5fbcddac827713a481a7e34a26df5e4b57
+>>>>>>> revendor
   subpackages:
   - analytics
   - arrays
@@ -117,10 +126,14 @@ imports:
   version: 33e0aa1cb7c019ccc3fbe049a8262a6403d30504
 - name: github.com/codeskyblue/go-sh
 <<<<<<< HEAD
+<<<<<<< HEAD
   version: 76bd3d59ff27c0518096e0af6c165bf626b809ec
 =======
   version: f4ce45e7999ee02d582441c916f1b32fb548dba6
 >>>>>>> Configuring StatefulSet and Governing svc
+=======
+  version: 76bd3d59ff27c0518096e0af6c165bf626b809ec
+>>>>>>> revendor
 - name: github.com/coreos/etcd
   version: 27fc7e2296f506182f58ce846e48f36b34fe6842
   subpackages:
@@ -1064,7 +1077,7 @@ imports:
   - util/retry
   - util/workqueue
 - name: k8s.io/klog
-  version: aaeac2fedbead93263ae78b80849cac7ff5a5fbb
+  version: e531227889390a39d9533dde61f590fe9f4b0035
 - name: k8s.io/kube-aggregator
   version: 5268a8efdb65d805d4ba7fab84c47291ef797fe6
   subpackages:
