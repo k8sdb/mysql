@@ -145,8 +145,7 @@ if [ "$MINIKUBE" -eq 1 ]; then
       --enable-validating-webhook=true \
       --kubeconfig="$HOME/.kube/config" \
       --authorization-kubeconfig="$HOME/.kube/config" \
-      --authentication-kubeconfig="$HOME/.kube/config" \
-      --bypass-validating-webhook-xray=true
+      --authentication-kubeconfig="$HOME/.kube/config"
   fi
 fi
 

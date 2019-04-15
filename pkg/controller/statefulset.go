@@ -126,7 +126,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			ImagePullPolicy: core.PullIfNotPresent,
 			Args: []string{
 				fmt.Sprintf("-service=%s", c.GoverningService),
-				fmt.Sprintf("-on-change=/on-change.sh %s", mysqldArgs),
+				fmt.Sprintf("-on-start=/on-start.sh %s", mysqldArgs),
 			},
 			Resources:      mysql.Spec.PodTemplate.Spec.Resources,
 			LivenessProbe:  mysql.Spec.PodTemplate.Spec.LivenessProbe,
@@ -299,7 +299,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSe
 					},
 					{
 						Name:  "GROUP_NAME",
-						Value: mysql.Spec.Group.GroupName,
+						Value: mysql.Spec.Group.Name,
 					},
 					{
 						Name:  "BASE_SERVER_ID",

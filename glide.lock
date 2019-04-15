@@ -21,8 +21,12 @@ updated: 2019-04-11T18:56:58.24035804+06:00
 >>>>>>> Others update
 =======
 hash: 708e39ee7becf1416f5ced5f061c4f92200bfa5c4c7e4de32398e81c733630d6
+<<<<<<< HEAD
 updated: 2019-04-15T11:51:13.845594907+06:00
 >>>>>>> revendor
+=======
+updated: 2019-04-17T11:29:57.482432883+06:00
+>>>>>>> Fix  reviews
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -373,6 +377,7 @@ imports:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   version: 84ad380b12d81c148855ff56811e6811c293a9c9
 =======
   version: 0b6ae7091f0e61c750a7c052e377b5829a654df3
@@ -386,6 +391,9 @@ imports:
 =======
   version: 9081af83ab4093641176150e3c80a022cfddde94
 >>>>>>> Others update
+=======
+  version: 4411e992a8829ae62168b9356aa5f552a8b9f7bd
+>>>>>>> Fix  reviews
   subpackages:
   - apis
   - apis/authorization

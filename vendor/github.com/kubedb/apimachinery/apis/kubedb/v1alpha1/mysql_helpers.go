@@ -3,6 +3,7 @@ package v1alpha1
 import (
 	"fmt"
 
+	"github.com/appscode/go/types"
 	"github.com/kubedb/apimachinery/apis"
 	"github.com/kubedb/apimachinery/apis/kubedb"
 	apps "k8s.io/api/apps/v1"
@@ -175,6 +176,13 @@ func (m *MySQL) SetDefaults() {
 func (m *MySQLSpec) SetDefaults() {
 	if m == nil {
 		return
+	}
+
+	if m.Replicas == nil {
+		m.Replicas = types.Int32P(1)
+		if m.Group != nil {
+			m.Replicas = types.Int32P(MySQLDefaultGroupSize)
+		}
 	}
 
 	// perform defaulting

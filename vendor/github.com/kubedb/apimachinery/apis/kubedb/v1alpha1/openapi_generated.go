@@ -2292,7 +2292,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MySQLGroup(ref common.ReferenceCal
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Properties: map[string]spec.Schema{
-					"groupName": {
+					"name": {
 						SchemaProps: spec.SchemaProps{
 							Description: "An uuid for MySQL Group ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_group_name",
 							Type:        []string{"string"},

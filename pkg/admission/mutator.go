@@ -102,24 +102,13 @@ func setDefaultValues(client kubernetes.Interface, extClient cs.Interface, mysql
 		return nil, errors.New(`'spec.version' is missing`)
 	}
 
-	if mysql.Spec.Replicas == nil {
-		mysql.Spec.Replicas = types.Int32P(1)
-		if mysql.Spec.Group != nil {
-			mysql.Spec.Replicas = types.Int32P(api.MySQLDefaultGroupSize)
-		}
-	}
-
-	var (
-		err    error
-		grName uuid.UUID
-	)
-
 	if mysql.Spec.Group != nil {
-		if mysql.Spec.Group.GroupName == "" {
-			if grName, err = uuid.NewRandom(); err != nil {
+		if mysql.Spec.Group.Name == "" {
+			grName, err := uuid.NewRandom()
+			if err != nil {
 				return nil, errors.New("failed to generate a new group name")
 			}
-			mysql.Spec.Group.GroupName = grName.String()
+			mysql.Spec.Group.Name = grName.String()
 		}
 
 		if mysql.Spec.Group.BaseServerID == nil {

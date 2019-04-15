@@ -88,7 +88,7 @@ type MySQLSpec struct {
 type MySQLGroup struct {
 	// An uuid for MySQL Group
 	// ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_group_name
-	GroupName string `json:"groupName,omitempty"`
+	Name string `json:"name,omitempty"`
 
 	// On a replication master and each replication slave, the --server-id
 	// option must be specified to establish a unique replication ID in the

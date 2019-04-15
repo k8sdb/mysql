@@ -127,6 +127,15 @@ func (a *MySQLValidator) Admit(req *admission.AdmissionRequest) *admission.Admis
 	return status
 }
 
+// recursivelyVersionCompare() receives two slices versionA and versionB of size 3 containing
+// major, minor and patch parts of the given versions (versionA and versionB) in indices
+// 0, 1 and 2 respectively. This function compares these parts of versionA and versionB. It returns,
+//
+// 		0;	if all parts of versionA are equal to corresponding parts of versionB
+//		1;	if for some i, version[i] > versionB[i] where from j = 0 to i-1, versionA[j] = versionB[j]
+//	   -1;	if for some i, version[i] < versionB[i] where from j = 0 to i-1, versionA[j] = versionB[j]
+//
+// ref: https://github.com/coreos/go-semver/blob/568e959cd89871e61434c1143528d9162da89ef2/semver/semver.go#L126-L141
 func recursivelyVersionCompare(versionA []int64, versionB []int64) int {
 	if len(versionA) == 0 {
 		return 0
@@ -144,6 +153,8 @@ func recursivelyVersionCompare(versionA []int64, versionB []int64) int {
 	return recursivelyVersionCompare(versionA[1:], versionB[1:])
 }
 
+// Currently, we support Group Replication for version 5.7.25. validateVersion()
+// checks whether the given version has exactly these major (5), minor (7) and patch (25).
 func validateVersion(version string) error {
 	recommended, err := semver.NewVersion(api.MySQLGRRecommendedVersion)
 	if err != nil {
@@ -163,6 +174,15 @@ func validateVersion(version string) error {
 	return nil
 }
 
+// On a replication master and each replication slave, the --server-id
+// option must be specified to establish a unique replication ID in the
+// range from 1 to 2^32 − 1. “Unique”, means that each ID must be different
+// from every other ID in use by any other replication master or slave.
+// ref: https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_server_id
+//
+// We calculate a unique server-id for each server using baseServerID field in MySQL CRD.
+// Moreover we can use maximum of 9 servers in a group. So the baseServerID should be in
+// range [0, (2^32 - 1) - 9]
 func validateBaseServerID(baseServerID uint) error {
 	if uint(0) < baseServerID && baseServerID <= api.MySQLMaxBaseServerID {
 		return nil
@@ -194,7 +214,7 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 			api.MySQLMaxGroupMembers)
 	}
 	if mysql.Spec.Group != nil {
-		if _, err = uuid.Parse(mysql.Spec.Group.GroupName); err != nil {
+		if _, err = uuid.Parse(mysql.Spec.Group.Name); err != nil {
 			return errors.Wrapf(err, "invalid group name is set")
 		}
 		if err = validateBaseServerID(*mysql.Spec.Group.BaseServerID); err != nil {
