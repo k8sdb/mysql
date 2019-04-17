@@ -102,19 +102,25 @@ func setDefaultValues(client kubernetes.Interface, extClient cs.Interface, mysql
 		return nil, errors.New(`'spec.version' is missing`)
 	}
 
-	if mysql.Spec.Group != nil {
-		if mysql.Spec.Group.Name == "" {
+	if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
+		*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
+		if mysql.Spec.Topology.Group == nil {
+			mysql.Spec.Topology.Group = &api.MySQLGroupSpec{}
+		}
+
+		if mysql.Spec.Topology.Group.Name == "" {
 			grName, err := uuid.NewRandom()
 			if err != nil {
 				return nil, errors.New("failed to generate a new group name")
 			}
-			mysql.Spec.Group.Name = grName.String()
+			mysql.Spec.Topology.Group.Name = grName.String()
 		}
 
-		if mysql.Spec.Group.BaseServerID == nil {
-			mysql.Spec.Group.BaseServerID = types.UIntP(api.MySQLDefaultBaseServerID)
+		if mysql.Spec.Topology.Group.BaseServerID == nil {
+			mysql.Spec.Topology.Group.BaseServerID = types.UIntP(api.MySQLDefaultBaseServerID)
 		}
 	}
+
 	mysql.SetDefaults()
 
 	if err := setDefaultsFromDormantDB(extClient, mysql); err != nil {

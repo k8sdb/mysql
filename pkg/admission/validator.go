@@ -190,6 +190,27 @@ func validateBaseServerID(baseServerID uint) error {
 	return fmt.Errorf("invalid baseServerId specified, should be in range [1, %d]", api.MySQLMaxBaseServerID)
 }
 
+func validateMySQLGroup(replicas int32, group api.MySQLGroupSpec) error {
+	if replicas == 1 {
+		return fmt.Errorf("group shouldn't start with 1 member, accepted value of 'spec.replicas' for group replication is in range [2, %d], default is %d if not specified",
+			api.MySQLMaxGroupMembers, api.MySQLDefaultGroupSize)
+	}
+
+	if replicas > api.MySQLMaxGroupMembers {
+		return fmt.Errorf("group size can't be greater than max size %d (see https://dev.mysql.com/doc/refman/5.7/en/group-replication-frequently-asked-questions.html",
+			api.MySQLMaxGroupMembers)
+	}
+
+	if _, err := uuid.Parse(group.Name); err != nil {
+		return errors.Wrapf(err, "invalid group name is set")
+	}
+	if err := validateBaseServerID(*group.BaseServerID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // ValidateMySQL checks if the object satisfies all the requirements.
 // It is not method of Interface, because it is referenced from controller package too.
 func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *api.MySQL, strictValidation bool) error {
@@ -205,19 +226,20 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 		return fmt.Errorf(`spec.replicas "%v" invalid. Value must be greater than 0, but for group replication this value shouldn't be more than %d'`,
 			mysql.Spec.Replicas, api.MySQLMaxGroupMembers)
 	}
-	if *mysql.Spec.Replicas == 1 && mysql.Spec.Group != nil {
-		return fmt.Errorf("group shouldn't start with 1 member, accepted value of 'spec.replicas' for group replication is in range [2, %d], default is %d if not specified",
-			api.MySQLMaxGroupMembers, api.MySQLDefaultGroupSize)
+
+	if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode == nil {
+		return errors.New("a valid 'spec.topology.mode' must be set for MySQL clustering")
 	}
-	if *mysql.Spec.Replicas > api.MySQLMaxGroupMembers && mysql.Spec.Group != nil {
-		return fmt.Errorf("group size can't be greater than max size %d (see https://dev.mysql.com/doc/refman/5.7/en/group-replication-frequently-asked-questions.html",
-			api.MySQLMaxGroupMembers)
+
+	if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
+		*mysql.Spec.Topology.Mode != api.MySQLClusterModeGroup {
+		return errors.Errorf("currently supported cluster mode for MySQL is %[1]q, spec.topology.mode must be %[1]q",
+			api.MySQLClusterModeGroup)
 	}
-	if mysql.Spec.Group != nil {
-		if _, err = uuid.Parse(mysql.Spec.Group.Name); err != nil {
-			return errors.Wrapf(err, "invalid group name is set")
-		}
-		if err = validateBaseServerID(*mysql.Spec.Group.BaseServerID); err != nil {
+
+	if *mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
+		// if spec.topology.mode is "GroupReplication", spec.topology.group is set to default during mutating
+		if err = validateMySQLGroup(*mysql.Spec.Replicas, *mysql.Spec.Topology.Group); err != nil {
 			return err
 		}
 	}

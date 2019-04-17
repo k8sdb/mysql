@@ -180,7 +180,8 @@ func (m *MySQLSpec) SetDefaults() {
 
 	if m.Replicas == nil {
 		m.Replicas = types.Int32P(1)
-		if m.Group != nil {
+
+		if m.Topology != nil && m.Topology.Mode != nil && *m.Topology.Mode == MySQLClusterModeGroup {
 			m.Replicas = types.Int32P(MySQLDefaultGroupSize)
 		}
 	}

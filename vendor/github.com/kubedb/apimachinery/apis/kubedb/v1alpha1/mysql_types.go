@@ -16,6 +16,19 @@ const (
 	ResourcePluralMySQL   = "mysqls"
 )
 
+type MySQLClusterMode string
+
+const (
+	MySQLClusterModeGroup MySQLClusterMode = "GroupReplication"
+)
+
+type MySQLGroupMode string
+
+const (
+	MySQLGroupModeSinglePrimary MySQLGroupMode = "Single-Primary"
+	MySQLGroupModeMultiPrimary  MySQLGroupMode = "Multi-Primary"
+)
+
 // +genclient
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -37,8 +50,8 @@ type MySQLSpec struct {
 	// (see ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-frequently-asked-questions.html)
 	Replicas *int32 `json:"replicas,omitempty"`
 
-	// Group replication info for MySQL
-	Group *MySQLGroup `json:"group,omitempty"`
+	// MySQL cluster topology
+	Topology *MySQLClusterTopology `json:"topology,omitempty"`
 
 	// StorageType can be durable (default) or ephemeral
 	StorageType StorageType `json:"storageType,omitempty"`
@@ -85,7 +98,19 @@ type MySQLSpec struct {
 =======
 }
 
-type MySQLGroup struct {
+type MySQLClusterTopology struct {
+	// If set to -
+	// "GroupReplication", GroupSpec is required and MySQL servers will start  a replication group
+	Mode *MySQLClusterMode `json:"mode,omitempty"`
+
+	// Group replication info for MySQL
+	Group *MySQLGroupSpec `json:"group,omitempty"`
+}
+
+type MySQLGroupSpec struct {
+	// Group Replication can be deployed in either "Single-Primary" or "Multi-Primary" mode
+	Mode *MySQLGroupMode `json:"mode,omitempty"`
+
 	// An uuid for MySQL Group
 	// ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_group_name
 	Name string `json:"name,omitempty"`
