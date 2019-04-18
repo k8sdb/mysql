@@ -155,7 +155,7 @@ func recursivelyVersionCompare(versionA []int64, versionB []int64) int {
 
 // Currently, we support Group Replication for version 5.7.25. validateVersion()
 // checks whether the given version has exactly these major (5), minor (7) and patch (25).
-func validateVersion(version string) error {
+func validateGroupServerVersion(version string) error {
 	recommended, err := semver.NewVersion(api.MySQLGRRecommendedVersion)
 	if err != nil {
 		return fmt.Errorf("unable to parse recommended MySQL version %s: %v", api.MySQLGRRecommendedVersion, err)
@@ -183,14 +183,14 @@ func validateVersion(version string) error {
 // We calculate a unique server-id for each server using baseServerID field in MySQL CRD.
 // Moreover we can use maximum of 9 servers in a group. So the baseServerID should be in
 // range [0, (2^32 - 1) - 9]
-func validateBaseServerID(baseServerID uint) error {
+func validateGroupBaseServerID(baseServerID uint) error {
 	if uint(0) < baseServerID && baseServerID <= api.MySQLMaxBaseServerID {
 		return nil
 	}
 	return fmt.Errorf("invalid baseServerId specified, should be in range [1, %d]", api.MySQLMaxBaseServerID)
 }
 
-func validateMySQLGroup(replicas int32, group api.MySQLGroupSpec) error {
+func validateGroupReplicas(replicas int32) error {
 	if replicas == 1 {
 		return fmt.Errorf("group shouldn't start with 1 member, accepted value of 'spec.replicas' for group replication is in range [2, %d], default is %d if not specified",
 			api.MySQLMaxGroupMembers, api.MySQLDefaultGroupSize)
@@ -201,10 +201,20 @@ func validateMySQLGroup(replicas int32, group api.MySQLGroupSpec) error {
 			api.MySQLMaxGroupMembers)
 	}
 
+	return nil
+}
+
+func validateMySQLGroup(replicas int32, group api.MySQLGroupSpec) error {
+	if err := validateGroupReplicas(replicas); err != nil {
+		return err
+	}
+
+	// validate group name whether it is a valid uuid
 	if _, err := uuid.Parse(group.Name); err != nil {
 		return errors.Wrapf(err, "invalid group name is set")
 	}
-	if err := validateBaseServerID(*group.BaseServerID); err != nil {
+
+	if err := validateGroupBaseServerID(*group.BaseServerID); err != nil {
 		return err
 	}
 
@@ -227,20 +237,25 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 			mysql.Spec.Replicas, api.MySQLMaxGroupMembers)
 	}
 
-	if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode == nil {
-		return errors.New("a valid 'spec.topology.mode' must be set for MySQL clustering")
-	}
+	if mysql.Spec.Topology != nil {
+		if mysql.Spec.Topology.Mode == nil {
+			return errors.New("a valid 'spec.topology.mode' must be set for MySQL clustering")
+		}
 
-	if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
-		*mysql.Spec.Topology.Mode != api.MySQLClusterModeGroup {
-		return errors.Errorf("currently supported cluster mode for MySQL is %[1]q, spec.topology.mode must be %[1]q",
-			api.MySQLClusterModeGroup)
-	}
+		// currently supported cluster mode for MySQL is "GroupReplication". So
+		// '.spec.topology.mode' has been validated only for value "GroupReplication"
+		if *mysql.Spec.Topology.Mode != api.MySQLClusterModeGroup {
+			return errors.Errorf("currently supported cluster mode for MySQL is %[1]q, spec.topology.mode must be %[1]q",
+				api.MySQLClusterModeGroup)
+		}
 
-	if *mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
-		// if spec.topology.mode is "GroupReplication", spec.topology.group is set to default during mutating
-		if err = validateMySQLGroup(*mysql.Spec.Replicas, *mysql.Spec.Topology.Group); err != nil {
-			return err
+		// validation for group configuration is performed only when
+		// 'spec.topology.mode' is set to "GroupReplication"
+		if *mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
+			// if spec.topology.mode is "GroupReplication", spec.topology.group is set to default during mutating
+			if err = validateMySQLGroup(*mysql.Spec.Replicas, *mysql.Spec.Topology.Group); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -278,8 +293,11 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 			return fmt.Errorf("mysql %s/%s is using deprecated version %v. Skipped processing", mysql.Namespace, mysql.Name, mysqlVersion.Name)
 		}
 
-		if err = validateVersion(myVer.Spec.Version); err != nil {
-			return err
+		if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
+			*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
+			if err = validateGroupServerVersion(myVer.Spec.Version); err != nil {
+				return err
+			}
 		}
 	}
 

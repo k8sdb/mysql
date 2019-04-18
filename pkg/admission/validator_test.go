@@ -259,6 +259,26 @@ var cases = []struct {
 		false,
 		true,
 	},
+	{"Create group with '.spec.topology.mode' not set",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		groupWithClusterModeNotSet(),
+		api.MySQL{},
+		false,
+		false,
+	},
+	{"Create group with invalid '.spec.topology.mode'",
+		requestKind,
+		"foo",
+		"default",
+		admission.Create,
+		groupWithInvalidClusterMode(),
+		api.MySQL{},
+		false,
+		false,
+	},
 	{"Create group with single replica",
 		requestKind,
 		"foo",
@@ -437,10 +457,29 @@ func pauseDatabase(old api.MySQL) api.MySQL {
 func validGroup(old api.MySQL) api.MySQL {
 	old.Spec.Version = api.MySQLGRRecommendedVersion
 	old.Spec.Replicas = types.Int32P(api.MySQLDefaultGroupSize)
-	old.Spec.Group = &api.MySQLGroup{
-		GroupName:    "dc002fc3-c412-4d18-b1d4-66c1fbfbbc9b",
-		BaseServerID: types.UIntP(api.MySQLDefaultBaseServerID),
+	clusterMode := api.MySQLClusterModeGroup
+	old.Spec.Topology = &api.MySQLClusterTopology{
+		Mode: &clusterMode,
+		Group: &api.MySQLGroupSpec{
+			Name:         "dc002fc3-c412-4d18-b1d4-66c1fbfbbc9b",
+			BaseServerID: types.UIntP(api.MySQLDefaultBaseServerID),
+		},
 	}
+
+	return old
+}
+
+func groupWithClusterModeNotSet() api.MySQL {
+	old := validGroup(sampleMySQL())
+	old.Spec.Topology.Mode = nil
+
+	return old
+}
+
+func groupWithInvalidClusterMode() api.MySQL {
+	old := validGroup(sampleMySQL())
+	gr := api.MySQLClusterMode("groupReplication")
+	old.Spec.Topology.Mode = &gr
 
 	return old
 }
@@ -475,28 +514,28 @@ func groupWithNonTriFormattedServerVersion() api.MySQL {
 
 func groupWithEmptyGroupName() api.MySQL {
 	old := validGroup(sampleMySQL())
-	old.Spec.Group.GroupName = ""
+	old.Spec.Topology.Group.Name = ""
 
 	return old
 }
 
 func groupWithInvalidGroupName() api.MySQL {
 	old := validGroup(sampleMySQL())
-	old.Spec.Group.GroupName = "a-a-a-a-a"
+	old.Spec.Topology.Group.Name = "a-a-a-a-a"
 
 	return old
 }
 
 func groupWithBaseServerIDZero() api.MySQL {
 	old := validGroup(sampleMySQL())
-	old.Spec.Group.BaseServerID = types.UIntP(0)
+	old.Spec.Topology.Group.BaseServerID = types.UIntP(0)
 
 	return old
 }
 
 func groupWithBaseServerIDExceededMaxLimit() api.MySQL {
 	old := validGroup(sampleMySQL())
-	old.Spec.Group.BaseServerID = types.UIntP(api.MySQLMaxBaseServerID + 1)
+	old.Spec.Topology.Group.BaseServerID = types.UIntP(api.MySQLMaxBaseServerID + 1)
 
 	return old
 }

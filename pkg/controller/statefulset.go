@@ -119,15 +119,20 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 				mysql.Spec.PodTemplate.Spec.InitContainers...,
 			),
 		)
-		mysqldArgs := strings.Join(mysql.Spec.PodTemplate.Spec.Args, " ")
+		args := mysql.Spec.PodTemplate.Spec.Args
+		if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
+			*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
+			userProvidedArgs := strings.Join(mysql.Spec.PodTemplate.Spec.Args, " ")
+			args = []string{
+				fmt.Sprintf("-service=%s", c.GoverningService),
+				fmt.Sprintf("-on-start=/on-start.sh %s", userProvidedArgs),
+			}
+		}
 		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
 			Name:            api.ResourceSingularMySQL,
 			Image:           mysqlVersion.Spec.DB.Image,
 			ImagePullPolicy: core.PullIfNotPresent,
-			Args: []string{
-				fmt.Sprintf("-service=%s", c.GoverningService),
-				fmt.Sprintf("-on-start=/on-start.sh %s", mysqldArgs),
-			},
+			Args:            args,
 			Resources:      mysql.Spec.PodTemplate.Spec.Resources,
 			LivenessProbe:  mysql.Spec.PodTemplate.Spec.LivenessProbe,
 			ReadinessProbe: mysql.Spec.PodTemplate.Spec.ReadinessProbe,
@@ -279,7 +284,9 @@ func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSe
 					},
 				},
 			}
-			if container.Name == api.ResourceSingularMySQL {
+			if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
+				*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup &&
+				container.Name == api.ResourceSingularMySQL {
 				envs = append(envs, []core.EnvVar{
 					{
 						Name:  "BASE_NAME",
@@ -299,11 +306,11 @@ func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSe
 					},
 					{
 						Name:  "GROUP_NAME",
-						Value: mysql.Spec.Group.Name,
+						Value: mysql.Spec.Topology.Group.Name,
 					},
 					{
 						Name:  "BASE_SERVER_ID",
-						Value: strconv.Itoa(int(*mysql.Spec.Group.BaseServerID)),
+						Value: strconv.Itoa(int(*mysql.Spec.Topology.Group.BaseServerID)),
 					},
 				}...)
 			}
