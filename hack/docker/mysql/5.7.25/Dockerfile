@@ -5,4 +5,4 @@ COPY peer-finder /usr/local/bin/
 
 RUN chmod +x /on-start.sh
 
-ENTRYPOINT ["peer-finder"]
+#ENTRYPOINT ["peer-finder"]

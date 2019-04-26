@@ -30,7 +30,8 @@ function log() {
 # get_host_name() expects only one argument and that is the index of the Pod of StatefulSet.
 # And it forms the FQDN (Fully Qualified Domain Name) of the $1'th Pod of StatefulSet.
 function get_host_name() {
-  echo -n "$BASE_NAME-$1.$GOV_SVC.$NAMESPACE.svc.cluster.local"
+#  echo -n "$BASE_NAME-$1.$GOV_SVC.$NAMESPACE.svc.cluster.local"
+  echo -n "$BASE_NAME-$1.$GOV_SVC.$NAMESPACE"
 }
 
 # get the host names from stdin sent by peer-finder program
@@ -39,10 +40,14 @@ export cur_host=
 log "INFO" "Reading standard input..."
 while read -ra line; do
   if [[ "${line}" == *"${cur_hostname}"* ]]; then
-    cur_host="$line"
+#    cur_host="$line"
+    cur_host=$(echo -n ${line} | sed -e "s/.svc.cluster.local//g")
     log "INFO" "I am $cur_host"
   fi
-  peers=("${peers[@]}" "$line")
+#  peers=("${peers[@]}" "$line")
+  tmp=$(echo -n ${line} | sed -e "s/.svc.cluster.local//g")
+  peers=("${peers[@]}" "$tmp")
+
 done
 log "INFO" "Trying to start group with peers'${peers[*]}'"
 
@@ -95,10 +100,13 @@ loose-group_replication_group_seeds = "${seeds}"
 
 # Host specific replication configuration
 server_id = ${srv_id}
-bind-address = "${cur_host}"
+#bind-address = "${cur_host}"
+bind-address = "0.0.0.0"
 report_host = "${cur_host}"
 loose-group_replication_local_address = "${cur_addr}"
 EOL
+
+echo ">>>>>>>>>>>>> $(cat /etc/mysql/my.cnf)"
 
 log "INFO" "Starting mysql server with 'docker-entrypoint.sh mysqld $@'..."
 
@@ -208,25 +216,29 @@ function find_group() {
       done
     fi
 
-    if [[ "$group_found" -eq "1" ]]; then
+    if [[ "$group_found" == "1" ]]; then
       break
     fi
+
   done
 
   echo -n "${group_found}"
 }
 
+log "INFO" "Checking whether there exists any replication group or not..."
 export primary_host=$(get_host_name 0)
+find_group ${member_hosts[*]}
 export found=$(find_group ${member_hosts[*]})
 
 # filter the Pod index from the variable $primary_host
-primary_idx=$(echo ${primary_host} | sed -e "s/.${GOV_SVC}.${NAMESPACE}.svc.cluster.local//g" | sed -e "s/${BASE_NAME}-//g")
+#primary_idx=$(echo ${primary_host} | sed -e "s/.${GOV_SVC}.${NAMESPACE}.svc.cluster.local//g" | sed -e "s/${BASE_NAME}-//g")
+primary_idx=$(echo ${primary_host} | sed -e "s/.${GOV_SVC}.${NAMESPACE}//g" | sed -e "s/${BASE_NAME}-//g")
 
 # First start group replication inside the primary
 #####################################################################
 # Begin group replication bootstrap process if no group exists      #
 #####################################################################
-log "INFO" "Checking whether there exists any replication group or not..."
+
 if [[ "$found" == "0" ]]; then
   mysql="$mysql_header --host=$primary_host"
 

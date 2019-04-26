@@ -119,12 +119,14 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 				mysql.Spec.PodTemplate.Spec.InitContainers...,
 			),
 		)
+
 		args := mysql.Spec.PodTemplate.Spec.Args
 		probe := mysql.Spec.PodTemplate.Spec.ReadinessProbe
 		if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
 			*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
 			userProvidedArgs := strings.Join(mysql.Spec.PodTemplate.Spec.Args, " ")
 			args = []string{
+				"peer-finder",
 				fmt.Sprintf("-service=%s", c.GoverningService),
 				fmt.Sprintf("-on-start=/on-start.sh %s", userProvidedArgs),
 			}
