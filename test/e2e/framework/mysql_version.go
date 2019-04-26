@@ -12,7 +12,7 @@ import (
 func (i *Invocation) MySQLVersion() *api.MySQLVersion {
 	return &api.MySQLVersion{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: DBCatalogName,
+			Name: DBVersion,
 			Labels: map[string]string{
 				"app": i.app,
 			},

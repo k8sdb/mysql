@@ -82,7 +82,7 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 	}
 
 	sh := shell.NewSession()
-	args := []interface{}{"--minikube", fmt.Sprintf("--docker-registry=%v", DockerRegistry)}
+	args := []interface{}{"--minikube", "--run", fmt.Sprintf("--docker-registry=%v", DockerRegistry)}
 	SetupServer := filepath.Join("..", "..", "hack", "deploy", "setup.sh")
 
 	By("Creating API server and webhook stuffs")

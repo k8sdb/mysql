@@ -5,11 +5,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/appscode/go/types"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	core_util "kmodules.xyz/client-go/core/v1"
 )
 
 const (
@@ -80,4 +82,15 @@ func (f *Framework) CleanWorkloadLeftOvers() {
 	}); err != nil && !kerr.IsNotFound(err) {
 		fmt.Printf("error in deletion of Secret. Error: %v", err)
 	}
+}
+
+func (f *Framework) WaitUntilPodRunningBySelector(mysql *api.MySQL) error {
+	return core_util.WaitUntilPodRunningBySelector(
+		f.kubeClient,
+		mysql.Namespace,
+		&metav1.LabelSelector{
+			MatchLabels: mysql.OffshootSelectors(),
+		},
+		int(types.Int32(mysql.Spec.Replicas)),
+	)
 }

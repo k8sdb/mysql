@@ -31,7 +31,7 @@ func (f *Invocation) MySQL() *api.MySQL {
 			},
 		},
 		Spec: api.MySQLSpec{
-			Version: jsonTypes.StrYo(DBCatalogName),
+			Version: jsonTypes.StrYo(DBVersion),
 			Storage: &core.PersistentVolumeClaimSpec{
 				Resources: core.ResourceRequirements{
 					Requests: core.ResourceList{
@@ -42,6 +42,21 @@ func (f *Invocation) MySQL() *api.MySQL {
 			},
 		},
 	}
+}
+
+func (f *Invocation) MySQLGroup() *api.MySQL {
+	mysql := f.MySQL()
+	mysql.Spec.Replicas = types.Int32P(api.MySQLDefaultGroupSize)
+	clusterMode := api.MySQLClusterModeGroup
+	mysql.Spec.Topology = &api.MySQLClusterTopology{
+		Mode: &clusterMode,
+		Group: &api.MySQLGroupSpec{
+			Name:         "dc002fc3-c412-4d18-b1d4-66c1fbfbbc9b",
+			BaseServerID: types.UIntP(api.MySQLDefaultBaseServerID),
+		},
+	}
+
+	return mysql
 }
 
 func (f *Framework) CreateMySQL(obj *api.MySQL) error {
