@@ -37,15 +37,8 @@ const (
 	MongoDBConfigdbPort = 27017
 	MongoDBMongosPort   = 27017
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-	MySQLNodePort = 3306
-	MySQLGroupComPort = 33060
-=======
 	MySQLNodePort        = 3306
 	MySQLGroupComPort    = 33060
->>>>>>> Update mutator and add validator unit tests
 	MySQLMaxGroupMembers = 9
 	// The recommended MySQL server version for group replication (GR)
 	MySQLGRRecommendedVersion = "5.7.25"
@@ -56,7 +49,6 @@ const (
 	// for BaseServerID calculated as max MySQL server_id value - max Replication Group size.
 	MySQLMaxBaseServerID = uint(4294967295 - 9)
 
->>>>>>> Configuring StatefulSet and Governing svc
 	RedisShardKey   = RedisKey + "/shard"
 	RedisNodePort   = 6379
 	RedisGossipPort = 16379

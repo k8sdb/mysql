@@ -94,8 +94,6 @@ type MySQLSpec struct {
 	// TerminationPolicy controls the delete operation for database
 	// +optional
 	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty"`
-<<<<<<< HEAD
-=======
 }
 
 type MySQLClusterTopology struct {
@@ -122,12 +120,7 @@ type MySQLGroupSpec struct {
 	// ref: https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_server_id
 	//
 	// So, BaseServerID is needed to calculate a unique server_id for each member.
-<<<<<<< HEAD
-	BaseServerID *int `json:"baseServerID,omitempty"`
->>>>>>> Configuring StatefulSet and Governing svc
-=======
 	BaseServerID *uint `json:"baseServerID,omitempty"`
->>>>>>> Add Env for Group name
 }
 
 type MySQLStatus struct {

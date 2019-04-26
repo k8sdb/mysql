@@ -1,36 +1,5 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-hash: 80cec8834d5ba0fd13d7efaba2ed2c5b51b7c14e7f69f464a4c95834dd8bd1a7
-updated: 2019-04-23T02:36:08.357857592-07:00
-=======
-hash: a832dc28bb6443c4e6cc836ef807fecce9b7bc7afde01719aa74b818794dc0a3
-updated: 2019-04-09T16:25:19.347888524+06:00
->>>>>>> Configuring StatefulSet and Governing svc
-=======
-hash: eb590f561b76aab9ab34b5917577f3576ec68189319c3ea89268690e2e825804
-<<<<<<< HEAD
-<<<<<<< HEAD
-updated: 2019-04-10T19:37:05.759016489+06:00
->>>>>>> Add Env for Group name
-=======
-updated: 2019-04-11T12:29:03.562405178+06:00
->>>>>>> Update mutator and add validator unit tests
-=======
-updated: 2019-04-11T18:56:58.24035804+06:00
->>>>>>> Others update
-=======
-hash: 708e39ee7becf1416f5ced5f061c4f92200bfa5c4c7e4de32398e81c733630d6
-<<<<<<< HEAD
-<<<<<<< HEAD
-updated: 2019-04-15T11:51:13.845594907+06:00
->>>>>>> revendor
-=======
-updated: 2019-04-17T11:29:57.482432883+06:00
->>>>>>> Fix  reviews
-=======
-updated: 2019-04-17T18:42:27.652633069+06:00
->>>>>>> Update mutator and validator
+hash: b03e059d996e72580a575d4ac16cadcdf56257cd21978f787c01419202508da1
+updated: 2019-04-26T10:51:08.898831857+06:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
@@ -39,15 +8,7 @@ imports:
   subpackages:
   - compute/metadata
 - name: github.com/appscode/go
-<<<<<<< HEAD
-<<<<<<< HEAD
-  version: 50c98d5fbcddac827713a481a7e34a26df5e4b57
-=======
-  version: 0b57eb4d176d5c0046b60f3a600b0e065c21b9de
->>>>>>> Add Env for Group name
-=======
-  version: 50c98d5fbcddac827713a481a7e34a26df5e4b57
->>>>>>> revendor
+  version: 60025f1135c977fecd189c12dbfa259d837d7a18
   subpackages:
   - analytics
   - arrays
@@ -65,6 +26,7 @@ imports:
   - strings
   - types
   - version
+  - wait
 - name: github.com/appscode/go-version
   version: 7aba545c679b0f45679eeb406dc662d2c8a04c26
 - name: github.com/appscode/jsonpatch
@@ -133,91 +95,18 @@ imports:
 - name: github.com/codegangsta/inject
   version: 33e0aa1cb7c019ccc3fbe049a8262a6403d30504
 - name: github.com/codeskyblue/go-sh
-<<<<<<< HEAD
-<<<<<<< HEAD
   version: 76bd3d59ff27c0518096e0af6c165bf626b809ec
-=======
-  version: f4ce45e7999ee02d582441c916f1b32fb548dba6
->>>>>>> Configuring StatefulSet and Governing svc
-=======
-  version: 76bd3d59ff27c0518096e0af6c165bf626b809ec
->>>>>>> revendor
 - name: github.com/coreos/etcd
   version: 27fc7e2296f506182f58ce846e48f36b34fe6842
   subpackages:
-  - alarm
-  - auth
   - auth/authpb
-  - client
   - clientv3
-  - clientv3/concurrency
-  - clientv3/namespace
-  - clientv3/naming
-  - compactor
-  - discovery
-  - embed
-  - error
-  - etcdserver
-  - etcdserver/api
-  - etcdserver/api/etcdhttp
-  - etcdserver/api/v2http
-  - etcdserver/api/v2http/httptypes
-  - etcdserver/api/v2v3
-  - etcdserver/api/v3client
-  - etcdserver/api/v3election
-  - etcdserver/api/v3election/v3electionpb
-  - etcdserver/api/v3election/v3electionpb/gw
-  - etcdserver/api/v3lock
-  - etcdserver/api/v3lock/v3lockpb
-  - etcdserver/api/v3lock/v3lockpb/gw
-  - etcdserver/api/v3rpc
   - etcdserver/api/v3rpc/rpctypes
-  - etcdserver/auth
   - etcdserver/etcdserverpb
-  - etcdserver/etcdserverpb/gw
-  - etcdserver/membership
-  - etcdserver/stats
-  - integration
-  - lease
-  - lease/leasehttp
-  - lease/leasepb
-  - mvcc
-  - mvcc/backend
   - mvcc/mvccpb
-  - pkg/adt
-  - pkg/contention
-  - pkg/cors
-  - pkg/cpuutil
-  - pkg/crc
-  - pkg/debugutil
-  - pkg/fileutil
-  - pkg/httputil
-  - pkg/idutil
-  - pkg/ioutil
-  - pkg/logutil
-  - pkg/netutil
-  - pkg/pathutil
-  - pkg/pbutil
-  - pkg/runtime
-  - pkg/schedule
-  - pkg/srv
-  - pkg/testutil
   - pkg/tlsutil
   - pkg/transport
   - pkg/types
-  - pkg/wait
-  - proxy/grpcproxy
-  - proxy/grpcproxy/adapter
-  - proxy/grpcproxy/cache
-  - raft
-  - raft/raftpb
-  - rafthttp
-  - snap
-  - snap/snappb
-  - store
-  - version
-  - wal
-  - wal/walpb
 - name: github.com/coreos/go-semver
   version: 568e959cd89871e61434c1143528d9162da89ef2
   subpackages:
@@ -226,7 +115,6 @@ imports:
   version: 39ca1b05acc7ad1220e09f133283b8859a8b71ab
   subpackages:
   - daemon
-  - journal
 - name: github.com/coreos/prometheus-operator
   version: 7a25bf6b6bb2347dacb235659b73bc210117acc7
   subpackages:
@@ -274,13 +162,13 @@ imports:
 - name: github.com/go-openapi/jsonreference
   version: 8483a886a90412cd6858df4ea3483dce9c8e35a3
 - name: github.com/go-openapi/spec
-  version: 1de3e0542de65ad8d75452a595886fdd0befb363
+  version: 5bae59e25b21498baea7f9d46e9c147ec106a42e
 - name: github.com/go-openapi/swag
   version: 5899d5c5e619fda5fa86e14795a835f473ca284c
 - name: github.com/go-sql-driver/mysql
   version: 72cd26f257d44c1114970e19afddcd812016007e
 - name: github.com/go-xorm/builder
-  version: 145c9968bfe732a56d7160439d25154c5aaa2f35
+  version: 1d658d7596c25394aab557ef5b50ef35bf706384
 - name: github.com/go-xorm/core
   version: ccc80c1adf1f6172bbc548877f50a1163041a40a
 - name: github.com/go-xorm/xorm
@@ -377,31 +265,7 @@ imports:
 - name: github.com/json-iterator/go
   version: 1624edc4454b8682399def8740d46db5e4362ba4
 - name: github.com/kubedb/apimachinery
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-  version: 84ad380b12d81c148855ff56811e6811c293a9c9
-=======
-  version: 0b6ae7091f0e61c750a7c052e377b5829a654df3
->>>>>>> Configuring StatefulSet and Governing svc
-=======
-  version: 6208909ecbf4bd00f74345c526a44889da719cef
->>>>>>> Add Env for Group name
-=======
-  version: 4bf7365ddf166a66c865df6c8ef80d7692186d60
->>>>>>> Update mutator and add validator unit tests
-=======
-  version: 9081af83ab4093641176150e3c80a022cfddde94
->>>>>>> Others update
-=======
-  version: 4411e992a8829ae62168b9356aa5f552a8b9f7bd
->>>>>>> Fix  reviews
-=======
   version: 61fafeeae3530f9179597247ff9be366547c1e35
->>>>>>> Update mutator and validator
   subpackages:
   - apis
   - apis/authorization
@@ -463,15 +327,7 @@ imports:
 - name: github.com/modern-go/reflect2
   version: 94122c33edd36123c84d5368cfb2b69df93a0ec8
 - name: github.com/ncw/swift
-<<<<<<< HEAD
-<<<<<<< HEAD
   version: 753d2090bb62619675997bd87a8e3af423a00f2d
-=======
-  version: 24e3012fc8a71f004a6455bce2088031d50bf2b6
->>>>>>> Configuring StatefulSet and Governing svc
-=======
-  version: 753d2090bb62619675997bd87a8e3af423a00f2d
->>>>>>> Update mutator and add validator unit tests
 - name: github.com/NYTimes/gziphandler
   version: 56545f4a5d46df9a6648819d1664c3a03a13ffdb
 - name: github.com/onsi/ginkgo
@@ -659,7 +515,6 @@ imports:
   - encoding
   - encoding/proto
   - grpclog
-  - health
   - health/grpc_health_v1
   - internal
   - internal/backoff
@@ -898,11 +753,7 @@ imports:
   - plugin/pkg/authenticator/token/webhook
   - plugin/pkg/authorizer/webhook
 - name: k8s.io/cli-runtime
-<<<<<<< HEAD
-  version: f2b4781c3ae1e55b0657ab4fa0c8b702282d018f
-=======
   version: 79bf4e0b64544d8c490247abae089bea572ddae6
->>>>>>> Configuring StatefulSet and Governing svc
   subpackages:
   - pkg/genericclioptions
   - pkg/genericclioptions/printers
@@ -1115,7 +966,7 @@ imports:
 - name: k8s.io/utils
   version: 66066c83e385e385ccc3c964b44fd7dcd413d0ed
 - name: kmodules.xyz/client-go
-  version: 5dcc4cecf4c96d58e0624cd41311f3a4663db7d7
+  version: 85881479d87957cf3eab9424ec86bcc67dbfbac6
   subpackages:
   - admissionregistration/v1beta1
   - apiextensions/v1beta1
