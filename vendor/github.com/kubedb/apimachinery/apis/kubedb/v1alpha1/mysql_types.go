@@ -106,10 +106,11 @@ type MySQLClusterTopology struct {
 }
 
 type MySQLGroupSpec struct {
+	// TODO: "Multi-Primary" needs to be implemented
 	// Group Replication can be deployed in either "Single-Primary" or "Multi-Primary" mode
 	Mode *MySQLGroupMode `json:"mode,omitempty"`
 
-	// An uuid for MySQL Group
+	// Group name is a version 4 UUID
 	// ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_group_name
 	Name string `json:"name,omitempty"`
 

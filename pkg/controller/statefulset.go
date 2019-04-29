@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/fatih/structs"
+
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
@@ -120,42 +122,14 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			),
 		)
 
-		args := mysql.Spec.PodTemplate.Spec.Args
-		probe := mysql.Spec.PodTemplate.Spec.ReadinessProbe
-		if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
-			*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
-			userProvidedArgs := strings.Join(mysql.Spec.PodTemplate.Spec.Args, " ")
-			args = []string{
-				"peer-finder",
-				fmt.Sprintf("-service=%s", c.GoverningService),
-				fmt.Sprintf("-on-start=/on-start.sh %s", userProvidedArgs),
-			}
-
-			probe = &core.Probe{
-				Handler: core.Handler{
-					Exec: &core.ExecAction{
-						Command: []string{
-							"bash",
-							"-c",
-							`
-export MYSQL_PWD=${MYSQL_ROOT_PASSWORD}
-mysql -h localhost -nsLNE -e "select member_state from performance_schema.replication_group_members where member_id=@@server_uuid;" 2>/dev/null | grep -v "*" | egrep -v "ERROR|OFFLINE"
-`,
-						},
-					},
-				},
-				InitialDelaySeconds: 30,
-				PeriodSeconds:       5,
-			}
-		}
-		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
+		container := core.Container{
 			Name:            api.ResourceSingularMySQL,
 			Image:           mysqlVersion.Spec.DB.Image,
 			ImagePullPolicy: core.PullIfNotPresent,
-			Args:            args,
+			Args:            mysql.Spec.PodTemplate.Spec.Args,
 			Resources:       mysql.Spec.PodTemplate.Spec.Resources,
-			LivenessProbe:   probe,
-			ReadinessProbe:  probe,
+			LivenessProbe:   mysql.Spec.PodTemplate.Spec.ReadinessProbe,
+			ReadinessProbe:  mysql.Spec.PodTemplate.Spec.LivenessProbe,
 			Lifecycle:       mysql.Spec.PodTemplate.Spec.Lifecycle,
 			Ports: []core.ContainerPort{
 				{
@@ -164,7 +138,26 @@ mysql -h localhost -nsLNE -e "select member_state from performance_schema.replic
 					Protocol:      core.ProtocolTCP,
 				},
 			},
-		})
+		}
+		if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
+			*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
+			container.Command = []string{
+				"peer-finder",
+			}
+			userProvidedArgs := strings.Join(mysql.Spec.PodTemplate.Spec.Args, " ")
+			container.Args = []string{
+				fmt.Sprintf("-service=%s", c.GoverningService),
+				fmt.Sprintf("-on-start=/on-start.sh %s", userProvidedArgs),
+			}
+			if container.LivenessProbe != nil && structs.IsZero(*container.LivenessProbe) {
+				container.LivenessProbe = nil
+			}
+			if container.ReadinessProbe != nil && structs.IsZero(*container.ReadinessProbe) {
+				container.ReadinessProbe = nil
+			}
+		}
+		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, container)
+
 		if mysql.GetMonitoringVendor() == mona.VendorPrometheus {
 			in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
 				Name: "exporter",

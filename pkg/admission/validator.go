@@ -228,6 +228,10 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 		err   error
 		myVer *cat_api.MySQLVersion
 	)
+
+	if mysql.Spec.Version == "" {
+		return errors.New(`'spec.version' is missing`)
+	}
 	if myVer, err = extClient.CatalogV1alpha1().MySQLVersions().Get(string(mysql.Spec.Version), metav1.GetOptions{}); err != nil {
 		return err
 	}

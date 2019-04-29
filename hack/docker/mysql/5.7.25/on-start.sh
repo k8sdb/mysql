@@ -106,8 +106,6 @@ report_host = "${cur_host}"
 loose-group_replication_local_address = "${cur_addr}"
 EOL
 
-echo ">>>>>>>>>>>>> $(cat /etc/mysql/my.cnf)"
-
 log "INFO" "Starting mysql server with 'docker-entrypoint.sh mysqld $@'..."
 
 # ensure the mysqld process be stopped
@@ -117,14 +115,12 @@ log "INFO" "Starting mysql server with 'docker-entrypoint.sh mysqld $@'..."
 docker-entrypoint.sh mysqld $@ &
 pid=$!
 log "INFO" "The process id of mysqld is '$pid'"
-#sleep 5
 
 # wait for all mysql servers be running (alive)
 for host in ${peers[*]}; do
   for i in {900..0}; do
     out=$(mysqladmin -u ${USER} --password=${PASSWORD} --host=${host} ping 2>/dev/null)
     if [[ "$out" == "mysqld is alive" ]]; then
-      #      sleep 5
       break
     fi
 

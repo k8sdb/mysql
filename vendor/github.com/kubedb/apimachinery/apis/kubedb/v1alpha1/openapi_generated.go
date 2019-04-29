@@ -2090,7 +2090,7 @@ func schema_apimachinery_apis_kubedb_v1alpha1_MySQLGroupSpec(ref common.Referenc
 					},
 					"name": {
 						SchemaProps: spec.SchemaProps{
-							Description: "An uuid for MySQL Group ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_group_name",
+							Description: "Group name is a version 4 UUID ref: https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_group_name",
 							Type:        []string{"string"},
 							Format:      "",
 						},
