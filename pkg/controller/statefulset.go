@@ -5,10 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fatih/structs"
-
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
+	"github.com/fatih/structs"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	apps "k8s.io/api/apps/v1"
@@ -128,8 +127,8 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			ImagePullPolicy: core.PullIfNotPresent,
 			Args:            mysql.Spec.PodTemplate.Spec.Args,
 			Resources:       mysql.Spec.PodTemplate.Spec.Resources,
-			LivenessProbe:   mysql.Spec.PodTemplate.Spec.ReadinessProbe,
-			ReadinessProbe:  mysql.Spec.PodTemplate.Spec.LivenessProbe,
+			LivenessProbe:   mysql.Spec.PodTemplate.Spec.LivenessProbe,
+			ReadinessProbe:  mysql.Spec.PodTemplate.Spec.ReadinessProbe,
 			Lifecycle:       mysql.Spec.PodTemplate.Spec.Lifecycle,
 			Ports: []core.ContainerPort{
 				{
@@ -297,7 +296,8 @@ func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSe
 					},
 				},
 			}
-			if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
+			if mysql.Spec.Topology != nil &&
+				mysql.Spec.Topology.Mode != nil &&
 				*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup &&
 				container.Name == api.ResourceSingularMySQL {
 				envs = append(envs, []core.EnvVar{
