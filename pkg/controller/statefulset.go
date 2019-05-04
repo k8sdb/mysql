@@ -5,10 +5,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fatih/structs"
-
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
+	"github.com/fatih/structs"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/pkg/eventer"
 	apps "k8s.io/api/apps/v1"
@@ -297,7 +296,8 @@ func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSe
 					},
 				},
 			}
-			if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
+			if mysql.Spec.Topology != nil &&
+				mysql.Spec.Topology.Mode != nil &&
 				*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup &&
 				container.Name == api.ResourceSingularMySQL {
 				envs = append(envs, []core.EnvVar{
