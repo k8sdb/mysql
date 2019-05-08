@@ -63,7 +63,7 @@ func (o MySQLServerOptions) Config() (*server.MySQLServerConfig, error) {
 	}
 
 	serverConfig := genericapiserver.NewRecommendedConfig(server.Codecs)
-	if err := o.RecommendedOptions.ApplyTo(serverConfig, server.Scheme); err != nil {
+	if err := o.RecommendedOptions.ApplyTo(serverConfig); err != nil {
 		return nil, err
 	}
 	clientcmd.Fix(serverConfig.ClientConfig)
