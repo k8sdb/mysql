@@ -65,6 +65,16 @@ declare -i srv_id=$(hostname | sed -e "s/${BASE_NAME}-//g")
 
 export cur_addr="${cur_host}:33060"
 
+# Get ip_whitelist
+# https://dev.mysql.com/doc/refman/5.7/en/group-replication-options.html#sysvar_group_replication_ip_whitelist
+# https://dev.mysql.com/doc/refman/5.7/en/group-replication-ip-address-whitelisting.html
+#
+# Command $(hostname -I) returns a space separated IP list. We need only the first one.
+myips=$(hostname -I)
+first=${myips%% *}
+# Now use this IP with CIDR notation
+export whitelist="${first}/16"
+
 # the mysqld configurations have take by following
 # 01. official doc: https://dev.mysql.com/doc/refman/5.7/en/group-replication-configuring-instances.html
 # 02. digitalocean doc: https://www.digitalocean.com/community/tutorials/how-to-configure-mysql-group-replication-on-ubuntu-16-04
@@ -90,7 +100,7 @@ loose-group_replication_recovery_use_ssl = 1
 
 # Shared replication group configuration
 loose-group_replication_group_name = "${GROUP_NAME}"
-#loose-group_replication_ip_whitelist = "${hosts}"
+loose-group_replication_ip_whitelist = "${whitelist}"
 loose-group_replication_group_seeds = "${seeds}"
 
 # Single or Multi-primary mode? Uncomment these two lines
