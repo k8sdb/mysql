@@ -179,6 +179,9 @@ func setDefaultsFromDormantDB(extClient cs.Interface, mysql *api.MySQL) error {
 	// Skip checking UpdateStrategy
 	ddbOriginSpec.UpdateStrategy = mysql.Spec.UpdateStrategy
 
+	// Skip checking ServiceAccountName
+	ddbOriginSpec.PodTemplate.Spec.ServiceAccountName = mysql.Spec.PodTemplate.Spec.ServiceAccountName
+
 	// Skip checking TerminationPolicy
 	ddbOriginSpec.TerminationPolicy = mysql.Spec.TerminationPolicy
 

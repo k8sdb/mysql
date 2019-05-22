@@ -205,7 +205,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		in.Spec.Template.Spec.SecurityContext = mysql.Spec.PodTemplate.Spec.SecurityContext
 
 		if c.EnableRBAC {
-			in.Spec.Template.Spec.ServiceAccountName = mysql.OffshootName()
+			in.Spec.Template.Spec.ServiceAccountName = mysql.Spec.PodTemplate.Spec.ServiceAccountName
 		}
 
 		in.Spec.UpdateStrategy = mysql.Spec.UpdateStrategy

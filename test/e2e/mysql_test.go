@@ -14,6 +14,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
+	rbac "k8s.io/api/rbac/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	meta_util "kmodules.xyz/client-go/meta"
@@ -262,6 +263,54 @@ var _ = Describe("MySQL", func() {
 			Context("-", func() {
 				It("should run successfully", testGeneralBehaviour)
 			})
+
+			Context("with custom SA Name", func() {
+				BeforeEach(func() {
+					var customSecret *core.Secret
+					customSecret = f.SecretForDatabaseAuthentication(mysql.ObjectMeta, false)
+					mysql.Spec.DatabaseSecret = &core.SecretVolumeSource{
+						SecretName: customSecret.Name,
+					}
+					err := f.CreateSecret(customSecret)
+					Expect(err).NotTo(HaveOccurred())
+					mysql.Spec.PodTemplate.Spec.ServiceAccountName = "my-custom-sa"
+					mysql.Spec.TerminationPolicy = api.TerminationPolicyPause
+				})
+
+				It("should start and resume successfully", func() {
+					//shouldTakeSnapshot()
+					createAndWaitForRunning()
+					if mysql == nil {
+						Skip("Skipping")
+					}
+					By("Check if Postgres " + mysql.Name + " exists.")
+					_, err := f.GetMySQL(mysql.ObjectMeta)
+					if err != nil {
+						if kerr.IsNotFound(err) {
+							// Postgres was not created. Hence, rest of cleanup is not necessary.
+							return
+						}
+						Expect(err).NotTo(HaveOccurred())
+					}
+
+					By("Delete mysql: " + mysql.Name)
+					err = f.DeleteMySQL(mysql.ObjectMeta)
+					if err != nil {
+						if kerr.IsNotFound(err) {
+							// Postgres was not created. Hence, rest of cleanup is not necessary.
+							log.Infof("Skipping rest of cleanup. Reason: Postgres %s is not found.", mysql.Name)
+							return
+						}
+						Expect(err).NotTo(HaveOccurred())
+					}
+
+					By("Wait for mysql to be paused")
+					f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+
+					By("Resume DB")
+					createAndWaitForRunning()
+				})
+			})
 		})
 
 		Context("Snapshot", func() {
@@ -280,6 +329,153 @@ var _ = Describe("MySQL", func() {
 				if err != nil && !kerr.IsNotFound(err) {
 					Expect(err).NotTo(HaveOccurred())
 				}
+			})
+
+			Context("For Custom Resources", func() {
+
+				BeforeEach(func() {
+					snapshot.Spec.DatabaseName = mysql.Name
+					secret = f.SecretForGCSBackend()
+					snapshot.Spec.StorageSecretName = secret.Name
+					snapshot.Spec.GCS = &store.GCSSpec{
+						Bucket: os.Getenv(GCS_BUCKET_NAME),
+					}
+				})
+
+				Context("with custom SA", func() {
+					var customSAForDB *core.ServiceAccount
+					var customRoleForDB *rbac.Role
+					var customRoleBindingForDB *rbac.RoleBinding
+					var customSAForSnapshot *core.ServiceAccount
+					var customRoleForSnapshot *rbac.Role
+					var customRoleBindingForSnapshot *rbac.RoleBinding
+					BeforeEach(func() {
+						mysql.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+						customSAForDB = f.ServiceAccount()
+						mysql.Spec.PodTemplate.Spec.ServiceAccountName = customSAForDB.Name
+						customRoleForDB = f.RoleForMySQL(mysql.ObjectMeta)
+						customRoleBindingForDB = f.RoleBinding(customSAForDB.Name, customRoleForDB.Name)
+
+						customSAForSnapshot = f.ServiceAccount()
+						snapshot.Spec.PodTemplate.Spec.ServiceAccountName = customSAForSnapshot.Name
+						customRoleForSnapshot = f.RoleForSnapshot(mysql.ObjectMeta)
+						customRoleBindingForSnapshot = f.RoleBinding(customSAForSnapshot.Name, customRoleForSnapshot.Name)
+
+						By("Create Database SA")
+						err = f.CreateServiceAccount(customSAForDB)
+						Expect(err).NotTo(HaveOccurred())
+						By("Create Database Role")
+						err = f.CreateRole(customRoleForDB)
+						Expect(err).NotTo(HaveOccurred())
+						By("Create Database RoleBinding")
+						err = f.CreateRoleBinding(customRoleBindingForDB)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Create Snapshot SA")
+						err = f.CreateServiceAccount(customSAForSnapshot)
+						Expect(err).NotTo(HaveOccurred())
+						By("Create Snapshot Role")
+						err = f.CreateRole(customRoleForSnapshot)
+						Expect(err).NotTo(HaveOccurred())
+						By("Create Snapshot RoleBinding")
+						err = f.CreateRoleBinding(customRoleBindingForSnapshot)
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("should take snapshot successfully", func() {
+						shouldInsertDataAndTakeSnapshot()
+					})
+
+					It("should initialize from snapshot successfully", func() {
+						// Create MySQL and take Snapshot
+						shouldInsertDataAndTakeSnapshot()
+
+						oldMySQL, err := f.GetMySQL(mysql.ObjectMeta)
+						Expect(err).NotTo(HaveOccurred())
+						garbageMySQL.Items = append(garbageMySQL.Items, *oldMySQL)
+
+						By("Create mysql from snapshot")
+						mysql = f.MySQL()
+						mysql.Spec.Init = &api.InitSpec{
+							SnapshotSource: &api.SnapshotSourceSpec{
+								Namespace: snapshot.Namespace,
+								Name:      snapshot.Name,
+							},
+						}
+
+						By("Creating init Snapshot Mysql without secret name" + mysql.Name)
+						err = f.CreateMySQL(mysql)
+						Expect(err).Should(HaveOccurred())
+
+						// for snapshot init, user have to use older secret,
+						// because the username & password  will be replaced to
+						mysql.Spec.DatabaseSecret = oldMySQL.Spec.DatabaseSecret
+
+						//Create New role and bind it to existing SA
+						By("Get new Role and RB")
+						customRoleForReplayDB := f.RoleForMySQL(mysql.ObjectMeta)
+						customRoleBindingForReplayDB := f.RoleBinding(customSAForDB.Name, customRoleForReplayDB.Name)
+
+						By("Create Database Role")
+						err = f.CreateRole(customRoleForReplayDB)
+						Expect(err).NotTo(HaveOccurred())
+						By("Create Database RoleBinding")
+						err = f.CreateRoleBinding(customRoleBindingForReplayDB)
+						Expect(err).NotTo(HaveOccurred())
+
+						mysql.Spec.PodTemplate.Spec.ServiceAccountName = customSAForDB.Name
+
+						// Create and wait for running MySQL
+						By("Create DB with snapshot data")
+						createAndWaitForRunning()
+
+						By("Checking Row Count of Table")
+						f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
+					})
+				})
+
+				Context("with custom Secret", func() {
+					var customSecret *core.Secret
+					BeforeEach(func() {
+						customSecret = f.SecretForDatabaseAuthentication(mysql.ObjectMeta, false)
+						mysql.Spec.DatabaseSecret = &core.SecretVolumeSource{
+							SecretName: customSecret.Name,
+						}
+
+					})
+
+					It("should not delete database secret", func() {
+						By("Create Database Secret")
+						err := f.CreateSecret(customSecret)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Take Snapshot")
+						shouldTakeSnapshot()
+						By("Delete test resources")
+						deleteTestResource()
+						By("Confirm Database Secret exists")
+						err = f.CheckSecret(customSecret)
+						Expect(err).NotTo(HaveOccurred())
+					})
+
+					It("should delete database secret", func() {
+						kubedbSecret := f.SecretForDatabaseAuthentication(mysql.ObjectMeta, true)
+						mysql.Spec.DatabaseSecret = &core.SecretVolumeSource{
+							SecretName: kubedbSecret.Name,
+						}
+						By("Create Database Secret")
+						err = f.CreateSecret(kubedbSecret)
+						Expect(err).NotTo(HaveOccurred())
+
+						By("Take Snapshot")
+						shouldTakeSnapshot()
+						By("Delete test resources")
+						deleteTestResource()
+						By("Confirm Database Secret doesnt exist")
+						err = f.CheckSecret(kubedbSecret)
+						Expect(err).To(HaveOccurred())
+					})
+				})
 			})
 
 			Context("In Local", func() {

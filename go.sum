@@ -11,6 +11,8 @@ github.com/Azure/azure-sdk-for-go v21.3.0+incompatible/go.mod h1:9XXNKU+eRnpl9mo
 github.com/Azure/go-autorest v10.6.2+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/Azure/go-autorest v11.1.0+incompatible h1:9DfMsQdUMEtg1jKRTjtkNZsvOuZXJOMl4dN1kiQwAc8=
 github.com/Azure/go-autorest v11.1.0+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
+github.com/Azure/go-autorest v11.1.2+incompatible h1:viZ3tV5l4gE2Sw0xrasFHytCGtzYCrT+um/rrSQ1BfA=
+github.com/Azure/go-autorest v11.1.2+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/NYTimes/gziphandler v1.1.1 h1:ZUDjpQae29j0ryrS0u/B8HZfJBtBQHjqw2rQ2cqUQ3I=
@@ -564,6 +566,8 @@ kmodules.xyz/client-go v0.0.0-20190508091620-0d215c04352f h1:to7LqlT1BOdBRm1AFuA
 kmodules.xyz/client-go v0.0.0-20190508091620-0d215c04352f/go.mod h1:R1t4K2wWb6PTkhQPEjqQIWz+gRS0/Z0mMfIy/TsdB/w=
 kmodules.xyz/client-go v0.0.0-20190524133821-9c8a87771aea h1:jt5p9kuSqG0RLsXGB/Rj+szXDrmKB/9ZjCZdKjPJz1c=
 kmodules.xyz/client-go v0.0.0-20190524133821-9c8a87771aea/go.mod h1:R1t4K2wWb6PTkhQPEjqQIWz+gRS0/Z0mMfIy/TsdB/w=
+kmodules.xyz/client-go v0.0.0-20190527113919-eb165836b702 h1:aIjnrAJyAyPW6Kif8Zht3CUIkT2qXkmxloev7FJHc7Y=
+kmodules.xyz/client-go v0.0.0-20190527113919-eb165836b702/go.mod h1:R1t4K2wWb6PTkhQPEjqQIWz+gRS0/Z0mMfIy/TsdB/w=
 kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec h1:a7sxsWe1QYUZaEWxGpSuzB6ZAdXmCwNh2SyMTLQKGEI=
 kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec/go.mod h1:0C61XSEPGexAmkrayynpNnCTacvkwn4802CRAQ5tUPI=
 kmodules.xyz/monitoring-agent-api v0.0.0-20190508125842-489150794b9b h1:QnYWK/4yzl5LCdbPcZ8GZNyhFWrm+5y6ebeMQZzef94=

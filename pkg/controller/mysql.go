@@ -61,8 +61,8 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	c.GoverningService = governingService
 
 	if c.EnableRBAC {
-		// Ensure ClusterRoles for statefulsets
-		if err := c.ensureRBACStuff(mysql); err != nil {
+		// Ensure Service account, role, rolebinding, and PSP for database statefulsets
+		if err := c.ensureDatabaseRBAC(mysql); err != nil {
 			return err
 		}
 	}
