@@ -2,7 +2,6 @@ package controller
 
 import (
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	"github.com/pkg/errors"
 	core "k8s.io/api/core/v1"
 	policy_v1beta1 "k8s.io/api/policy/v1beta1"
 	rbac "k8s.io/api/rbac/v1beta1"
@@ -112,36 +111,39 @@ func (c *Controller) getPolicyNames(db *api.MySQL) (string, string, error) {
 }
 
 func (c *Controller) ensureDatabaseRBAC(mysql *api.MySQL) error {
-	dbPolicyName, _, err := c.getPolicyNames(mysql)
-	if err != nil {
-		return err
-	}
-
 	saName := mysql.Spec.PodTemplate.Spec.ServiceAccountName
 	if saName == "" {
-		return errors.New("Service Account Name should not empty.")
+		saName = mysql.OffshootName()
+		mysql.Spec.PodTemplate.Spec.ServiceAccountName = saName
 	}
-	_, err = c.Client.CoreV1().ServiceAccounts(mysql.Namespace).Get(saName, metav1.GetOptions{})
-	if err != nil {
-		if !kerr.IsNotFound(err) {
-			return err
-		}
-		// Create New ServiceAccount
-		if err := c.createServiceAccount(mysql, saName); err != nil {
+
+	sa, err := c.Client.CoreV1().ServiceAccounts(mysql.Namespace).Get(saName, metav1.GetOptions{})
+	if kerr.IsNotFound(err) {
+		// create service account, since it does not exist
+		if err = c.createServiceAccount(mysql, saName); err != nil {
 			if !kerr.IsAlreadyExists(err) {
 				return err
 			}
 		}
+	} else if err != nil {
+		return err
+	} else if !core_util.IsOwnedBy(sa, mysql) {
+		// user provided the service account, so do nothing.
+		return nil
+	}
 
-		// Create New Role
-		if err := c.ensureRole(mysql, mysql.OffshootName(), dbPolicyName); err != nil {
-			return err
-		}
+	// Create New Role
+	pspName, _, err := c.getPolicyNames(mysql)
+	if err != nil {
+		return err
+	}
+	if err := c.ensureRole(mysql, mysql.OffshootName(), pspName); err != nil {
+		return err
+	}
 
-		// Create New RoleBinding
-		if err := c.createRoleBinding(mysql, mysql.OffshootName(), saName); err != nil {
-			return err
-		}
+	// Create New RoleBinding
+	if err := c.createRoleBinding(mysql, mysql.OffshootName(), saName); err != nil {
+		return err
 	}
 
 	return nil
