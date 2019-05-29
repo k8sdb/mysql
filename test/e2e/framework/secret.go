@@ -15,8 +15,10 @@ import (
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	v1 "kmodules.xyz/client-go/core/v1"
 	meta_util "kmodules.xyz/client-go/meta"
 	store "kmodules.xyz/objectstore-api/api/v1"
+	"stash.appscode.dev/stash/pkg/restic"
 )
 
 func (fi *Invocation) SecretForLocalBackend() *core.Secret {
@@ -112,6 +114,18 @@ func (fi *Invocation) SecretForSwiftBackend() *core.Secret {
 			store.OS_REGION_NAME: []byte(os.Getenv(store.OS_REGION_NAME)),
 		},
 	}
+}
+
+func (i *Invocation) PatchSecretForRestic(secret *core.Secret) *core.Secret {
+	if secret == nil {
+		return secret
+	}
+
+	secret.StringData = v1.UpsertMap(secret.StringData, map[string]string{
+		restic.RESTIC_PASSWORD: "RESTIC_PASSWORD",
+	})
+
+	return secret
 }
 
 // TODO: Add more methods for Swift, Backblaze B2, Rest server backend.

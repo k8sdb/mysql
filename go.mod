@@ -3,9 +3,7 @@ module github.com/kubedb/mysql
 go 1.12
 
 require (
-	github.com/Azure/go-autorest v11.1.2+incompatible // indirect
 	github.com/appscode/go v0.0.0-20190523031839-1468ee3a76e8
-	github.com/appscode/osm v0.11.0 // indirect
 	github.com/codeskyblue/go-sh v0.0.0-20190412065543-76bd3d59ff27
 	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/prometheus-operator v0.29.0
@@ -18,30 +16,30 @@ require (
 	github.com/go-xorm/xorm v0.7.0
 	github.com/google/uuid v1.1.1
 	github.com/graymeta/stow v0.0.0-00010101000000-000000000000
-	github.com/kubedb/apimachinery v0.0.0-20190526014453-48e4bab67179
+	github.com/kubedb/apimachinery v0.0.0-20190529092539-0e7a57f24484
 	github.com/lib/pq v1.1.1 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
-	github.com/ncw/swift v1.0.47 // indirect
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v0.0.4
 	github.com/spf13/pflag v1.0.3
 	github.com/ziutek/mymysql v1.5.4 // indirect
-	golang.org/x/sys v0.0.0-20190508220229-2d0786266e9c // indirect
 	k8s.io/api v0.0.0-20190503110853-61630f889b3c
 	k8s.io/apiextensions-apiserver v0.0.0-20190508184259-7784d62bc471
 	k8s.io/apimachinery v0.0.0-20190508063446-a3da69d3723c
 	k8s.io/apiserver v0.0.0-20190508183956-3a0abf14e58a
 	k8s.io/cli-runtime v0.0.0-20190508184404-b26560c459bd // indirect
 	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/klog v0.3.2 // indirect
 	k8s.io/kube-aggregator v0.0.0-20190508104018-6d3d96b06d29
 	kmodules.xyz/client-go v0.0.0-20190527113919-eb165836b702
 	kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec
 	kmodules.xyz/monitoring-agent-api v0.0.0-20190508125842-489150794b9b
 	kmodules.xyz/objectstore-api v0.0.0-20190506085934-94c81c8acca9
-	kmodules.xyz/offshoot-api v0.0.0-20190508142450-1c69d50f3c1c
+	kmodules.xyz/offshoot-api v0.0.0-20190527060812-295f97bb8061
 	kmodules.xyz/webhook-runtime v0.0.0-20190508093950-b721b4eba5e5
+	stash.appscode.dev/stash v0.0.0-20190529085714-0a45b44ab960
 )
 
 replace (

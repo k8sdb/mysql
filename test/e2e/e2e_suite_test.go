@@ -2,7 +2,6 @@ package e2e_test
 
 import (
 	"flag"
-	"log"
 	"path/filepath"
 	"testing"
 	"time"
@@ -15,6 +14,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/reporters"
 	. "github.com/onsi/gomega"
+	kext_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	"k8s.io/client-go/kubernetes"
 	clientSetScheme "k8s.io/client-go/kubernetes/scheme"
@@ -23,6 +23,7 @@ import (
 	ka "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 	"kmodules.xyz/client-go/logs"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1"
+	scs "stash.appscode.dev/stash/client/clientset/versioned"
 )
 
 var (
@@ -33,9 +34,8 @@ func init() {
 	scheme.AddToScheme(clientSetScheme.Scheme)
 
 	flag.StringVar(&storageClass, "storageclass", storageClass, "Kubernetes StorageClass name")
-	flag.StringVar(&framework.DBVersion, "db-version", framework.DBVersion, "MySQL version")
 	flag.StringVar(&framework.DockerRegistry, "docker-registry", framework.DockerRegistry, "User provided docker repository")
-	flag.StringVar(&framework.ExporterTag, "exporter-tag", framework.ExporterTag, "Tag of official exporter image")
+	flag.StringVar(&framework.DBCatalogName, "db-catalog", framework.DBCatalogName, "MySQL version")
 	flag.BoolVar(&framework.SelfHostedOperator, "selfhosted-operator", framework.SelfHostedOperator, "Enable this for provided controller")
 }
 
@@ -73,15 +73,14 @@ var _ = BeforeSuite(func() {
 
 	// Clients
 	kubeClient := kubernetes.NewForConfigOrDie(config)
-	extClient := cs.NewForConfigOrDie(config)
+	dbClient := cs.NewForConfigOrDie(config)
 	kaClient := ka.NewForConfigOrDie(config)
-	appCatalogClient, err := appcat_cs.NewForConfig(config)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	appCatalogClient := appcat_cs.NewForConfigOrDie(config)
+	aPIExtKubeClient := kext_cs.NewForConfigOrDie(config)
+	stashClient := scs.NewForConfigOrDie(config)
 
 	// Framework
-	root = framework.New(config, kubeClient, extClient, kaClient, appCatalogClient, storageClass)
+	root = framework.New(config, kubeClient, aPIExtKubeClient, dbClient, kaClient, appCatalogClient, stashClient, storageClass)
 
 	// Create namespace
 	By("Using namespace " + root.Namespace())
@@ -110,6 +109,8 @@ var _ = AfterSuite(func() {
 	root.CleanDormantDatabase()
 	By("Delete left over Snapshot objects")
 	root.CleanSnapshot()
+	By("Delete left over workloads if exists any")
+	root.CleanWorkloadLeftOvers()
 	By("Delete Namespace")
 	err := root.DeleteNamespace()
 	Expect(err).NotTo(HaveOccurred())

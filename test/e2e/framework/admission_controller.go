@@ -11,9 +11,12 @@ import (
 	"github.com/appscode/go/log"
 	shell "github.com/codeskyblue/go-sh"
 	"github.com/kubedb/apimachinery/apis"
+	catlog "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
 	"github.com/kubedb/mysql/pkg/cmds/server"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	crd_api "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	kext_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
@@ -21,6 +24,7 @@ import (
 	kApi "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
 	kutil "kmodules.xyz/client-go"
 	admsn_kutil "kmodules.xyz/client-go/admissionregistration/v1beta1"
+	apiext_util "kmodules.xyz/client-go/apiextensions/v1beta1"
 	discovery_util "kmodules.xyz/client-go/discovery"
 	meta_util "kmodules.xyz/client-go/meta"
 )
@@ -49,7 +53,7 @@ func (f *Framework) EventuallyAPIServiceReady() GomegaAsyncAssertion {
 			if err := f.isApiSvcReady("v1alpha1.validators.kubedb.com"); err != nil {
 				return err
 			}
-			time.Sleep(time.Second * 3) // let the resource become available
+			time.Sleep(time.Second * 5) // let the resource become available
 
 			// Check if the annotations of validating webhook is updated by operator/controller
 			apiSvc, err := f.kaClient.ApiregistrationV1beta1().APIServices().Get("v1alpha1.validators.kubedb.com", metav1.GetOptions{})
@@ -70,6 +74,17 @@ func (f *Framework) EventuallyAPIServiceReady() GomegaAsyncAssertion {
 
 func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPath string, stopCh <-chan struct{}) {
 	defer GinkgoRecover()
+
+	// ensure crds. Mainly for catalogVersions CRD.
+	apiExtKubeClient, err := kext_cs.NewForConfig(config)
+	Expect(err).NotTo(HaveOccurred())
+
+	log.Infoln("Ensuring CustomResourceDefinition...")
+	crds := []*crd_api.CustomResourceDefinition{
+		catlog.MySQLVersion{}.CustomResourceDefinition(),
+	}
+	err = apiext_util.RegisterCRDs(apiExtKubeClient, crds)
+	Expect(err).NotTo(HaveOccurred())
 
 	// Check and set EnableStatusSubresource=true for >=kubernetes v1.11
 	// Todo: remove this part and set EnableStatusSubresource=true automatically when subresources is must in kubedb.

@@ -5,7 +5,6 @@ import (
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
-	catalog "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/mysql/test/e2e/framework"
 	"github.com/kubedb/mysql/test/e2e/matcher"
@@ -20,16 +19,15 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 		f            *framework.Invocation
 		mysql        *api.MySQL
 		garbageMySQL *api.MySQLList
-		mysqlVersion *catalog.MySQLVersion
 		//skipMessage string
 		dbName       string
 		dbNameKubedb string
 	)
 
 	var createAndWaitForRunning = func() {
-		By("Create MySQLVersion: " + mysqlVersion.Name)
-		err = f.CreateMySQLVersion(mysqlVersion)
-		Expect(err).NotTo(HaveOccurred())
+		//By("Create MySQLVersion: " + mysqlVersion.Name)
+		//err = f.CreateMySQLVersion(mysqlVersion)
+		//Expect(err).NotTo(HaveOccurred())
 
 		By("Create MySQL: " + mysql.Name)
 		err = f.CreateMySQL(mysql)
@@ -134,11 +132,11 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 				deleteTestResource()
 			}
 
-			By("Deleting MySQLVersion crd")
-			err := f.DeleteMySQLVersion(mysqlVersion.ObjectMeta)
-			if err != nil && !kerr.IsNotFound(err) {
-				Expect(err).NotTo(HaveOccurred())
-			}
+			//By("Deleting MySQLVersion crd")
+			//err := f.DeleteMySQLVersion(mysqlVersion.ObjectMeta)
+			//if err != nil && !kerr.IsNotFound(err) {
+			//	Expect(err).NotTo(HaveOccurred())
+			//}
 
 			By("Delete left over workloads if exists any")
 			f.CleanWorkloadLeftOvers()

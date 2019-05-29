@@ -1,0 +1,40 @@
+apiVersion: kubedb.com/v1alpha1
+kind: MongoDB
+metadata:
+  name: mysql-restore
+  namespace: demo
+spec:
+  version: "3.4-v3"
+  storageType: Durable
+  storage:
+    storageClassName: "standard"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  terminationPolicy: WipeOut
+
+---
+apiVersion: stash.appscode.com/v1beta1
+kind: RestoreSession
+metadata:
+  name: mysql-restore-01
+  namespace: demo
+  labels:
+    kubedb.com/kind: Postgres
+spec:
+  runtimeSettings:
+    pod:
+      serviceAccountName: mysql-backup-restore
+  task:
+    name: mysql-restore-task
+  repository:
+    name: hello-repo
+  target:
+    ref:
+      apiVersion: appcatalog.appscode.com/v1alpha1
+      kind: AppBinding
+      name: mysql-restore
+  rules:
+  - snapshots: [latest]

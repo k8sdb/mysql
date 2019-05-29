@@ -99,26 +99,42 @@ func (c *Controller) create(mysql *api.MySQL) error {
 		)
 	}
 
-	if _, err := meta_util.GetString(mysql.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
-		mysql.Spec.Init != nil && mysql.Spec.Init.SnapshotSource != nil {
+	// ensure appbinding before ensuring Restic scheduler and restore
+	_, err = c.ensureAppBinding(mysql)
+	if err != nil {
+		log.Errorln(err)
+		return err
+	}
 
-		snapshotSource := mysql.Spec.Init.SnapshotSource
+	if _, err := meta_util.GetString(mysql.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
+		mysql.Spec.Init != nil &&
+		(mysql.Spec.Init.SnapshotSource != nil || mysql.Spec.Init.StashRestoreSession != nil) {
 
 		if mysql.Status.Phase == api.DatabasePhaseInitializing {
 			return nil
 		}
-		jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshotSource.Name)
-		if _, err := c.Client.BatchV1().Jobs(snapshotSource.Namespace).Get(jobName, metav1.GetOptions{}); err != nil {
-			if !kerr.IsNotFound(err) {
-				return err
+
+		// add phase that database is being initialized
+		mg, err := util.UpdateMySQLStatus(c.ExtClient.KubedbV1alpha1(), mysql, func(in *api.MySQLStatus) *api.MySQLStatus {
+			in.Phase = api.DatabasePhaseInitializing
+			return in
+		}, apis.EnableStatusSubresource)
+		if err != nil {
+			return err
+		}
+		mysql.Status = mg.Status
+
+		init := mysql.Spec.Init
+		if init.SnapshotSource != nil {
+			err = c.initializeFromSnapshot(mysql)
+			if err != nil {
+				return fmt.Errorf("failed to complete initialization. Reason: %v", err)
 			}
-		} else {
+			return err
+		} else if init.StashRestoreSession != nil {
+			log.Debugf("MySQL %v/%v is waiting for restoreSession to be succeeded", mysql.Namespace, mysql.Name)
 			return nil
 		}
-		if err := c.initialize(mysql); err != nil {
-			return fmt.Errorf("failed to complete initialization for %v/%v. Reason: %v", mysql.Namespace, mysql.Name, err)
-		}
-		return nil
 	}
 
 	my, err := util.UpdateMySQLStatus(c.ExtClient.KubedbV1alpha1(), mysql, func(in *api.MySQLStatus) *api.MySQLStatus {
@@ -168,12 +184,6 @@ func (c *Controller) create(mysql *api.MySQL) error {
 		return nil
 	}
 
-	_, err = c.ensureAppBinding(mysql)
-	if err != nil {
-		log.Errorln(err)
-		return err
-	}
-
 	return nil
 }
 
@@ -194,17 +204,17 @@ func (c *Controller) ensureBackupScheduler(mysql *api.MySQL) error {
 	return nil
 }
 
-func (c *Controller) initialize(mysql *api.MySQL) error {
-	my, err := util.UpdateMySQLStatus(c.ExtClient.KubedbV1alpha1(), mysql, func(in *api.MySQLStatus) *api.MySQLStatus {
-		in.Phase = api.DatabasePhaseInitializing
-		return in
-	}, apis.EnableStatusSubresource)
-	if err != nil {
-		return err
-	}
-	mysql.Status = my.Status
-
+func (c *Controller) initializeFromSnapshot(mysql *api.MySQL) error {
 	snapshotSource := mysql.Spec.Init.SnapshotSource
+	jobName := fmt.Sprintf("%s-%s", api.DatabaseNamePrefix, snapshotSource.Name)
+	if _, err := c.Client.BatchV1().Jobs(snapshotSource.Namespace).Get(jobName, metav1.GetOptions{}); err != nil {
+		if !kerr.IsNotFound(err) {
+			return err
+		}
+	} else {
+		return nil
+	}
+
 	// Event for notification that kubernetes objects are creating
 	c.recorder.Eventf(
 		mysql,

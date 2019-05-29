@@ -6,7 +6,6 @@ import (
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
-	catalog "github.com/kubedb/apimachinery/apis/catalog/v1alpha1"
 	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	"github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	"github.com/kubedb/mysql/test/e2e/framework"
@@ -19,6 +18,8 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	meta_util "kmodules.xyz/client-go/meta"
 	store "kmodules.xyz/objectstore-api/api/v1"
+	stashV1alpha1 "stash.appscode.dev/stash/apis/stash/v1alpha1"
+	stashV1beta1 "stash.appscode.dev/stash/apis/stash/v1beta1"
 )
 
 const (
@@ -36,7 +37,6 @@ var _ = Describe("MySQL", func() {
 		f                *framework.Invocation
 		mysql            *api.MySQL
 		garbageMySQL     *api.MySQLList
-		mysqlVersion     *catalog.MySQLVersion
 		snapshot         *api.Snapshot
 		secret           *core.Secret
 		skipMessage      string
@@ -48,7 +48,6 @@ var _ = Describe("MySQL", func() {
 		f = root.Invoke()
 		mysql = f.MySQL()
 		garbageMySQL = new(api.MySQLList)
-		mysqlVersion = f.MySQLVersion()
 		snapshot = f.Snapshot()
 		skipMessage = ""
 		skipDataChecking = true
@@ -56,10 +55,6 @@ var _ = Describe("MySQL", func() {
 	})
 
 	var createAndWaitForRunning = func() {
-		By("Create MySQLVersion: " + mysqlVersion.Name)
-		err = f.CreateMySQLVersion(mysqlVersion)
-		Expect(err).NotTo(HaveOccurred())
-
 		By("Create MySQL: " + mysql.Name)
 		err = f.CreateMySQL(mysql)
 		Expect(err).NotTo(HaveOccurred())
@@ -244,12 +239,6 @@ var _ = Describe("MySQL", func() {
 		for _, my := range garbageMySQL.Items {
 			*mysql = my
 			deleteTestResource()
-		}
-
-		By("Deleting MySQLVersion crd")
-		err := f.DeleteMySQLVersion(mysqlVersion.ObjectMeta)
-		if err != nil && !kerr.IsNotFound(err) {
-			Expect(err).NotTo(HaveOccurred())
 		}
 
 		By("Delete left over workloads if exists any")
@@ -1124,6 +1113,158 @@ var _ = Describe("MySQL", func() {
 					It("should initialize successfully", shouldInitializeFromSnapshot)
 				})
 			})
+
+			// To run this test,
+			// 1st: Deploy stash latest operator
+			// 2nd: create mysql related tasks and functions from
+			// `github.com/kubedb/mysql/hack/dev/examples/stash01_config.yaml`
+			Context("With Stash/Restic", func() {
+				var bc *stashV1beta1.BackupConfiguration
+				var bs *stashV1beta1.BackupSession
+				var rs *stashV1beta1.RestoreSession
+				var repo *stashV1alpha1.Repository
+
+				BeforeEach(func() {
+					skipDataChecking = true
+					if !f.FoundStashCRDs() {
+						Skip("Skipping tests for stash integration. reason: stash operator is not running.")
+					}
+				})
+
+				AfterEach(func() {
+					By("Deleting BackupConfiguration")
+					err := f.DeleteBackupConfiguration(bc.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Deleting BackupSession")
+					err = f.DeleteBackupSession(bs.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Deleting RestoreSession")
+					err = f.DeleteRestoreSession(rs.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Deleting Repository")
+					err = f.DeleteRepository(repo.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Deleting Stash RBACs")
+					err = f.DeleteStashMySQLRBAC(mysql.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				var createAndWaitForInitializing = func() {
+					By("Creating MySQL: " + mysql.Name)
+					err = f.CreateMySQL(mysql)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for Initializing mysql")
+					f.EventuallyMySQLPhase(mysql.ObjectMeta).Should(Equal(api.DatabasePhaseInitializing))
+
+					By("Wait for AppBinding to create")
+					f.EventuallyAppBinding(mysql.ObjectMeta).Should(BeTrue())
+
+					By("Check valid AppBinding Specs")
+					err = f.CheckAppBindingSpec(mysql.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Waiting for database to be ready")
+					f.EventuallyDatabaseReady(mysql.ObjectMeta, dbName).Should(BeTrue())
+				}
+
+				var shouldInitializeFromStash = func() {
+					By("Ensuring Stash RBACs")
+					err := f.EnsureStashMySQLRBAC(mysql.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					// Create and wait for running MySQL
+					createAndWaitForRunning()
+
+					By("Creating Table")
+					f.EventuallyCreateTable(mysql.ObjectMeta, dbName).Should(BeTrue())
+
+					By("Inserting Rows")
+					f.EventuallyInsertRow(mysql.ObjectMeta, dbName, 0, 3).Should(BeTrue())
+
+					By("Checking Row Count of Table")
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
+
+					By("Create Secret")
+					err = f.CreateSecret(secret)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Create Repositories")
+					err = f.CreateRepository(repo)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Create BackupConfiguration")
+					err = f.CreateBackupConfiguration(bc)
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Create BackupSession")
+					err = f.CreateBackupSession(bs)
+					Expect(err).NotTo(HaveOccurred())
+
+					// eventually backupsession succeeded
+					By("Check for Succeeded backupsession")
+					f.EventuallyBackupSessionPhase(bs.ObjectMeta).Should(Equal(stashV1beta1.BackupSessionSucceeded))
+
+					oldMySQL, err := f.GetMySQL(mysql.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
+
+					garbageMySQL.Items = append(garbageMySQL.Items, *oldMySQL)
+
+					By("Create mysql from stash")
+					*mysql = *f.MySQL()
+					rs = f.RestoreSession(mysql.ObjectMeta, oldMySQL.ObjectMeta)
+					mysql.Spec.DatabaseSecret = oldMySQL.Spec.DatabaseSecret
+					mysql.Spec.Init = &api.InitSpec{
+						StashSource: &core.LocalObjectReference{
+							Name: rs.Name,
+						},
+					}
+
+					// Create and wait for running MySQL
+					createAndWaitForInitializing()
+
+					By("Create RestoreSession")
+					err = f.CreateRestoreSession(rs)
+					Expect(err).NotTo(HaveOccurred())
+
+					// eventually backupsession succeeded
+					By("Check for Succeeded restoreSession")
+					f.EventuallyRestoreSessionPhase(rs.ObjectMeta).Should(Equal(stashV1beta1.RestoreSessionSucceeded))
+
+					By("Wait for Running mysql")
+					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+
+					By("Checking Row Count of Table")
+					f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
+				}
+
+				Context("From GCS backend", func() {
+
+					BeforeEach(func() {
+						secret = f.SecretForGCSBackend()
+						secret = f.PatchSecretForRestic(secret)
+						bc = f.BackupConfiguration(mysql.ObjectMeta)
+						bs = f.BackupSession(mysql.ObjectMeta)
+						repo = f.Repository(mysql.ObjectMeta, secret.Name)
+
+						repo.Spec.Backend = store.Backend{
+							GCS: &store.GCSSpec{
+								Bucket: os.Getenv("GCS_BUCKET_NAME"),
+								Prefix: fmt.Sprintf("stash/%v/%v", mysql.Namespace, mysql.Name),
+							},
+							StorageSecretName: secret.Name,
+						}
+					})
+
+					It("should run successfully", shouldInitializeFromStash)
+				})
+
+			})
+
 		})
 
 		Context("Resume", func() {
