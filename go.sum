@@ -264,8 +264,8 @@ github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORN
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/kubedb/apimachinery v0.0.0-20190529092539-0e7a57f24484 h1:9KcBAWyytRu1eKDDwlndxuLxjEnmh7I5sjKdRQx4RjI=
-github.com/kubedb/apimachinery v0.0.0-20190529092539-0e7a57f24484/go.mod h1:h7/Bly7FIssiPoFsUjHU0tCv7j0GsdspiP0QYk0akYY=
+github.com/kubedb/apimachinery v0.0.0-20190529152419-7517175ae10f h1:TGKhVjZqUI7Uu+KzX9LAzjfJW8YHdpa5+tiOd9d3Nl8=
+github.com/kubedb/apimachinery v0.0.0-20190529152419-7517175ae10f/go.mod h1:h7/Bly7FIssiPoFsUjHU0tCv7j0GsdspiP0QYk0akYY=
 github.com/kubernetes-csi/external-snapshotter v1.1.0 h1:godlw8BSOac5TMGH2rVPJrmllek3y8wuqd9JsJHgulw=
 github.com/kubernetes-csi/external-snapshotter v1.1.0/go.mod h1:oYfxnsuh48V1UDYORl77YQxQbbdokNy7D73phuFpksY=
 github.com/kubernetes-incubator/service-catalog v0.1.43/go.mod h1:D0CRODiXUJs6VCZDB15TmCkesbuizkac9fYEiTA78BA=

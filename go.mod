@@ -16,7 +16,7 @@ require (
 	github.com/go-xorm/xorm v0.7.0
 	github.com/google/uuid v1.1.1
 	github.com/graymeta/stow v0.0.0-00010101000000-000000000000
-	github.com/kubedb/apimachinery v0.0.0-20190529092539-0e7a57f24484
+	github.com/kubedb/apimachinery v0.0.0-20190529152419-7517175ae10f
 	github.com/lib/pq v1.1.1 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0 // indirect
 	github.com/onsi/ginkgo v1.8.0

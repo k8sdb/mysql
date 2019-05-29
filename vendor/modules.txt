@@ -205,7 +205,7 @@ github.com/jmespath/go-jmespath
 github.com/jpillora/go-ogle-analytics
 # github.com/json-iterator/go v1.1.6
 github.com/json-iterator/go
-# github.com/kubedb/apimachinery v0.0.0-20190529092539-0e7a57f24484
+# github.com/kubedb/apimachinery v0.0.0-20190529152419-7517175ae10f
 github.com/kubedb/apimachinery/apis/catalog/v1alpha1
 github.com/kubedb/apimachinery/apis/kubedb/v1alpha1
 github.com/kubedb/apimachinery/client/clientset/versioned
