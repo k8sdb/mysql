@@ -188,10 +188,10 @@ func (f *Framework) EventuallyRestoreSessionPhase(meta metav1.ObjectMeta) Gomega
 }
 
 func (f *Framework) EnsureStashMySQLRBAC(meta metav1.ObjectMeta) error {
-	if err := f.CreateServiceAccount(meta); err != nil {
+	if err := f.CreateStashMySQLServiceAccount(meta); err != nil {
 		return err
 	}
-	if err := f.CreateRoleBinding(meta); err != nil {
+	if err := f.CreateStashMySQLRoleBinding(meta); err != nil {
 		return err
 	}
 	return nil
@@ -207,7 +207,7 @@ func (f *Framework) DeleteStashMySQLRBAC(meta metav1.ObjectMeta) error {
 	return nil
 }
 
-func (f *Framework) CreateServiceAccount(meta metav1.ObjectMeta) error {
+func (f *Framework) CreateStashMySQLServiceAccount(meta metav1.ObjectMeta) error {
 	// Create new ServiceAccount
 	_, _, err := core_util.CreateOrPatchServiceAccount(
 		f.kubeClient,
@@ -222,7 +222,7 @@ func (f *Framework) CreateServiceAccount(meta metav1.ObjectMeta) error {
 	return err
 }
 
-func (f *Framework) CreateRoleBinding(meta metav1.ObjectMeta) error {
+func (f *Framework) CreateStashMySQLRoleBinding(meta metav1.ObjectMeta) error {
 	// Ensure new RoleBindings
 	_, _, err := rbac_util.CreateOrPatchRoleBinding(
 		f.kubeClient,

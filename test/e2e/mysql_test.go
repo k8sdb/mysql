@@ -1219,7 +1219,7 @@ var _ = Describe("MySQL", func() {
 					rs = f.RestoreSession(mysql.ObjectMeta, oldMySQL.ObjectMeta)
 					mysql.Spec.DatabaseSecret = oldMySQL.Spec.DatabaseSecret
 					mysql.Spec.Init = &api.InitSpec{
-						StashSource: &core.LocalObjectReference{
+						StashRestoreSession: &core.LocalObjectReference{
 							Name: rs.Name,
 						},
 					}
