@@ -1,4 +1,4 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/kubedb/mysql)](https://goreportcard.com/report/github.com/kubedb/mysql)
+[![Go Report Card](https://goreportcard.com/badge/kubedb.dev/mysql)](https://goreportcard.com/report/kubedb.dev/mysql)
 [![Build Status](https://travis-ci.org/kubedb/mysql.svg?branch=master)](https://travis-ci.org/kubedb/mysql)
 [![codecov](https://codecov.io/gh/kubedb/mysql/branch/master/graph/badge.svg)](https://codecov.io/gh/kubedb/mysql)
 [![Slack](http://slack.kubernetes.io/badge.svg)](http://slack.kubernetes.io/#kubedb)

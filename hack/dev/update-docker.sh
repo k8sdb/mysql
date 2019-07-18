@@ -2,7 +2,7 @@
 set -eou pipefail
 
 GOPATH=$(go env GOPATH)
-REPO_ROOT=${GOPATH}/src/github.com/kubedb/mysql
+REPO_ROOT=${GOPATH}/src/kubedb.dev/mysql
 
 export DB_UPDATE=1
 export TOOLS_UPDATE=1

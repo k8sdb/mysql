@@ -1,8 +1,6 @@
 package controller
 
 import (
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
-	cs_util "github.com/kubedb/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 	"github.com/pkg/errors"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -14,6 +12,8 @@ import (
 	core_util "kmodules.xyz/client-go/core/v1"
 	dynamic_util "kmodules.xyz/client-go/dynamic"
 	meta_util "kmodules.xyz/client-go/meta"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	cs_util "kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 )
 
 // WaitUntilPaused is an Interface of *amc.Controller

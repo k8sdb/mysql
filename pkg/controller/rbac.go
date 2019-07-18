@@ -1,7 +1,6 @@
 package controller
 
 import (
-	api "github.com/kubedb/apimachinery/apis/kubedb/v1alpha1"
 	core "k8s.io/api/core/v1"
 	policy_v1beta1 "k8s.io/api/policy/v1beta1"
 	rbac "k8s.io/api/rbac/v1beta1"
@@ -11,6 +10,7 @@ import (
 	"k8s.io/client-go/tools/reference"
 	core_util "kmodules.xyz/client-go/core/v1"
 	rbac_util "kmodules.xyz/client-go/rbac/v1beta1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 )
 
 func (c *Controller) createServiceAccount(db *api.MySQL, saName string) error {
