@@ -3,14 +3,13 @@ module kubedb.dev/mysql
 go 1.12
 
 require (
-	github.com/appscode/go v0.0.0-20190621064509-6b292c9166e3
+	github.com/appscode/go v0.0.0-20190722173419-e454bf744023
 	github.com/codeskyblue/go-sh v0.0.0-20190412065543-76bd3d59ff27
 	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/prometheus-operator v0.30.0
-	github.com/denisenkom/go-mssqldb v0.0.0-20190423183735-731ef375ac02 // indirect
 	github.com/fatih/structs v1.1.0
 	github.com/go-sql-driver/mysql v1.4.1
-	github.com/go-xorm/xorm v0.7.3
+	github.com/go-xorm/xorm v0.7.4
 	github.com/google/uuid v1.1.1
 	github.com/lib/pq v1.1.1 // indirect
 	github.com/onsi/ginkgo v1.8.0
@@ -26,7 +25,7 @@ require (
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/kube-aggregator v0.0.0-20190508104018-6d3d96b06d29
 	kmodules.xyz/client-go v0.0.0-20190715080709-7162a6c90b04
-	kmodules.xyz/custom-resources v0.0.0-20190508103408-464e8324c3ec
+	kmodules.xyz/custom-resources v0.0.0-20190723185639-711575c0b8a9
 	kmodules.xyz/monitoring-agent-api v0.0.0-20190513065523-186af167f817
 	kmodules.xyz/objectstore-api v0.0.0-20190718002052-da668b440b0b
 	kmodules.xyz/offshoot-api v0.0.0-20190715115723-36c8fce142c1
