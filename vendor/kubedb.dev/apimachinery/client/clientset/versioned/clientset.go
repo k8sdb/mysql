@@ -22,17 +22,13 @@ import (
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
 	flowcontrol "k8s.io/client-go/util/flowcontrol"
-	authorizationv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/authorization/v1alpha1"
 	catalogv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/catalog/v1alpha1"
-	configv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/config/v1alpha1"
 	kubedbv1alpha1 "kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1"
 )
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	AuthorizationV1alpha1() authorizationv1alpha1.AuthorizationV1alpha1Interface
 	CatalogV1alpha1() catalogv1alpha1.CatalogV1alpha1Interface
-	ConfigV1alpha1() configv1alpha1.ConfigV1alpha1Interface
 	KubedbV1alpha1() kubedbv1alpha1.KubedbV1alpha1Interface
 }
 
@@ -40,25 +36,13 @@ type Interface interface {
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	authorizationV1alpha1 *authorizationv1alpha1.AuthorizationV1alpha1Client
-	catalogV1alpha1       *catalogv1alpha1.CatalogV1alpha1Client
-	configV1alpha1        *configv1alpha1.ConfigV1alpha1Client
-	kubedbV1alpha1        *kubedbv1alpha1.KubedbV1alpha1Client
-}
-
-// AuthorizationV1alpha1 retrieves the AuthorizationV1alpha1Client
-func (c *Clientset) AuthorizationV1alpha1() authorizationv1alpha1.AuthorizationV1alpha1Interface {
-	return c.authorizationV1alpha1
+	catalogV1alpha1 *catalogv1alpha1.CatalogV1alpha1Client
+	kubedbV1alpha1  *kubedbv1alpha1.KubedbV1alpha1Client
 }
 
 // CatalogV1alpha1 retrieves the CatalogV1alpha1Client
 func (c *Clientset) CatalogV1alpha1() catalogv1alpha1.CatalogV1alpha1Interface {
 	return c.catalogV1alpha1
-}
-
-// ConfigV1alpha1 retrieves the ConfigV1alpha1Client
-func (c *Clientset) ConfigV1alpha1() configv1alpha1.ConfigV1alpha1Interface {
-	return c.configV1alpha1
 }
 
 // KubedbV1alpha1 retrieves the KubedbV1alpha1Client
@@ -82,15 +66,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
-	cs.authorizationV1alpha1, err = authorizationv1alpha1.NewForConfig(&configShallowCopy)
-	if err != nil {
-		return nil, err
-	}
 	cs.catalogV1alpha1, err = catalogv1alpha1.NewForConfig(&configShallowCopy)
-	if err != nil {
-		return nil, err
-	}
-	cs.configV1alpha1, err = configv1alpha1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -110,9 +86,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
-	cs.authorizationV1alpha1 = authorizationv1alpha1.NewForConfigOrDie(c)
 	cs.catalogV1alpha1 = catalogv1alpha1.NewForConfigOrDie(c)
-	cs.configV1alpha1 = configv1alpha1.NewForConfigOrDie(c)
 	cs.kubedbV1alpha1 = kubedbv1alpha1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
@@ -122,9 +96,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.authorizationV1alpha1 = authorizationv1alpha1.New(c)
 	cs.catalogV1alpha1 = catalogv1alpha1.New(c)
-	cs.configV1alpha1 = configv1alpha1.New(c)
 	cs.kubedbV1alpha1 = kubedbv1alpha1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
