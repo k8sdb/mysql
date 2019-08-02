@@ -25,6 +25,7 @@ import (
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	catalogv1alpha1 "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
+	configv1alpha1 "kubedb.dev/apimachinery/apis/config/v1alpha1"
 	kubedbv1alpha1 "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 )
 
@@ -33,6 +34,7 @@ var codecs = serializer.NewCodecFactory(scheme)
 var parameterCodec = runtime.NewParameterCodec(scheme)
 var localSchemeBuilder = runtime.SchemeBuilder{
 	catalogv1alpha1.AddToScheme,
+	configv1alpha1.AddToScheme,
 	kubedbv1alpha1.AddToScheme,
 }
 

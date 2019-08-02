@@ -5,12 +5,8 @@ import (
 
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
-	rbac "k8s.io/api/rbac/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	core_util "kmodules.xyz/client-go/core/v1"
-	rbac_util "kmodules.xyz/client-go/rbac/v1beta1"
-	v1alpha13 "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
-	ofst "kmodules.xyz/offshoot-api/api/v1"
+	appcat_api "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	"kubedb.dev/apimachinery/pkg/controller"
 	"stash.appscode.dev/stash/apis/stash/v1alpha1"
@@ -19,11 +15,8 @@ import (
 )
 
 var (
-	StashMySQLBackupTask  = "mysql-backup-task"
-	StashMySQLRestoreTask = "mysql-restore-task"
-	StashMySQLClusterRole = "mysql-backup-restore"
-	StashMySQLSA          = "mysql-backup-restore"
-	StashMySQLRoleBinding = "mysql-backup-restore"
+	StashMySQLBackupTask  = "my-backup-8.0.14"
+	StashMySQLRestoreTask = "my-restore-8.0.14"
 )
 
 func (f *Framework) FoundStashCRDs() bool {
@@ -37,22 +30,17 @@ func (f *Invocation) BackupConfiguration(meta metav1.ObjectMeta) *v1beta1.Backup
 			Namespace: f.namespace,
 		},
 		Spec: v1beta1.BackupConfigurationSpec{
-			RuntimeSettings: ofst.RuntimeSettings{
-				Pod: &ofst.PodRuntimeSettings{
-					ServiceAccountName: StashMySQLSA,
-				},
-			},
 			Task: v1beta1.TaskRef{
 				Name: StashMySQLBackupTask,
 			},
 			Repository: core.LocalObjectReference{
 				Name: meta.Name,
 			},
-			//Schedule: "*/3 * * * *",
+			Schedule: "*/3 * * * *",
 			Target: &v1beta1.BackupTarget{
 				Ref: v1beta1.TargetRef{
-					APIVersion: v1alpha13.SchemeGroupVersion.String(),
-					Kind:       v1alpha13.ResourceKindApp,
+					APIVersion: appcat_api.SchemeGroupVersion.String(),
+					Kind:       appcat_api.ResourceKindApp,
 					Name:       meta.Name,
 				},
 			},
@@ -139,11 +127,6 @@ func (f *Invocation) RestoreSession(meta, oldMeta metav1.ObjectMeta) *v1beta1.Re
 			},
 		},
 		Spec: v1beta1.RestoreSessionSpec{
-			RuntimeSettings: ofst.RuntimeSettings{
-				Pod: &ofst.PodRuntimeSettings{
-					ServiceAccountName: StashMySQLSA,
-				},
-			},
 			Task: v1beta1.TaskRef{
 				Name: StashMySQLRestoreTask,
 			},
@@ -157,8 +140,8 @@ func (f *Invocation) RestoreSession(meta, oldMeta metav1.ObjectMeta) *v1beta1.Re
 			},
 			Target: &v1beta1.RestoreTarget{
 				Ref: v1beta1.TargetRef{
-					APIVersion: v1alpha13.SchemeGroupVersion.String(),
-					Kind:       v1alpha13.ResourceKindApp,
+					APIVersion: appcat_api.SchemeGroupVersion.String(),
+					Kind:       appcat_api.ResourceKindApp,
 					Name:       meta.Name,
 				},
 			},
@@ -185,66 +168,4 @@ func (f *Framework) EventuallyRestoreSessionPhase(meta metav1.ObjectMeta) Gomega
 		time.Minute*7,
 		time.Second*7,
 	)
-}
-
-func (f *Framework) EnsureStashMySQLRBAC(meta metav1.ObjectMeta) error {
-	if err := f.CreateStashMySQLServiceAccount(meta); err != nil {
-		return err
-	}
-	if err := f.CreateStashMySQLRoleBinding(meta); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (f *Framework) DeleteStashMySQLRBAC(meta metav1.ObjectMeta) error {
-	if err := f.kubeClient.CoreV1().ServiceAccounts(meta.Namespace).Delete(StashMySQLSA, deleteInForeground()); err != nil {
-		return err
-	}
-	if err := f.kubeClient.RbacV1().RoleBindings(meta.Namespace).Delete(StashMySQLRoleBinding, deleteInForeground()); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (f *Framework) CreateStashMySQLServiceAccount(meta metav1.ObjectMeta) error {
-	// Create new ServiceAccount
-	_, _, err := core_util.CreateOrPatchServiceAccount(
-		f.kubeClient,
-		metav1.ObjectMeta{
-			Name:      StashMySQLSA,
-			Namespace: meta.Namespace,
-		},
-		func(in *core.ServiceAccount) *core.ServiceAccount {
-			return in
-		},
-	)
-	return err
-}
-
-func (f *Framework) CreateStashMySQLRoleBinding(meta metav1.ObjectMeta) error {
-	// Ensure new RoleBindings
-	_, _, err := rbac_util.CreateOrPatchRoleBinding(
-		f.kubeClient,
-		metav1.ObjectMeta{
-			Name:      StashMySQLRoleBinding,
-			Namespace: meta.Namespace,
-		},
-		func(in *rbac.RoleBinding) *rbac.RoleBinding {
-			in.RoleRef = rbac.RoleRef{
-				APIGroup: rbac.GroupName,
-				Kind:     "ClusterRole",
-				Name:     StashMySQLClusterRole,
-			}
-			in.Subjects = []rbac.Subject{
-				{
-					Kind:      rbac.ServiceAccountKind,
-					Name:      StashMySQLSA,
-					Namespace: meta.Namespace,
-				},
-			}
-			return in
-		},
-	)
-	return err
 }

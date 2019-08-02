@@ -76,11 +76,11 @@ var _ = BeforeSuite(func() {
 	dbClient := cs.NewForConfigOrDie(config)
 	kaClient := ka.NewForConfigOrDie(config)
 	appCatalogClient := appcat_cs.NewForConfigOrDie(config)
-	aPIExtKubeClient := kext_cs.NewForConfigOrDie(config)
+	apiExtKubeClient := kext_cs.NewForConfigOrDie(config)
 	stashClient := scs.NewForConfigOrDie(config)
 
 	// Framework
-	root = framework.New(config, kubeClient, aPIExtKubeClient, dbClient, kaClient, appCatalogClient, stashClient, storageClass)
+	root = framework.New(config, kubeClient, apiExtKubeClient, dbClient, kaClient, appCatalogClient, stashClient, storageClass)
 
 	// Create namespace
 	By("Using namespace " + root.Namespace())

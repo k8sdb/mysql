@@ -129,7 +129,6 @@ func (i *Invocation) PatchSecretForRestic(secret *core.Secret) *core.Secret {
 }
 
 // TODO: Add more methods for Swift, Backblaze B2, Rest server backend.
-
 func (f *Framework) CreateSecret(obj *core.Secret) error {
 	_, err := f.kubeClient.CoreV1().Secrets(obj.Namespace).Create(obj)
 	return err
@@ -151,7 +150,7 @@ func (f *Framework) UpdateSecret(meta metav1.ObjectMeta, transformer func(core.S
 		log.Errorf("Attempt %d failed to update Secret %s@%s due to %s.", attempt, cur.Name, cur.Namespace, err)
 		time.Sleep(updateRetryInterval)
 	}
-	return fmt.Errorf("Failed to update Secret %s@%s after %d attempts.", meta.Name, meta.Namespace, attempt)
+	return fmt.Errorf("failed to update Secret %s@%s after %d attempts", meta.Name, meta.Namespace, attempt)
 }
 
 func (f *Framework) GetMySQLRootPassword(mysql *api.MySQL) (string, error) {
@@ -177,6 +176,7 @@ func (f *Framework) EventuallyDBSecretCount(meta metav1.ObjectMeta) GomegaAsyncA
 		api.LabelDatabaseName: meta.Name,
 	}
 	labelSelector := labels.SelectorFromSet(labelMap)
+
 	return Eventually(
 		func() int {
 			secretList, err := f.kubeClient.CoreV1().Secrets(meta.Namespace).List(
@@ -185,6 +185,7 @@ func (f *Framework) EventuallyDBSecretCount(meta metav1.ObjectMeta) GomegaAsyncA
 				},
 			)
 			Expect(err).NotTo(HaveOccurred())
+
 			return len(secretList.Items)
 		},
 		time.Minute*5,

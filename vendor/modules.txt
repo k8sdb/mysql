@@ -43,7 +43,7 @@ github.com/appscode/go/encoding/yaml
 github.com/appscode/osm/context
 # github.com/armon/circbuf v0.0.0-20190214190532-5111143e8da2
 github.com/armon/circbuf
-# github.com/aws/aws-sdk-go v1.20.20
+# github.com/aws/aws-sdk-go v1.20.21
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/credentials
 github.com/aws/aws-sdk-go/aws/credentials/stscreds
@@ -81,9 +81,9 @@ github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
 github.com/aws/aws-sdk-go/service/s3/s3iface
 github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 github.com/aws/aws-sdk-go/private/protocol/json/jsonutil
-# github.com/beorn7/perks v1.0.0
+# github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
-# github.com/census-instrumentation/opencensus-proto v0.2.0
+# github.com/census-instrumentation/opencensus-proto v0.2.1
 github.com/census-instrumentation/opencensus-proto/gen-go/agent/common/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/agent/metrics/v1
 github.com/census-instrumentation/opencensus-proto/gen-go/agent/trace/v1
@@ -107,7 +107,7 @@ github.com/coreos/etcd/pkg/tlsutil
 github.com/coreos/go-semver/semver
 # github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e
 github.com/coreos/go-systemd/daemon
-# github.com/coreos/prometheus-operator v0.30.0
+# github.com/coreos/prometheus-operator v0.30.1
 github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1
 github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1
 github.com/coreos/prometheus-operator/pkg/client/versioned/scheme
@@ -121,7 +121,7 @@ github.com/dgrijalva/jwt-go
 # github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c
 github.com/docker/spdystream
 github.com/docker/spdystream/spdy
-# github.com/emicklei/go-restful v2.9.5+incompatible
+# github.com/emicklei/go-restful v2.9.6+incompatible
 github.com/emicklei/go-restful
 github.com/emicklei/go-restful/log
 # github.com/evanphx/json-patch v4.5.0+incompatible
@@ -130,17 +130,17 @@ github.com/evanphx/json-patch
 github.com/fatih/structs
 # github.com/ghodss/yaml v1.0.0
 github.com/ghodss/yaml
-# github.com/go-openapi/jsonpointer v0.19.0
+# github.com/go-openapi/jsonpointer v0.19.2
 github.com/go-openapi/jsonpointer
-# github.com/go-openapi/jsonreference v0.19.0
+# github.com/go-openapi/jsonreference v0.19.2
 github.com/go-openapi/jsonreference
-# github.com/go-openapi/spec v0.19.0
+# github.com/go-openapi/spec v0.19.2
 github.com/go-openapi/spec
-# github.com/go-openapi/swag v0.19.0
+# github.com/go-openapi/swag v0.19.4
 github.com/go-openapi/swag
 # github.com/go-sql-driver/mysql v1.4.1
 github.com/go-sql-driver/mysql
-# github.com/go-xorm/xorm v0.7.4
+# github.com/go-xorm/xorm v0.7.5
 github.com/go-xorm/xorm
 # github.com/gogo/protobuf v1.2.1
 github.com/gogo/protobuf/proto
@@ -151,7 +151,7 @@ github.com/gogo/protobuf/protoc-gen-gogo/descriptor
 github.com/golang/glog
 # github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef
 github.com/golang/groupcache/lru
-# github.com/golang/protobuf v1.3.1
+# github.com/golang/protobuf v1.3.2
 github.com/golang/protobuf/jsonpb
 github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes/struct
@@ -197,7 +197,7 @@ github.com/grpc-ecosystem/go-grpc-prometheus
 github.com/grpc-ecosystem/grpc-gateway/runtime
 github.com/grpc-ecosystem/grpc-gateway/utilities
 github.com/grpc-ecosystem/grpc-gateway/internal
-# github.com/hashicorp/golang-lru v0.5.1
+# github.com/hashicorp/golang-lru v0.5.3
 github.com/hashicorp/golang-lru
 github.com/hashicorp/golang-lru/simplelru
 # github.com/hpcloud/tail v1.0.0
@@ -214,9 +214,9 @@ github.com/inconshreveable/mousetrap
 github.com/jmespath/go-jmespath
 # github.com/jpillora/go-ogle-analytics v0.0.0-20161213085824-14b04e0594ef
 github.com/jpillora/go-ogle-analytics
-# github.com/json-iterator/go v1.1.6
+# github.com/json-iterator/go v1.1.7
 github.com/json-iterator/go
-# github.com/mailru/easyjson v0.0.0-20190403194419-1ea4449da983
+# github.com/mailru/easyjson v0.0.0-20190614124828-94de47d64c63
 github.com/mailru/easyjson/jlexer
 github.com/mailru/easyjson/jwriter
 github.com/mailru/easyjson/buffer
@@ -230,7 +230,7 @@ github.com/modern-go/concurrent
 github.com/modern-go/reflect2
 # github.com/munnerz/goautoneg v0.0.0-20190414153302-2ae31c8b6b30
 github.com/munnerz/goautoneg
-# github.com/ncw/swift v1.0.47
+# github.com/ncw/swift v1.0.49
 github.com/ncw/swift
 # github.com/onsi/ginkgo v1.8.0
 github.com/onsi/ginkgo
@@ -282,7 +282,7 @@ github.com/prometheus/client_model/go
 github.com/prometheus/common/expfmt
 github.com/prometheus/common/model
 github.com/prometheus/common/internal/bitbucket.org/ww/goautoneg
-# github.com/prometheus/procfs v0.0.2
+# github.com/prometheus/procfs v0.0.3
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 # github.com/robfig/cron/v3 v3.0.0
@@ -322,7 +322,7 @@ go.opencensus.io/metric/metricproducer
 go.opencensus.io/stats/internal
 go.opencensus.io/internal
 go.opencensus.io/trace/internal
-# golang.org/x/crypto v0.0.0-20190605123033-f99c8df09eb5
+# golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8
 golang.org/x/crypto/ssh/terminal
 # golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 golang.org/x/net/http2
@@ -410,7 +410,7 @@ google.golang.org/appengine/internal/remote_api
 google.golang.org/genproto/googleapis/rpc/status
 google.golang.org/genproto/googleapis/api/httpbody
 google.golang.org/genproto/protobuf/field_mask
-# google.golang.org/grpc v1.21.1
+# google.golang.org/grpc v1.21.2
 google.golang.org/grpc
 google.golang.org/grpc/codes
 google.golang.org/grpc/credentials
@@ -863,7 +863,7 @@ k8s.io/client-go/listers/storage/v1alpha1
 k8s.io/client-go/listers/storage/v1beta1
 # k8s.io/component-base v0.0.0-20190424053038-9fe063da3132 => k8s.io/component-base v0.0.0-20190314000054-4a91899592f4
 k8s.io/component-base/cli/flag
-# k8s.io/klog v0.3.1 => k8s.io/klog v0.3.0
+# k8s.io/klog v0.3.3 => k8s.io/klog v0.3.0
 k8s.io/klog
 # k8s.io/kube-aggregator v0.0.0-20190508104018-6d3d96b06d29 => k8s.io/kube-aggregator v0.0.0-20190314000639-da8327669ac5
 k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1
@@ -880,7 +880,7 @@ k8s.io/kube-openapi/pkg/handler
 k8s.io/kube-openapi/pkg/util
 k8s.io/kube-openapi/pkg/util/proto
 k8s.io/kube-openapi/pkg/schemaconv
-# k8s.io/kubernetes v1.14.2
+# k8s.io/kubernetes v1.14.4
 k8s.io/kubernetes/pkg/util/hash
 # k8s.io/utils v0.0.0-20190506122338-8fab8cb257d5 => k8s.io/utils v0.0.0-20190221042446-c2654d5206da
 k8s.io/utils/buffer
@@ -923,7 +923,7 @@ kmodules.xyz/offshoot-api/api/v1
 # kmodules.xyz/webhook-runtime v0.0.0-20190715115250-a84fbf77dd30
 kmodules.xyz/webhook-runtime/admission/v1beta1
 kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1
-# kubedb.dev/apimachinery v0.0.0-20190731194925-9549fe9cb250
+# kubedb.dev/apimachinery v0.0.0-20190731225000-6539c67a4a28
 kubedb.dev/apimachinery/apis/catalog/v1alpha1
 kubedb.dev/apimachinery/apis/kubedb/v1alpha1
 kubedb.dev/apimachinery/client/clientset/versioned
@@ -944,8 +944,10 @@ kubedb.dev/apimachinery/pkg/admission/snapshot
 kubedb.dev/apimachinery/apis/catalog
 kubedb.dev/apimachinery/apis/kubedb
 kubedb.dev/apimachinery/client/clientset/versioned/typed/catalog/v1alpha1
+kubedb.dev/apimachinery/client/clientset/versioned/typed/config/v1alpha1
 kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1
 kubedb.dev/apimachinery/client/clientset/versioned/fake
+kubedb.dev/apimachinery/apis/config/v1alpha1
 kubedb.dev/apimachinery/client/informers/externalversions/catalog
 kubedb.dev/apimachinery/client/informers/externalversions/internalinterfaces
 kubedb.dev/apimachinery/client/informers/externalversions/kubedb
@@ -953,6 +955,7 @@ kubedb.dev/apimachinery/client/informers/externalversions/kubedb/v1alpha1
 kubedb.dev/apimachinery/pkg/controller/job
 kubedb.dev/apimachinery/pkg/admission
 kubedb.dev/apimachinery/client/clientset/versioned/typed/catalog/v1alpha1/fake
+kubedb.dev/apimachinery/client/clientset/versioned/typed/config/v1alpha1/fake
 kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/fake
 kubedb.dev/apimachinery/client/informers/externalversions/catalog/v1alpha1
 kubedb.dev/apimachinery/client/listers/catalog/v1alpha1
@@ -1009,5 +1012,5 @@ stash.appscode.dev/stash/apis/repositories
 stash.appscode.dev/stash/client/listers/stash/v1alpha1
 # xorm.io/builder v0.3.5
 xorm.io/builder
-# xorm.io/core v0.6.3
+# xorm.io/core v0.7.0
 xorm.io/core
