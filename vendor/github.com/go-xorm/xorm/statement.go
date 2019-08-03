@@ -6,6 +6,7 @@ package xorm
 
 import (
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -397,7 +398,7 @@ func (statement *Statement) buildUpdates(bean interface{},
 								continue
 							}
 						} else {
-							// TODO: how to handler?
+							//TODO: how to handler?
 							panic("not supported")
 						}
 					} else {
@@ -578,9 +579,21 @@ func (statement *Statement) getExpr() map[string]exprParam {
 
 func (statement *Statement) col2NewColsWithQuote(columns ...string) []string {
 	newColumns := make([]string, 0)
-	quotes := append(strings.Split(statement.Engine.Quote(""), ""), "`")
 	for _, col := range columns {
-		newColumns = append(newColumns, statement.Engine.Quote(eraseAny(col, quotes...)))
+		col = strings.Replace(col, "`", "", -1)
+		col = strings.Replace(col, statement.Engine.QuoteStr(), "", -1)
+		ccols := strings.Split(col, ",")
+		for _, c := range ccols {
+			fields := strings.Split(strings.TrimSpace(c), ".")
+			if len(fields) == 1 {
+				newColumns = append(newColumns, statement.Engine.quote(fields[0]))
+			} else if len(fields) == 2 {
+				newColumns = append(newColumns, statement.Engine.quote(fields[0])+"."+
+					statement.Engine.quote(fields[1]))
+			} else {
+				panic(errors.New("unwanted colnames"))
+			}
+		}
 	}
 	return newColumns
 }
@@ -751,9 +764,7 @@ func (statement *Statement) Join(joinOP string, tablename interface{}, condition
 			return statement
 		}
 		tbs := strings.Split(tp.TableName(), ".")
-		quotes := append(strings.Split(statement.Engine.Quote(""), ""), "`")
-
-		var aliasName = strings.Trim(tbs[len(tbs)-1], strings.Join(quotes, ""))
+		var aliasName = strings.Trim(tbs[len(tbs)-1], statement.Engine.QuoteStr())
 		fmt.Fprintf(&buf, "(%s) %s ON %v", subSQL, aliasName, condition)
 		statement.joinArgs = append(statement.joinArgs, subQueryArgs...)
 	case *builder.Builder:
@@ -763,9 +774,7 @@ func (statement *Statement) Join(joinOP string, tablename interface{}, condition
 			return statement
 		}
 		tbs := strings.Split(tp.TableName(), ".")
-		quotes := append(strings.Split(statement.Engine.Quote(""), ""), "`")
-
-		var aliasName = strings.Trim(tbs[len(tbs)-1], strings.Join(quotes, ""))
+		var aliasName = strings.Trim(tbs[len(tbs)-1], statement.Engine.QuoteStr())
 		fmt.Fprintf(&buf, "(%s) %s ON %v", subSQL, aliasName, condition)
 		statement.joinArgs = append(statement.joinArgs, subQueryArgs...)
 	default:
@@ -1148,12 +1157,8 @@ func (statement *Statement) genSelectSQL(columnStr, condSQL string, needLimit, n
 			if statement.Start != 0 || statement.LimitN != 0 {
 				oldString := buf.String()
 				buf.Reset()
-				rawColStr := columnStr
-				if rawColStr == "*" {
-					rawColStr = "at.*"
-				}
 				fmt.Fprintf(&buf, "SELECT %v FROM (SELECT %v,ROWNUM RN FROM (%v) at WHERE ROWNUM <= %d) aat WHERE RN > %d",
-					columnStr, rawColStr, oldString, statement.Start+statement.LimitN, statement.Start)
+					columnStr, columnStr, oldString, statement.Start+statement.LimitN, statement.Start)
 			}
 		}
 	}
@@ -1237,7 +1242,7 @@ func (statement *Statement) convertUpdateSQL(sqlStr string) (string, string) {
 
 	var whereStr = sqls[1]
 
-	// TODO: for postgres only, if any other database?
+	//TODO: for postgres only, if any other database?
 	var paraStr string
 	if statement.Engine.dialect.DBType() == core.POSTGRES {
 		paraStr = "$"

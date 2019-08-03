@@ -19,23 +19,7 @@ type QuoteFilter struct {
 }
 
 func (s *QuoteFilter) Do(sql string, dialect Dialect, table *Table) string {
-	dummy := dialect.Quote("")
-	if len(dummy) != 2 {
-		return sql
-	}
-	prefix, suffix := dummy[0], dummy[1]
-	raw := []byte(sql)
-	for i, cnt := 0, 0; i < len(raw); i = i + 1 {
-		if raw[i] == '`' {
-			if cnt%2 == 0 {
-				raw[i] = prefix
-			} else {
-				raw[i] = suffix
-			}
-			cnt++
-		}
-	}
-	return string(raw)
+	return strings.Replace(sql, "`", dialect.QuoteStr(), -1)
 }
 
 // IdFilter filter SQL replace (id) to primary key column name
@@ -51,7 +35,7 @@ func NewQuoter(dialect Dialect) *Quoter {
 }
 
 func (q *Quoter) Quote(content string) string {
-	return q.dialect.Quote(content)
+	return q.dialect.QuoteStr() + content + q.dialect.QuoteStr()
 }
 
 func (i *IdFilter) Do(sql string, dialect Dialect, table *Table) string {
