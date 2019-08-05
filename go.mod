@@ -29,16 +29,13 @@ require (
 	kmodules.xyz/objectstore-api v0.0.0-20190802205146-9816ffafe0d7
 	kmodules.xyz/offshoot-api v0.0.0-20190802203449-05938be4a23b
 	kmodules.xyz/webhook-runtime v0.0.0-20190802202019-9e77ee949266
-	kubedb.dev/apimachinery v0.13.0-rc.0
+	kubedb.dev/apimachinery v0.13.0-rc.0.0.20190807104139-6c9e97b3ff96
 	stash.appscode.dev/stash v0.9.0-rc.0
 )
 
 replace (
-	contrib.go.opencensus.io/exporter/ocagent => contrib.go.opencensus.io/exporter/ocagent v0.3.0
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v12.3.0+incompatible
-	github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.1.0
-	github.com/golang/protobuf => github.com/golang/protobuf v1.2.0
-	go.opencensus.io => go.opencensus.io v0.21.0
+	github.com/go-xorm/core v0.6.3 => xorm.io/core v0.6.3
 	k8s.io/api => k8s.io/api v0.0.0-20190313235455-40a48860b5ab
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190315093550-53c4693659ed
 	k8s.io/apimachinery => github.com/kmodules/apimachinery v0.0.0-20190508045248-a52a97a7a2bf
