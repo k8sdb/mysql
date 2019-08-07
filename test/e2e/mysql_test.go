@@ -1190,6 +1190,9 @@ var _ = Describe("MySQL", func() {
 					err = f.CreateBackupConfiguration(bc)
 					Expect(err).NotTo(HaveOccurred())
 
+					By("Wait until BackupSession be created")
+					bs, err = f.WaitUntilBackkupSessionBeCreated(bc.ObjectMeta)
+
 					// eventually backupsession succeeded
 					By("Check for Succeeded backupsession")
 					f.EventuallyBackupSessionPhase(bs.ObjectMeta).Should(Equal(stashV1beta1.BackupSessionSucceeded))
