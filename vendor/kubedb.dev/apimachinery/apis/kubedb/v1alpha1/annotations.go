@@ -55,12 +55,10 @@ const (
 	PerconaXtraDBStandaloneReplicas        = 1
 	PerconaXtraDBDefaultClusterSize        = 3
 	PerconaXtraDBDataMountPath             = "/var/lib/mysql"
-	PerconaXtraDBDataLostFoundPath         = PerconaXtraDBDataMountPath + "lost+found"
-
-	PerconaXtraDBInitDBMountPath       = "/docker-entrypoint-initdb.d"
-	PerconaXtraDBCustomConfigMountPath = "/etc/mysql/conf.d"
-	PerconaXtraDBClusterLabelKey       = PerconaXtraDBKey + "/cluster"
-	PerconaXtraDBProxysqlLabelKey      = PerconaXtraDBKey + "/proxysql"
+	PerconaXtraDBInitDBMountPath           = "/docker-entrypoint-initdb.d"
+	PerconaXtraDBCustomConfigMountPath     = "/etc/mysql/conf.d"
+	PerconaXtraDBClusterLabelKey           = PerconaXtraDBKey + "/cluster"
+	PerconaXtraDBProxysqlLabelKey          = PerconaXtraDBKey + "/proxysql"
 
 	ProxysqlUser          = "proxysqluser"
 	ProxysqlPassword      = "proxysqlpass"

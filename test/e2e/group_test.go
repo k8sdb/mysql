@@ -96,8 +96,8 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 		f.EventuallyCountRow(mysql.ObjectMeta, dbNameKubedb, primaryPodIndex).Should(Equal(rowCnt))
 	}
 	var CheckDBVersionForGroupReplication = func() {
-		if framework.DBCatalogName != "5.7.25" && framework.DBCatalogName != "5.7-v1" {
-			Skip("For group replication CheckDBVersionForGroupReplication, DB version must be one of '5.7.25' or '5.7-v1'")
+		if framework.DBCatalogName != "5.7.25" && framework.DBCatalogName != "5.7-v2" {
+			Skip("For group replication CheckDBVersionForGroupReplication, DB version must be one of '5.7.25' or '5.7-v2'")
 		}
 	}
 
