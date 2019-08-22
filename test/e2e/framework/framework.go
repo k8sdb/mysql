@@ -14,7 +14,7 @@ import (
 
 var (
 	DockerRegistry     = "kubedbci"
-	SelfHostedOperator = false
+	SelfHostedOperator = true
 	DBCatalogName      = "8.0.14"
 )
 
