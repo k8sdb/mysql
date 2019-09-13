@@ -24,24 +24,15 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (f *Framework) EventuallyONLINEMembersCount(meta metav1.ObjectMeta, dbName string, clientPodIndex int) GomegaAsyncAssertion {
+func (f *Framework) EventuallyONLINEMembersCount(meta metav1.ObjectMeta, proxysql bool, dbName string, clientPodIndex int) GomegaAsyncAssertion {
 	return Eventually(
 		func() int {
-			tunnel, err := f.forwardPort(meta, clientPodIndex)
+			tunnel, en, err := f.GetEngine(meta, proxysql, dbName, clientPodIndex)
 			if err != nil {
 				return -1
 			}
 			defer tunnel.Close()
-
-			en, err := f.getMySQLClient(meta, tunnel, dbName)
-			if err != nil {
-				return -1
-			}
 			defer en.Close()
-
-			if err := en.Ping(); err != nil {
-				return -1
-			}
 
 			var cnt int
 			_, err = en.SQL("select count(MEMBER_STATE) from performance_schema.replication_group_members where MEMBER_STATE = ?", "ONLINE").Get(&cnt)
@@ -55,81 +46,14 @@ func (f *Framework) EventuallyONLINEMembersCount(meta metav1.ObjectMeta, dbName 
 	)
 }
 
-func (f *Framework) EventuallyCreateDatabase(meta metav1.ObjectMeta, dbName string) GomegaAsyncAssertion {
-	return Eventually(
-		func() bool {
-			tunnel, err := f.forwardPort(meta, 0)
-			if err != nil {
-				return false
-			}
-			defer tunnel.Close()
+func (f *Framework) GetPrimaryHostIndex(meta metav1.ObjectMeta, proxysql bool, dbName string, clientPodIndex int) int {
+	tunnel, en, err := f.GetEngine(meta, proxysql, dbName, clientPodIndex)
 
-			en, err := f.getMySQLClient(meta, tunnel, dbName)
-			if err != nil {
-				return false
-			}
-			defer en.Close()
-
-			if err := en.Ping(); err != nil {
-				return false
-			}
-
-			_, err = en.Exec("CREATE DATABASE kubedb")
-			return err == nil
-		},
-		time.Minute*10,
-		time.Second*20,
-	)
-}
-
-func (f *Framework) InsertRowFromSecondary(meta metav1.ObjectMeta, dbName string, clientPodIndex int) GomegaAsyncAssertion {
-	return Eventually(
-		func() bool {
-			tunnel, err := f.forwardPort(meta, 1)
-			if err != nil {
-				return true
-			}
-			defer tunnel.Close()
-
-			en, err := f.getMySQLClient(meta, tunnel, dbName)
-			if err != nil {
-				return true
-			}
-			defer en.Close()
-
-			if err := en.Ping(); err != nil {
-				return true
-			}
-
-			if _, err := en.Insert(&KubedbTable{
-				Name: fmt.Sprintf("%s-%d", meta.Name, clientPodIndex),
-			}); err != nil {
-				return false
-			}
-
-			return true
-		},
-		time.Minute*10,
-		time.Second*10,
-	)
-}
-
-func (f *Framework) GetPrimaryHostIndex(meta metav1.ObjectMeta, dbName string, clientPodIndex int) int {
-	tunnel, err := f.forwardPort(meta, clientPodIndex)
 	if err != nil {
 		return -1
 	}
 	defer tunnel.Close()
-
-	en, err := f.getMySQLClient(meta, tunnel, dbName)
-	if err != nil {
-		return -1
-	}
 	defer en.Close()
-
-	if err := en.Ping(); err != nil {
-		return -1
-	}
 
 	var row struct {
 		Variable_name string
@@ -150,20 +74,19 @@ func (f *Framework) GetPrimaryHostIndex(meta metav1.ObjectMeta, dbName string, c
 	return idx
 }
 
-func (f *Framework) EventuallyGetPrimaryHostIndex(meta metav1.ObjectMeta, dbName string, clientPodIndex int) GomegaAsyncAssertion {
+func (f *Framework) EventuallyGetPrimaryHostIndex(meta metav1.ObjectMeta, proxysql bool, dbName string, clientPodIndex int) GomegaAsyncAssertion {
 	return Eventually(
 		func() int {
-			return f.GetPrimaryHostIndex(meta, dbName, clientPodIndex)
+			return f.GetPrimaryHostIndex(meta, proxysql, dbName, clientPodIndex)
 		},
 		time.Minute*10,
 		time.Second*20,
 	)
 }
 
-func (f *Framework) RemoverPrimaryToFailover(meta metav1.ObjectMeta, primaryPodIndex int) error {
+func (f *Framework) RemovePrimaryToFailover(meta metav1.ObjectMeta, primaryPodIndex int) error {
 	if _, err := f.kubeClient.CoreV1().Pods(meta.Namespace).Get(
-		fmt.Sprintf("%s-%d", meta.Name, primaryPodIndex),
-		metav1.GetOptions{},
+		fmt.Sprintf("%s-%d", meta.Name, primaryPodIndex), metav1.GetOptions{},
 	); err != nil {
 		return err
 	}

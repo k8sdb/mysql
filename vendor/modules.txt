@@ -950,9 +950,9 @@ kubedb.dev/apimachinery/pkg/eventer
 kubedb.dev/apimachinery/pkg/admission/dormantdatabase
 kubedb.dev/apimachinery/pkg/admission/namespace
 kubedb.dev/apimachinery/pkg/admission/snapshot
+kubedb.dev/apimachinery/apis/kubedb
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/catalog
-kubedb.dev/apimachinery/apis/kubedb
 kubedb.dev/apimachinery/client/clientset/versioned/typed/catalog/v1alpha1
 kubedb.dev/apimachinery/client/clientset/versioned/typed/config/v1alpha1
 kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1

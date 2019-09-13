@@ -181,6 +181,15 @@ func (f *Framework) GetMySQLRootPassword(mysql *api.MySQL) (string, error) {
 	return password, nil
 }
 
+func (f *Framework) GetSecretCred(secretMeta metav1.ObjectMeta, key string) (string, error) {
+	secret, err := f.kubeClient.CoreV1().Secrets(secretMeta.Namespace).Get(secretMeta.Name, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+	data := string(secret.Data[key])
+	return data, nil
+}
+
 func (f *Framework) GetSecret(meta metav1.ObjectMeta) (*core.Secret, error) {
 	return f.kubeClient.CoreV1().Secrets(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
 }

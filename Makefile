@@ -282,6 +282,7 @@ e2e-tests: $(BUILD_DIRS)
 	    -v $(HOME)/.kube:/.kube                                 \
 	    -v $(HOME)/.minikube:$(HOME)/.minikube                  \
 	    -v $(HOME)/.credentials:$(HOME)/.credentials            \
+	    -v $(HOME)/.minikube:$(HOME)/.minikube		            \
 	    -v $$(pwd)/.go/bin/$(OS)_$(ARCH):/go/bin                \
 	    -v $$(pwd)/.go/bin/$(OS)_$(ARCH):/go/bin/$(OS)_$(ARCH)  \
 	    -v $$(pwd)/.go/cache:/.cache                            \
@@ -330,10 +331,13 @@ lint: $(BUILD_DIRS)
 $(BUILD_DIRS):
 	@mkdir -p $@
 
+
+INSTALL_ARGS   ?=
+
 .PHONY: install
 install:
 	@cd ../installer; \
-	APPSCODE_ENV=dev KUBEDB_OPERATOR_TAG=$(TAG) KUBEDB_CATALOG=mysql ./deploy/kubedb.sh --operator-name=$(BIN) --docker-registry=$(REGISTRY) --image-pull-secret=$(REGISTRY_SECRET)
+	APPSCODE_ENV=dev KUBEDB_DOCKER_REGISTRY=$(REGISTRY) KUBEDB_OPERATOR_TAG=$(TAG) KUBEDB_CATALOG=mysql ./deploy/kubedb.sh --operator-name=$(BIN) $(INSTALL_ARGS)
 
 .PHONY: uninstall
 uninstall:

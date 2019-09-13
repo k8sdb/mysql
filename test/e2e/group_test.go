@@ -27,6 +27,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("MySQL Group Replication Tests", func() {
@@ -35,12 +36,14 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 		f            *framework.Invocation
 		mysql        *api.MySQL
 		garbageMySQL *api.MySQLList
-		//skipMessage string
 		dbName       string
 		dbNameKubedb string
+
+		proxysql bool
+		psql     *api.ProxySQL
 	)
 
-	var createAndWaitForRunning = func() {
+	var createAndWaitForRunningMySQL = func() {
 		By("Create MySQL: " + mysql.Name)
 		err = f.CreateMySQL(mysql)
 		Expect(err).NotTo(HaveOccurred())
@@ -56,9 +59,10 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Waiting for database to be ready")
-		f.EventuallyDatabaseReady(mysql.ObjectMeta, dbName).Should(BeTrue())
+		f.EventuallyDatabaseReady(mysql.ObjectMeta, proxysql, dbName, 0).Should(BeTrue())
 	}
-	var deleteTestResource = func() {
+
+	var deleteMySQLResource = func() {
 		if mysql == nil {
 			log.Infoln("Skipping cleanup. Reason: mysql is nil")
 			return
@@ -103,14 +107,101 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 		By("Wait for mysql resources to be wipedOut")
 		f.EventuallyWipedOut(mysql.ObjectMeta).Should(Succeed())
 	}
-	var writeOnPrimary = func(primaryPodIndex int) {
-		By(fmt.Sprintf("Write on primary '%s-%d'", mysql.Name, primaryPodIndex))
-		f.EventuallyCreateDatabase(mysql.ObjectMeta, dbName).Should(BeTrue())
-		f.EventuallyCreateTable(mysql.ObjectMeta, dbNameKubedb).Should(BeTrue())
-		rowCnt := 1
-		f.EventuallyInsertRow(mysql.ObjectMeta, dbNameKubedb, primaryPodIndex, rowCnt).Should(BeTrue())
-		f.EventuallyCountRow(mysql.ObjectMeta, dbNameKubedb, primaryPodIndex).Should(Equal(rowCnt))
+
+	var deleteProxySQLResource = func() {
+		if psql == nil {
+			log.Infoln("Skipping cleanup. Reason: ProxySQL object is nil")
+			return
+		}
+		By("Check if ProxySQL " + psql.Name + " exists.")
+		_, err = f.GetProxySQL(psql.ObjectMeta)
+		if err != nil {
+			if kerr.IsNotFound(err) {
+				// ProxySQL was not created. Hence, rest of cleanup is not necessary.
+				return
+			}
+			Expect(err).NotTo(HaveOccurred())
+		}
+		By("Delete ProxySQL")
+		err = f.DeleteProxySQL(psql.ObjectMeta)
+		if err != nil {
+			if kerr.IsNotFound(err) {
+				log.Infoln("Skipping rest of the cleanup. Reason: ProxySQL does not exist.")
+				return
+			}
+			Expect(err).NotTo(HaveOccurred())
+		}
 	}
+
+	var deleteTestResource = func() {
+		deleteMySQLResource()
+		deleteProxySQLResource()
+	}
+
+	var deleteLeftOverStuffs = func() {
+		// old MySQL are in garbageMySQL list. delete their resources.
+		for _, my := range garbageMySQL.Items {
+			*mysql = my
+			deleteTestResource()
+		}
+
+		By("Delete left over workloads if exists any")
+		f.CleanWorkloadLeftOvers()
+	}
+
+	var createAndWaitForRunningProxySQL = func() {
+		By("Create ProxySQL: " + psql.Name)
+		err = f.CreateProxySQL(psql)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("Wait for Running ProxySQL")
+		f.EventuallyProxySQLPhase(psql.ObjectMeta).Should(Equal(api.DatabasePhaseRunning))
+	}
+
+	var countRows = func(meta metav1.ObjectMeta, podIndex, expectedRowCnt int) {
+		By(fmt.Sprintf("Read row from member '%s-%d'", meta.Name, podIndex))
+		f.EventuallyCountRow(meta, proxysql, dbNameKubedb, podIndex).Should(Equal(expectedRowCnt))
+	}
+
+	var insertRows = func(meta metav1.ObjectMeta, podIndex, rowCntToInsert int, expected bool) {
+		By(fmt.Sprintf("Insert row on member '%s-%d' should be %v", meta.Name, podIndex, expected))
+		if expected {
+			f.EventuallyInsertRow(meta, proxysql, dbNameKubedb, podIndex, rowCntToInsert).Should(BeTrue())
+		} else {
+			f.EventuallyInsertRow(meta, proxysql, dbNameKubedb, podIndex, rowCntToInsert).Should(BeFalse())
+		}
+	}
+
+	var create_Database_N_Table = func(meta metav1.ObjectMeta, podIndex int) {
+		By("Create Database")
+		f.EventuallyCreateDatabase(meta, proxysql, dbName, podIndex).Should(BeTrue())
+
+		By("Create Table")
+		f.EventuallyCreateTable(meta, proxysql, dbNameKubedb, podIndex).Should(BeTrue())
+	}
+
+	var writeToPrimary = func(meta metav1.ObjectMeta, podIndex int) {
+		By(fmt.Sprintf("Write on '%s-%d'", meta.Name, podIndex))
+		insertRows(meta, podIndex, 1, true)
+	}
+
+	var readFromEachMember = func(meta metav1.ObjectMeta, clusterSize, rowCnt int) {
+		for j := 0; j < clusterSize; j += 1 {
+			countRows(meta, j, rowCnt)
+		}
+	}
+
+	var writeTo_Primary_N_ReadFrom_EachMember = func(meta metav1.ObjectMeta, primaryPodIndex, clusterSize int) {
+		writeToPrimary(meta, primaryPodIndex)
+		readFromEachMember(meta, clusterSize, 1)
+	}
+
+	var replicationCheck = func(meta metav1.ObjectMeta, primaryPodIndex, clusterSize int) {
+		By("Checking replication")
+		create_Database_N_Table(meta, primaryPodIndex)
+		writeTo_Primary_N_ReadFrom_EachMember(meta, primaryPodIndex, clusterSize)
+	}
+
 	var CheckDBVersionForGroupReplication = func() {
 		if framework.DBCatalogName != "5.7.25" && framework.DBCatalogName != "5.7-v2" {
 			Skip("For group replication CheckDBVersionForGroupReplication, DB version must be one of '5.7.25' or '5.7-v2'")
@@ -121,79 +212,67 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 		f = root.Invoke()
 		mysql = f.MySQLGroup()
 		garbageMySQL = new(api.MySQLList)
-		//skipMessage = ""
 		dbName = "mysql"
 		dbNameKubedb = "kubedb"
+		proxysql = false
 
 		CheckDBVersionForGroupReplication()
 	})
 
 	Context("Behaviour tests", func() {
 		BeforeEach(func() {
-			createAndWaitForRunning()
+			createAndWaitForRunningMySQL()
 		})
 
 		AfterEach(func() {
 			// delete resources for current MySQL
 			deleteTestResource()
-
-			// old MySQL are in garbageMySQL list. delete their resources.
-			for _, my := range garbageMySQL.Items {
-				*mysql = my
-				deleteTestResource()
-			}
-
-			By("Delete left over workloads if exists any")
-			f.CleanWorkloadLeftOvers()
+			deleteLeftOverStuffs()
 		})
 
 		It("should be possible to create a basic 3 member group", func() {
 			for i := 0; i < api.MySQLDefaultGroupSize; i++ {
 				By(fmt.Sprintf("Checking ONLINE member count from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, dbName, i).Should(Equal(api.MySQLDefaultGroupSize))
+				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(api.MySQLDefaultGroupSize))
 
 				By(fmt.Sprintf("Checking primary Pod index from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, dbName, i).Should(Equal(0))
+				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(0))
 			}
 
-			writeOnPrimary(0)
-			rowCnt := 1
-			primaryPodIndex := 0
+			primaryPodIndex := f.GetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, 0)
+			replicationCheck(mysql.ObjectMeta, primaryPodIndex, api.MySQLDefaultGroupSize)
 			for i := 0; i < api.MySQLDefaultGroupSize; i++ {
 				if i == primaryPodIndex {
 					continue
 				}
 
-				By(fmt.Sprintf("Write on secondary '%s-%d'", mysql.Name, i))
-				f.InsertRowFromSecondary(mysql.ObjectMeta, dbNameKubedb, i).Should(BeFalse())
-
-				By(fmt.Sprintf("Read from secondary '%s-%d'", mysql.Name, i))
-				f.EventuallyCountRow(mysql.ObjectMeta, dbNameKubedb, i).Should(Equal(rowCnt))
+				insertRows(mysql.ObjectMeta, i, 1, false)
+				countRows(mysql.ObjectMeta, i, 1)
 			}
 		})
 
 		It("should failover successfully", func() {
 			for i := 0; i < api.MySQLDefaultGroupSize; i++ {
 				By(fmt.Sprintf("Checking ONLINE member count from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, dbName, i).Should(Equal(api.MySQLDefaultGroupSize))
+				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(api.MySQLDefaultGroupSize))
 
 				By(fmt.Sprintf("Checking primary Pod index from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, dbName, i).Should(Equal(0))
+				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(0))
 			}
 
-			writeOnPrimary(0)
+			replicationCheck(mysql.ObjectMeta, f.GetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, 0), api.MySQLDefaultGroupSize)
 
 			By(fmt.Sprintf("Taking down the primary '%s-%d'", mysql.Name, 0))
-			err = f.RemoverPrimaryToFailover(mysql.ObjectMeta, 0)
+			err = f.RemovePrimaryToFailover(mysql.ObjectMeta, f.GetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, 0))
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Checking status after failover")
 			for i := 0; i < api.MySQLDefaultGroupSize; i++ {
 				By(fmt.Sprintf("Checking ONLINE member count from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, dbName, i).Should(Equal(api.MySQLDefaultGroupSize))
+				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(api.MySQLDefaultGroupSize))
 
 				By(fmt.Sprintf("Checking primary Pod index from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, dbName, i).Should(
+				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, i).Should(
 					Or(
 						Equal(1),
 						Equal(2),
@@ -202,20 +281,16 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 			}
 
 			By("Checking for data after failover")
-			rowCnt := 1
-			for i := 0; i < api.MySQLDefaultGroupSize; i++ {
-				By(fmt.Sprintf("Read from '%s-%d'", mysql.Name, i))
-				f.EventuallyCountRow(mysql.ObjectMeta, dbNameKubedb, i).Should(Equal(rowCnt))
-			}
+			readFromEachMember(mysql.ObjectMeta, api.MySQLDefaultGroupSize, 1)
 		})
 
 		It("should be possible to scale up", func() {
 			for i := 0; i < api.MySQLDefaultGroupSize; i++ {
 				By(fmt.Sprintf("Checking ONLINE member count from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, dbName, i).Should(Equal(api.MySQLDefaultGroupSize))
+				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(api.MySQLDefaultGroupSize))
 
 				By(fmt.Sprintf("Checking primary Pod index from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, dbName, i).Should(Equal(0))
+				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(0))
 			}
 
 			By("Scaling up")
@@ -232,36 +307,31 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 			By("Checking status after scaling up")
 			for i := 0; i < api.MySQLDefaultGroupSize+1; i++ {
 				By(fmt.Sprintf("Checking ONLINE member count from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, dbName, i).Should(Equal(api.MySQLDefaultGroupSize + 1))
+				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(api.MySQLDefaultGroupSize + 1))
 
 				By(fmt.Sprintf("Checking primary Pod index from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, dbName, i).Should(Equal(0))
+				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(0))
 			}
 
-			writeOnPrimary(0)
-
-			primaryPodIndex := 0
-			rowCnt := 1
+			primaryPodIndex := f.GetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, 0)
+			replicationCheck(mysql.ObjectMeta, primaryPodIndex, api.MySQLDefaultGroupSize+1)
 			for i := 0; i < api.MySQLDefaultGroupSize+1; i++ {
 				if i == primaryPodIndex {
 					continue
 				}
 
-				By(fmt.Sprintf("Write on secondary '%s-%d'", mysql.Name, i))
-				f.InsertRowFromSecondary(mysql.ObjectMeta, dbNameKubedb, i).Should(BeFalse())
-
-				By(fmt.Sprintf("Read from secondary '%s-%d'", mysql.Name, i))
-				f.EventuallyCountRow(mysql.ObjectMeta, dbNameKubedb, i).Should(Equal(rowCnt))
+				insertRows(mysql.ObjectMeta, i, 1, false)
+				countRows(mysql.ObjectMeta, i, 1)
 			}
 		})
 
 		It("Should be possible to scale down", func() {
 			for i := 0; i < api.MySQLDefaultGroupSize; i++ {
 				By(fmt.Sprintf("Checking ONLINE member count from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, dbName, i).Should(Equal(api.MySQLDefaultGroupSize))
+				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(api.MySQLDefaultGroupSize))
 
 				By(fmt.Sprintf("Checking primary Pod index from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, dbName, i).Should(Equal(0))
+				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(0))
 			}
 
 			By("Scaling down")
@@ -278,27 +348,62 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 			By("Checking status after scaling down")
 			for i := 0; i < api.MySQLDefaultGroupSize-1; i++ {
 				By(fmt.Sprintf("Checking ONLINE member count from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, dbName, i).Should(Equal(api.MySQLDefaultGroupSize - 1))
+				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(api.MySQLDefaultGroupSize - 1))
 
 				By(fmt.Sprintf("Checking primary Pod index from Pod '%s-%d'", mysql.Name, i))
-				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, dbName, i).Should(Equal(0))
+				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(0))
 			}
 
-			writeOnPrimary(0)
-
-			primaryPodIndex := 0
-			rowCnt := 1
+			primaryPodIndex := f.GetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, 0)
+			replicationCheck(mysql.ObjectMeta, primaryPodIndex, api.MySQLDefaultGroupSize-1)
 			for i := 0; i < api.MySQLDefaultGroupSize-1; i++ {
 				if i == primaryPodIndex {
 					continue
 				}
 
-				By(fmt.Sprintf("Write on secondary '%s-%d'", mysql.Name, i))
-				f.InsertRowFromSecondary(mysql.ObjectMeta, dbNameKubedb, i).Should(BeFalse())
-
-				By(fmt.Sprintf("Read from secondary '%s-%d'", mysql.Name, i))
-				f.EventuallyCountRow(mysql.ObjectMeta, dbNameKubedb, i).Should(Equal(rowCnt))
+				insertRows(mysql.ObjectMeta, i, 1, false)
+				countRows(mysql.ObjectMeta, i, 1)
 			}
+		})
+	})
+
+	Context("ProxySQL", func() {
+		BeforeEach(func() {
+			if !framework.ProxySQLTest {
+				Skip("For ProxySQL test, the value of '--proxysql' flag must be 'true' while running e2e-tests command")
+			}
+			createAndWaitForRunningMySQL()
+
+			psql = f.ProxySQL(mysql.Name)
+			createAndWaitForRunningProxySQL()
+		})
+
+		AfterEach(func() {
+			// delete resources for current MySQL
+			deleteTestResource()
+			deleteLeftOverStuffs()
+		})
+
+		It("should configure poxysql for backend servers", func() {
+			for i := 0; i < api.MySQLDefaultGroupSize; i++ {
+				By(fmt.Sprintf("Checking ONLINE member count from Pod '%s-%d'", mysql.Name, i))
+				f.EventuallyONLINEMembersCount(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(api.MySQLDefaultGroupSize))
+
+				By(fmt.Sprintf("Checking primary Pod index from Pod '%s-%d'", mysql.Name, i))
+				f.EventuallyGetPrimaryHostIndex(mysql.ObjectMeta, proxysql, dbName, i).Should(Equal(0))
+			}
+			proxysql = true
+			for i := 0; i < int(*psql.Spec.Replicas); i++ {
+				By(fmt.Sprintf("Checking ONLINE member count from Pod '%s-%d'", psql.Name, i))
+				f.EventuallyONLINEMembersCount(psql.ObjectMeta, proxysql, dbName, i).Should(Equal(api.MySQLDefaultGroupSize))
+
+				By(fmt.Sprintf("Checking primary Pod index from Pod '%s-%d'", psql.Name, i))
+				f.EventuallyGetPrimaryHostIndex(psql.ObjectMeta, proxysql, dbName, i).Should(Equal(0))
+			}
+
+			replicationCheck(psql.ObjectMeta, 0, int(*psql.Spec.Replicas))
+			proxysql = false
+			readFromEachMember(mysql.ObjectMeta, api.MySQLDefaultGroupSize, int(*psql.Spec.Replicas))
 		})
 	})
 
@@ -307,7 +412,7 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 		It("should run evictions successfully", func() {
 			// Create MySQL
 			By("Create and run MySQL Group with three replicas")
-			createAndWaitForRunning()
+			createAndWaitForRunningMySQL()
 			//Evict MySQL pods
 			By("Try to evict pods")
 			err := f.EvictPodsFromStatefulSet(mysql.ObjectMeta)

@@ -32,6 +32,10 @@ var (
 	DockerRegistry     = "kubedbci"
 	SelfHostedOperator = true
 	DBCatalogName      = "8.0.14"
+
+	// for proxysql integration
+	ProxySQLTest        = false
+	ProxySQLCatalogName = "5.7"
 )
 
 type Framework struct {
