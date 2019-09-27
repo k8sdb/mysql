@@ -38,8 +38,8 @@ github.com/appscode/go/sets
 github.com/appscode/go/analytics
 github.com/appscode/go/net
 github.com/appscode/go/strings
-github.com/appscode/go/homedir
 github.com/appscode/go/os
+github.com/appscode/go/homedir
 github.com/appscode/go/encoding/yaml
 # github.com/appscode/osm v0.12.0
 github.com/appscode/osm/context
@@ -735,6 +735,7 @@ k8s.io/client-go/tools/record/util
 k8s.io/client-go/tools/watch
 k8s.io/client-go/util/workqueue
 k8s.io/client-go/util/jsonpath
+k8s.io/client-go/util/homedir
 k8s.io/client-go/tools/portforward
 k8s.io/client-go/transport/spdy
 k8s.io/client-go/pkg/apis/clientauthentication
@@ -783,7 +784,6 @@ k8s.io/client-go/listers/core/v1
 k8s.io/client-go/informers/auditregistration/v1alpha1
 k8s.io/client-go/tools/auth
 k8s.io/client-go/tools/clientcmd/api/latest
-k8s.io/client-go/util/homedir
 k8s.io/client-go/informers/admissionregistration/v1beta1
 k8s.io/client-go/informers/apps/v1
 k8s.io/client-go/informers/apps/v1beta1
