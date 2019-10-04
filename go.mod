@@ -3,25 +3,41 @@ module kubedb.dev/mysql
 go 1.12
 
 require (
+	cloud.google.com/go v0.39.0 // indirect
+	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/appscode/go v0.0.0-20190808133642-1d4ef1f1c1e0
 	github.com/codeskyblue/go-sh v0.0.0-20190412065543-76bd3d59ff27
 	github.com/coreos/go-semver v0.3.0
-	github.com/coreos/prometheus-operator v0.30.1
+	github.com/coreos/prometheus-operator v0.31.1
 	github.com/fatih/structs v1.1.0
+	github.com/go-openapi/swag v0.19.0 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-xorm/xorm v0.7.4
 	github.com/google/uuid v1.1.1
+	github.com/imdario/mergo v0.3.7 // indirect
+	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
+	github.com/lib/pq v1.1.0 // indirect
+	github.com/mailru/easyjson v0.0.0-20190403194419-1ea4449da983 // indirect
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1
+	github.com/prometheus/client_golang v0.9.4 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
+	golang.org/x/sys v0.0.0-20190508100423-12bbe5a7a520 // indirect
+	golang.org/x/text v0.3.2 // indirect
 	gomodules.xyz/stow v0.2.0
+	google.golang.org/api v0.5.0 // indirect
+	google.golang.org/appengine v1.5.0 // indirect
+	google.golang.org/genproto v0.0.0-20190508193815-b515fa19cec8 // indirect
+	google.golang.org/grpc v1.20.1 // indirect
 	k8s.io/api v0.0.0-20190503110853-61630f889b3c
 	k8s.io/apiextensions-apiserver v0.0.0-20190516231611-bf6753f2aa24
 	k8s.io/apimachinery v0.0.0-20190508063446-a3da69d3723c
 	k8s.io/apiserver v0.0.0-20190516230822-f89599b3f645
+	k8s.io/cli-runtime v0.0.0-20190516231937-17bc0b7fcef5 // indirect
 	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/component-base v0.0.0-20190424053038-9fe063da3132 // indirect
 	k8s.io/kube-aggregator v0.0.0-20190314000639-da8327669ac5
 	kmodules.xyz/client-go v0.0.0-20190808141354-bbb9e14f60ab
 	kmodules.xyz/custom-resources v0.0.0-20190808144301-114abf10dfe2
@@ -29,7 +45,7 @@ require (
 	kmodules.xyz/objectstore-api v0.0.0-20190808153322-733e8798e8de
 	kmodules.xyz/offshoot-api v0.0.0-20190808152534-e3dc715f844b
 	kmodules.xyz/webhook-runtime v0.0.0-20190808145328-4186c470d56b
-	kubedb.dev/apimachinery v0.13.0-rc.0
+	kubedb.dev/apimachinery v0.13.0-rc.0.0.20191004071506-a728339025ad
 	stash.appscode.dev/stash v0.9.0-rc.0
 )
 

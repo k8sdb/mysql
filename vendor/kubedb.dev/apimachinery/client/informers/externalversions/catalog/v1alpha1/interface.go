@@ -36,6 +36,8 @@ type Interface interface {
 	MySQLVersions() MySQLVersionInformer
 	// PerconaXtraDBVersions returns a PerconaXtraDBVersionInformer.
 	PerconaXtraDBVersions() PerconaXtraDBVersionInformer
+	// PgBouncerVersions returns a PgBouncerVersionInformer.
+	PgBouncerVersions() PgBouncerVersionInformer
 	// PostgresVersions returns a PostgresVersionInformer.
 	PostgresVersions() PostgresVersionInformer
 	// RedisVersions returns a RedisVersionInformer.
@@ -81,6 +83,11 @@ func (v *version) MySQLVersions() MySQLVersionInformer {
 // PerconaXtraDBVersions returns a PerconaXtraDBVersionInformer.
 func (v *version) PerconaXtraDBVersions() PerconaXtraDBVersionInformer {
 	return &perconaXtraDBVersionInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// PgBouncerVersions returns a PgBouncerVersionInformer.
+func (v *version) PgBouncerVersions() PgBouncerVersionInformer {
+	return &pgBouncerVersionInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // PostgresVersions returns a PostgresVersionInformer.

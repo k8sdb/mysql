@@ -30,6 +30,8 @@ type MySQLVersionExpansion interface{}
 
 type PerconaXtraDBVersionExpansion interface{}
 
+type PgBouncerVersionExpansion interface{}
+
 type PostgresVersionExpansion interface{}
 
 type RedisVersionExpansion interface{}

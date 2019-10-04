@@ -387,8 +387,12 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionInitContainer":     schema_apimachinery_apis_catalog_v1alpha1_PerconaXtraDBVersionInitContainer(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionList":              schema_apimachinery_apis_catalog_v1alpha1_PerconaXtraDBVersionList(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionPodSecurityPolicy": schema_apimachinery_apis_catalog_v1alpha1_PerconaXtraDBVersionPodSecurityPolicy(ref),
-		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionProxysql":          schema_apimachinery_apis_catalog_v1alpha1_PerconaXtraDBVersionProxysql(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionSpec":              schema_apimachinery_apis_catalog_v1alpha1_PerconaXtraDBVersionSpec(ref),
+		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerServerVersion":                schema_apimachinery_apis_catalog_v1alpha1_PgBouncerServerVersion(ref),
+		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersion":                      schema_apimachinery_apis_catalog_v1alpha1_PgBouncerVersion(ref),
+		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersionExporter":              schema_apimachinery_apis_catalog_v1alpha1_PgBouncerVersionExporter(ref),
+		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersionList":                  schema_apimachinery_apis_catalog_v1alpha1_PgBouncerVersionList(ref),
+		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersionSpec":                  schema_apimachinery_apis_catalog_v1alpha1_PgBouncerVersionSpec(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersion":                       schema_apimachinery_apis_catalog_v1alpha1_PostgresVersion(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionDatabase":               schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionDatabase(ref),
 		"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PostgresVersionExporter":               schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionExporter(ref),
@@ -15777,8 +15781,14 @@ func schema_apimachinery_apis_catalog_v1alpha1_ElasticsearchVersionInitContainer
 							Format: "",
 						},
 					},
+					"yqImage": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
-				Required: []string{"image"},
+				Required: []string{"image", "yqImage"},
 			},
 		},
 	}
@@ -15871,6 +15881,13 @@ func schema_apimachinery_apis_catalog_v1alpha1_ElasticsearchVersionSpec(ref comm
 							Format:      "",
 						},
 					},
+					"authPlugin": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Authentication plugin used by Elasticsearch cluster.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"db": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Database Image",
@@ -15909,7 +15926,7 @@ func schema_apimachinery_apis_catalog_v1alpha1_ElasticsearchVersionSpec(ref comm
 						},
 					},
 				},
-				Required: []string{"version", "db", "exporter", "tools", "initContainer", "podSecurityPolicies"},
+				Required: []string{"version", "authPlugin", "db", "exporter", "tools", "initContainer", "podSecurityPolicies"},
 			},
 		},
 		Dependencies: []string{
@@ -16990,26 +17007,6 @@ func schema_apimachinery_apis_catalog_v1alpha1_PerconaXtraDBVersionPodSecurityPo
 	}
 }
 
-func schema_apimachinery_apis_catalog_v1alpha1_PerconaXtraDBVersionProxysql(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Description: "PerconaXtraDBVersionProxysql is the proxysql image",
-				Type:        []string{"object"},
-				Properties: map[string]spec.Schema{
-					"image": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-				},
-				Required: []string{"image"},
-			},
-		},
-	}
-}
-
 func schema_apimachinery_apis_catalog_v1alpha1_PerconaXtraDBVersionSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -17028,12 +17025,6 @@ func schema_apimachinery_apis_catalog_v1alpha1_PerconaXtraDBVersionSpec(ref comm
 						SchemaProps: spec.SchemaProps{
 							Description: "Database Image",
 							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionDatabase"),
-						},
-					},
-					"proxysql": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Proxysql Image",
-							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionProxysql"),
 						},
 					},
 					"exporter": {
@@ -17062,11 +17053,179 @@ func schema_apimachinery_apis_catalog_v1alpha1_PerconaXtraDBVersionSpec(ref comm
 						},
 					},
 				},
-				Required: []string{"version", "db", "proxysql", "exporter", "initContainer", "podSecurityPolicies"},
+				Required: []string{"version", "db", "exporter", "initContainer", "podSecurityPolicies"},
 			},
 		},
 		Dependencies: []string{
-			"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionDatabase", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionExporter", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionInitContainer", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionPodSecurityPolicy", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionProxysql"},
+			"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionDatabase", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionExporter", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionInitContainer", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PerconaXtraDBVersionPodSecurityPolicy"},
+	}
+}
+
+func schema_apimachinery_apis_catalog_v1alpha1_PgBouncerServerVersion(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "PgBouncerServerVersion is the PgBouncer Database image",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"image"},
+			},
+		},
+	}
+}
+
+func schema_apimachinery_apis_catalog_v1alpha1_PgBouncerVersion(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "PgBouncerVersion defines a PgBouncer database version.",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersionSpec"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersionSpec"},
+	}
+}
+
+func schema_apimachinery_apis_catalog_v1alpha1_PgBouncerVersionExporter(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "PostgresVersionExporter is the image for the Postgres exporter",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"image"},
+			},
+		},
+	}
+}
+
+func schema_apimachinery_apis_catalog_v1alpha1_PgBouncerVersionList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "PgBouncerVersionList is a list of PgBouncerVersions",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"),
+						},
+					},
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Items is a list of PgBouncerVersion CRD objects",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersion"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersion"},
+	}
+}
+
+func schema_apimachinery_apis_catalog_v1alpha1_PgBouncerVersionSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "PgBouncerVersionSpec is the spec for pgbouncer version",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"version": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Version",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"server": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Database Image",
+							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerServerVersion"),
+						},
+					},
+					"exporter": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Exporter Image",
+							Ref:         ref("kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersionExporter"),
+						},
+					},
+					"deprecated": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"version", "server", "exporter"},
+			},
+		},
+		Dependencies: []string{
+			"kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerServerVersion", "kubedb.dev/apimachinery/apis/catalog/v1alpha1.PgBouncerVersionExporter"},
 	}
 }
 

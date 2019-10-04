@@ -297,6 +297,11 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 			return fmt.Errorf("mysql %s/%s is using deprecated version %v. Skipped processing", mysql.Namespace, mysql.Name, mysqlVersion.Name)
 		}
 
+		if err := mysqlVersion.ValidateSpecs(); err != nil {
+			return fmt.Errorf("mysql %s/%s is using invalid mysqlVersion %v. Skipped processing. reason: %v", mysql.Namespace,
+				mysql.Name, mysqlVersion.Name, err)
+		}
+
 		if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
 			*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
 			if err = validateGroupServerVersion(myVer.Spec.Version); err != nil {

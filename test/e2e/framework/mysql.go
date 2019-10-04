@@ -48,6 +48,7 @@ func (f *Invocation) MySQL() *api.MySQL {
 				},
 				StorageClassName: types.StringP(f.StorageClass),
 			},
+			TerminationPolicy: api.TerminationPolicyPause,
 		},
 	}
 }

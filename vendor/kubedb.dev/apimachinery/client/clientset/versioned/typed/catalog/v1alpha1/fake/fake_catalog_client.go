@@ -52,6 +52,10 @@ func (c *FakeCatalogV1alpha1) PerconaXtraDBVersions() v1alpha1.PerconaXtraDBVers
 	return &FakePerconaXtraDBVersions{c}
 }
 
+func (c *FakeCatalogV1alpha1) PgBouncerVersions() v1alpha1.PgBouncerVersionInterface {
+	return &FakePgBouncerVersions{c}
+}
+
 func (c *FakeCatalogV1alpha1) PostgresVersions() v1alpha1.PostgresVersionInterface {
 	return &FakePostgresVersions{c}
 }

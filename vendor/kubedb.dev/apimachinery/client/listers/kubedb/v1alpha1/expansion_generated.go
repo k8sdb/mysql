@@ -82,6 +82,14 @@ type PerconaXtraDBListerExpansion interface{}
 // PerconaXtraDBNamespaceLister.
 type PerconaXtraDBNamespaceListerExpansion interface{}
 
+// PgBouncerListerExpansion allows custom methods to be added to
+// PgBouncerLister.
+type PgBouncerListerExpansion interface{}
+
+// PgBouncerNamespaceListerExpansion allows custom methods to be added to
+// PgBouncerNamespaceLister.
+type PgBouncerNamespaceListerExpansion interface{}
+
 // PostgresListerExpansion allows custom methods to be added to
 // PostgresLister.
 type PostgresListerExpansion interface{}
