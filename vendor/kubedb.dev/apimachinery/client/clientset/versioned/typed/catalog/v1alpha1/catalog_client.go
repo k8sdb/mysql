@@ -35,6 +35,7 @@ type CatalogV1alpha1Interface interface {
 	PerconaXtraDBVersionsGetter
 	PgBouncerVersionsGetter
 	PostgresVersionsGetter
+	ProxySQLVersionsGetter
 	RedisVersionsGetter
 }
 
@@ -73,6 +74,10 @@ func (c *CatalogV1alpha1Client) PgBouncerVersions() PgBouncerVersionInterface {
 
 func (c *CatalogV1alpha1Client) PostgresVersions() PostgresVersionInterface {
 	return newPostgresVersions(c)
+}
+
+func (c *CatalogV1alpha1Client) ProxySQLVersions() ProxySQLVersionInterface {
+	return newProxySQLVersions(c)
 }
 
 func (c *CatalogV1alpha1Client) RedisVersions() RedisVersionInterface {

@@ -21,6 +21,7 @@ const (
 	RedisKey            = ResourceSingularRedis + "." + GenericKey
 	MemcachedKey        = ResourceSingularMemcached + "." + GenericKey
 	EtcdKey             = ResourceSingularEtcd + "." + GenericKey
+	ProxySQLKey         = ResourceSingularProxySQL + "." + GenericKey
 	SnapshotKey         = ResourceSingularSnapshot + "." + GenericKey
 	LabelSnapshotStatus = SnapshotKey + "/status"
 
@@ -66,12 +67,16 @@ const (
 	PerconaXtraDBCustomConfigMountPath        = "/etc/percona-server.conf.d/"
 	PerconaXtraDBClusterCustomConfigMountPath = "/etc/mysql/percona-xtradb-cluster.conf.d/"
 
-	ProxysqlUser          = "proxysqluser"
-	ProxysqlPassword      = "proxysqlpass"
-	ProxysqlMySQLNodePort = 6033
-	ProxysqlAdminPort     = 6032
-	ProxysqlAdminPortName = "proxyadm"
-	ProxysqlDataMountPath = "/var/lib/proxysql"
+	LabelProxySQLName        = ProxySQLKey + "/name"
+	LabelProxySQLLoadBalance = ProxySQLKey + "/load-balance"
+
+	ProxySQLUserKey               = "proxysqluser"
+	ProxySQLPasswordKey           = "proxysqlpass"
+	ProxySQLMySQLNodePort         = 6033
+	ProxySQLAdminPort             = 6032
+	ProxySQLAdminPortName         = "proxyadm"
+	ProxySQLDataMountPath         = "/var/lib/proxysql"
+	ProxySQLCustomConfigMountPath = "/etc/custom-proxysql.cnf"
 
 	RedisShardKey   = RedisKey + "/shard"
 	RedisNodePort   = 6379

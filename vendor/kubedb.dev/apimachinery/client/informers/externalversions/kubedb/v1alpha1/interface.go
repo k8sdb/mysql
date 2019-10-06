@@ -44,6 +44,8 @@ type Interface interface {
 	PgBouncers() PgBouncerInformer
 	// Postgreses returns a PostgresInformer.
 	Postgreses() PostgresInformer
+	// ProxySQLs returns a ProxySQLInformer.
+	ProxySQLs() ProxySQLInformer
 	// Redises returns a RedisInformer.
 	Redises() RedisInformer
 	// Snapshots returns a SnapshotInformer.
@@ -109,6 +111,11 @@ func (v *version) PgBouncers() PgBouncerInformer {
 // Postgreses returns a PostgresInformer.
 func (v *version) Postgreses() PostgresInformer {
 	return &postgresInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
+}
+
+// ProxySQLs returns a ProxySQLInformer.
+func (v *version) ProxySQLs() ProxySQLInformer {
+	return &proxySQLInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // Redises returns a RedisInformer.

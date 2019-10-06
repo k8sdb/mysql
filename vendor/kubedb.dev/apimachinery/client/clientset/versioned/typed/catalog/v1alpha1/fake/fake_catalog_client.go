@@ -60,6 +60,10 @@ func (c *FakeCatalogV1alpha1) PostgresVersions() v1alpha1.PostgresVersionInterfa
 	return &FakePostgresVersions{c}
 }
 
+func (c *FakeCatalogV1alpha1) ProxySQLVersions() v1alpha1.ProxySQLVersionInterface {
+	return &FakeProxySQLVersions{c}
+}
+
 func (c *FakeCatalogV1alpha1) RedisVersions() v1alpha1.RedisVersionInterface {
 	return &FakeRedisVersions{c}
 }

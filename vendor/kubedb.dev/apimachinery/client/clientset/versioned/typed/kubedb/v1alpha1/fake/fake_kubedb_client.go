@@ -68,6 +68,10 @@ func (c *FakeKubedbV1alpha1) Postgreses(namespace string) v1alpha1.PostgresInter
 	return &FakePostgreses{c, namespace}
 }
 
+func (c *FakeKubedbV1alpha1) ProxySQLs(namespace string) v1alpha1.ProxySQLInterface {
+	return &FakeProxySQLs{c, namespace}
+}
+
 func (c *FakeKubedbV1alpha1) Redises(namespace string) v1alpha1.RedisInterface {
 	return &FakeRedises{c, namespace}
 }

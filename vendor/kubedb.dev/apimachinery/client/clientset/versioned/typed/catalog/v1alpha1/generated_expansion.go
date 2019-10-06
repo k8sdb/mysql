@@ -34,4 +34,6 @@ type PgBouncerVersionExpansion interface{}
 
 type PostgresVersionExpansion interface{}
 
+type ProxySQLVersionExpansion interface{}
+
 type RedisVersionExpansion interface{}

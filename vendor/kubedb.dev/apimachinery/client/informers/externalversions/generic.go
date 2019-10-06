@@ -70,6 +70,8 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Catalog().V1alpha1().PgBouncerVersions().Informer()}, nil
 	case v1alpha1.SchemeGroupVersion.WithResource("postgresversions"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Catalog().V1alpha1().PostgresVersions().Informer()}, nil
+	case v1alpha1.SchemeGroupVersion.WithResource("proxysqlversions"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Catalog().V1alpha1().ProxySQLVersions().Informer()}, nil
 	case v1alpha1.SchemeGroupVersion.WithResource("redisversions"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Catalog().V1alpha1().RedisVersions().Informer()}, nil
 
@@ -94,6 +96,8 @@ func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Kubedb().V1alpha1().PgBouncers().Informer()}, nil
 	case kubedbv1alpha1.SchemeGroupVersion.WithResource("postgreses"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Kubedb().V1alpha1().Postgreses().Informer()}, nil
+	case kubedbv1alpha1.SchemeGroupVersion.WithResource("proxysqls"):
+		return &genericInformer{resource: resource.GroupResource(), informer: f.Kubedb().V1alpha1().ProxySQLs().Informer()}, nil
 	case kubedbv1alpha1.SchemeGroupVersion.WithResource("redises"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Kubedb().V1alpha1().Redises().Informer()}, nil
 	case kubedbv1alpha1.SchemeGroupVersion.WithResource("snapshots"):

@@ -405,6 +405,11 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.PostgresSpec":                   schema_apimachinery_apis_kubedb_v1alpha1_PostgresSpec(ref),
 		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.PostgresStatus":                 schema_apimachinery_apis_kubedb_v1alpha1_PostgresStatus(ref),
 		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.PostgresWALSourceSpec":          schema_apimachinery_apis_kubedb_v1alpha1_PostgresWALSourceSpec(ref),
+		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQL":                       schema_apimachinery_apis_kubedb_v1alpha1_ProxySQL(ref),
+		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQLBackendSpec":            schema_apimachinery_apis_kubedb_v1alpha1_ProxySQLBackendSpec(ref),
+		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQLList":                   schema_apimachinery_apis_kubedb_v1alpha1_ProxySQLList(ref),
+		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQLSpec":                   schema_apimachinery_apis_kubedb_v1alpha1_ProxySQLSpec(ref),
+		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQLStatus":                 schema_apimachinery_apis_kubedb_v1alpha1_ProxySQLStatus(ref),
 		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.RecoveryTarget":                 schema_apimachinery_apis_kubedb_v1alpha1_RecoveryTarget(ref),
 		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.Redis":                          schema_apimachinery_apis_kubedb_v1alpha1_Redis(ref),
 		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.RedisClusterSpec":               schema_apimachinery_apis_kubedb_v1alpha1_RedisClusterSpec(ref),
@@ -437,6 +442,8 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.pgbouncerStatsService":          schema_apimachinery_apis_kubedb_v1alpha1_pgbouncerStatsService(ref),
 		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.postgresApp":                    schema_apimachinery_apis_kubedb_v1alpha1_postgresApp(ref),
 		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.postgresStatsService":           schema_apimachinery_apis_kubedb_v1alpha1_postgresStatsService(ref),
+		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.proxysqlApp":                    schema_apimachinery_apis_kubedb_v1alpha1_proxysqlApp(ref),
+		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.proxysqlStatsService":           schema_apimachinery_apis_kubedb_v1alpha1_proxysqlStatsService(ref),
 		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.redisApp":                       schema_apimachinery_apis_kubedb_v1alpha1_redisApp(ref),
 		"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.redisStatsService":              schema_apimachinery_apis_kubedb_v1alpha1_redisStatsService(ref),
 	}
@@ -18795,6 +18802,232 @@ func schema_apimachinery_apis_kubedb_v1alpha1_PostgresWALSourceSpec(ref common.R
 	}
 }
 
+func schema_apimachinery_apis_kubedb_v1alpha1_ProxySQL(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQLSpec"),
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQLStatus"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQLSpec", "kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQLStatus"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_ProxySQLBackendSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"ref": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Ref lets one to locate the typed referenced object (in our case, it is the MySQL/Percona-XtraDB/MariaDB object) inside the same namespace.",
+							Ref:         ref("k8s.io/api/core/v1.TypedLocalObjectReference"),
+						},
+					},
+					"replicas": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Number of backend servers.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.TypedLocalObjectReference"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_ProxySQLList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"),
+						},
+					},
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Items is a list of ProxySQL TPR objects",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQL"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta", "kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQL"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_ProxySQLSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"version": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Version of ProxySQL to be deployed.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"replicas": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Number of instances to deploy for ProxySQL. Currently we support only replicas = 1.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"mode": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Mode specifies the type of MySQL/Percona-XtraDB/MariaDB cluster for which proxysql will be configured. It must be either \"Galera\" or \"GroupReplication\"",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"backend": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Backend specifies the information about backend MySQL/Percona-XtraDB/MariaDB servers",
+							Ref:         ref("kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQLBackendSpec"),
+						},
+					},
+					"proxysqlSecret": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ProxySQL secret containing username and password for root user and proxysql user",
+							Ref:         ref("k8s.io/api/core/v1.SecretVolumeSource"),
+						},
+					},
+					"monitor": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Monitor is used monitor proxysql instance",
+							Ref:         ref("kmodules.xyz/monitoring-agent-api/api/v1.AgentSpec"),
+						},
+					},
+					"configSource": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ConfigSource is an optional field to provide custom configuration file for proxysql (i.e custom-proxysql.cnf). If specified, this file will be used as configuration file otherwise default configuration file will be used.",
+							Ref:         ref("k8s.io/api/core/v1.VolumeSource"),
+						},
+					},
+					"podTemplate": {
+						SchemaProps: spec.SchemaProps{
+							Description: "PodTemplate is an optional configuration for pods used to expose proxysql",
+							Ref:         ref("kmodules.xyz/offshoot-api/api/v1.PodTemplateSpec"),
+						},
+					},
+					"serviceTemplate": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ServiceTemplate is an optional configuration for service used to expose proxysql",
+							Ref:         ref("kmodules.xyz/offshoot-api/api/v1.ServiceTemplateSpec"),
+						},
+					},
+					"updateStrategy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "updateStrategy indicates the StatefulSetUpdateStrategy that will be employed to update Pods in the StatefulSet when a revision is made to Template.",
+							Ref:         ref("k8s.io/api/apps/v1.StatefulSetUpdateStrategy"),
+						},
+					},
+				},
+				Required: []string{"version"},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/apps/v1.StatefulSetUpdateStrategy", "k8s.io/api/core/v1.SecretVolumeSource", "k8s.io/api/core/v1.VolumeSource", "kmodules.xyz/monitoring-agent-api/api/v1.AgentSpec", "kmodules.xyz/offshoot-api/api/v1.PodTemplateSpec", "kmodules.xyz/offshoot-api/api/v1.ServiceTemplateSpec", "kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQLBackendSpec"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_ProxySQLStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"phase": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"reason": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"observedGeneration": {
+						SchemaProps: spec.SchemaProps{
+							Description: "observedGeneration is the most recent generation observed for this resource. It corresponds to the resource's generation, which is updated on mutation by the API Server.",
+							Ref:         ref("github.com/appscode/go/encoding/json/types.IntHash"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/appscode/go/encoding/json/types.IntHash"},
+	}
+}
+
 func schema_apimachinery_apis_kubedb_v1alpha1_RecoveryTarget(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -19923,6 +20156,46 @@ func schema_apimachinery_apis_kubedb_v1alpha1_postgresStatsService(ref common.Re
 		},
 		Dependencies: []string{
 			"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.Postgres"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_proxysqlApp(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"ProxySQL": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQL"),
+						},
+					},
+				},
+				Required: []string{"ProxySQL"},
+			},
+		},
+		Dependencies: []string{
+			"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQL"},
+	}
+}
+
+func schema_apimachinery_apis_kubedb_v1alpha1_proxysqlStatsService(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"ProxySQL": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQL"),
+						},
+					},
+				},
+				Required: []string{"ProxySQL"},
+			},
+		},
+		Dependencies: []string{
+			"kubedb.dev/apimachinery/apis/kubedb/v1alpha1.ProxySQL"},
 	}
 }
 
