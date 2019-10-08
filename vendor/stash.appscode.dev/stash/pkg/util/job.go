@@ -209,7 +209,7 @@ func NewPVCRestorerJob(rs *api_v1beta1.RestoreSession, repository *api_v1alpha1.
 			"--restore-model=job",
 			"--secret-dir=" + StashSecretMountDir,
 			fmt.Sprintf("--enable-cache=%v", !rs.Spec.TempDir.DisableCaching),
-			fmt.Sprintf("--max-connections=%v", GetMaxConnections(repository.Spec.Backend)),
+			fmt.Sprintf("--max-connections=%v", repository.Spec.Backend.MaxConnections()),
 			"--metrics-enabled=true",
 			"--pushgateway-url=" + PushgatewayURL(),
 			fmt.Sprintf("--enable-status-subresource=%v", apis.EnableStatusSubresource),
@@ -278,6 +278,9 @@ func NewPVCRestorerJob(rs *api_v1beta1.RestoreSession, repository *api_v1alpha1.
 		},
 	}
 
+	// Upsert default pod level security context
+	jobTemplate.Spec.SecurityContext = UpsertDefaultPodSecurityContext(jobTemplate.Spec.SecurityContext)
+
 	// Pass pod RuntimeSettings from RestoreSession
 	if rs.Spec.RuntimeSettings.Pod != nil {
 		jobTemplate.Spec = ofst_util.ApplyPodRuntimeSettings(jobTemplate.Spec, *rs.Spec.RuntimeSettings.Pod)
@@ -299,7 +302,7 @@ func NewVolumeSnapshotterJob(bs *api_v1beta1.BackupSession, bc *api_v1beta1.Back
 		Image: image.ToContainerImage(),
 		Args: append([]string{
 			"create-vs",
-			fmt.Sprintf("--backupsession.name=%s", bs.Name),
+			fmt.Sprintf("--backupsession=%s", bs.Name),
 			"--metrics-enabled=true",
 			"--pushgateway-url=" + PushgatewayURL(),
 			fmt.Sprintf("--enable-status-subresource=%v", apis.EnableStatusSubresource),
@@ -320,6 +323,10 @@ func NewVolumeSnapshotterJob(bs *api_v1beta1.BackupSession, bc *api_v1beta1.Back
 		},
 	}
 
+	// apply default pod level security context
+	// don't overwrite user provided sc
+	jobTemplate.Spec.SecurityContext = UpsertDefaultPodSecurityContext(jobTemplate.Spec.SecurityContext)
+
 	// Pass pod RuntimeSettings from RestoreSession
 	if bc.Spec.RuntimeSettings.Pod != nil {
 		jobTemplate.Spec = ofst_util.ApplyPodRuntimeSettings(jobTemplate.Spec, *bc.Spec.RuntimeSettings.Pod)
@@ -333,7 +340,7 @@ func NewVolumeRestorerJob(rs *api_v1beta1.RestoreSession, image docker.Docker) (
 		Image: image.ToContainerImage(),
 		Args: append([]string{
 			"restore-vs",
-			fmt.Sprintf("--restoresession.name=%s", rs.Name),
+			fmt.Sprintf("--restoresession=%s", rs.Name),
 			"--metrics-enabled=true",
 			"--pushgateway-url=" + PushgatewayURL(),
 			fmt.Sprintf("--enable-status-subresource=%v", apis.EnableStatusSubresource),
@@ -353,6 +360,10 @@ func NewVolumeRestorerJob(rs *api_v1beta1.RestoreSession, image docker.Docker) (
 			RestartPolicy: core.RestartPolicyNever,
 		},
 	}
+
+	// apply default pod level security context
+	// don't overwrite user provided sc
+	jobTemplate.Spec.SecurityContext = UpsertDefaultPodSecurityContext(jobTemplate.Spec.SecurityContext)
 
 	// Pass pod RuntimeSettings from RestoreSession
 	if rs.Spec.RuntimeSettings.Pod != nil {
