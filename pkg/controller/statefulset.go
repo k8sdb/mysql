@@ -159,6 +159,16 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 					Protocol:      core.ProtocolTCP,
 				},
 			},
+			VolumeMounts: []core.VolumeMount{
+				{
+					Name: "conf",
+					MountPath: "/etc/mysql",
+				},
+				{
+					Name: "tmp",
+					MountPath: "/tmp",
+				},
+			},
 		}
 		if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
 			*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
@@ -178,6 +188,20 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			}
 		}
 		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, container)
+		in.Spec.Template.Spec.Volumes = []core.Volume{
+			{
+				Name: "conf",
+				VolumeSource: core.VolumeSource{
+					EmptyDir: &core.EmptyDirVolumeSource{},
+				},
+			},
+			{
+				Name: "tmp",
+				VolumeSource: core.VolumeSource{
+					EmptyDir: &core.EmptyDirVolumeSource{},
+				},
+			},
+		}
 
 		if mysql.GetMonitoringVendor() == mona.VendorPrometheus {
 			in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
