@@ -20,7 +20,6 @@ import (
 	"kmodules.xyz/client-go/tools/queue"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
-	"kubedb.dev/apimachinery/apis"
 	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
@@ -202,7 +201,7 @@ func (c *Controller) pushFailureEvent(mysql *api.MySQL, reason string) {
 		in.Reason = reason
 		in.ObservedGeneration = types.NewIntHash(mysql.Generation, meta_util.GenerationHash(mysql))
 		return in
-	}, apis.EnableStatusSubresource)
+	})
 
 	if err != nil {
 		c.recorder.Eventf(

@@ -34,23 +34,25 @@ func (f *Invocation) BackupConfiguration(meta metav1.ObjectMeta) *stashv1beta1.B
 			Namespace: f.namespace,
 		},
 		Spec: stashv1beta1.BackupConfigurationSpec{
-			Task: stashv1beta1.TaskRef{
-				Name: StashMySQLBackupTask,
-			},
 			Repository: core.LocalObjectReference{
 				Name: meta.Name,
 			},
 			Schedule: "*/3 * * * *",
-			Target: &stashv1beta1.BackupTarget{
-				Ref: stashv1beta1.TargetRef{
-					APIVersion: appcat_api.SchemeGroupVersion.String(),
-					Kind:       appcat_api.ResourceKindApp,
-					Name:       meta.Name,
-				},
-			},
 			RetentionPolicy: v1alpha1.RetentionPolicy{
 				KeepLast: 5,
 				Prune:    true,
+			},
+			BackupConfigurationTemplateSpec: stashv1beta1.BackupConfigurationTemplateSpec{
+				Task: stashv1beta1.TaskRef{
+					Name: StashMySQLBackupTask,
+				},
+				Target: &stashv1beta1.BackupTarget{
+					Ref: stashv1beta1.TargetRef{
+						APIVersion: appcat_api.SchemeGroupVersion.String(),
+						Kind:       appcat_api.ResourceKindApp,
+						Name:       meta.Name,
+					},
+				},
 			},
 		},
 	}
