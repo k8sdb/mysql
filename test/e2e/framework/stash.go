@@ -3,6 +3,9 @@ package framework
 import (
 	"time"
 
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	"kubedb.dev/apimachinery/pkg/controller"
+
 	"github.com/appscode/go/wait"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
@@ -10,8 +13,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	kutil "kmodules.xyz/client-go"
 	appcat_api "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	"kubedb.dev/apimachinery/pkg/controller"
 	"stash.appscode.dev/stash/apis/stash/v1alpha1"
 	stashV1alpha1 "stash.appscode.dev/stash/apis/stash/v1alpha1"
 	stashv1beta1 "stash.appscode.dev/stash/apis/stash/v1beta1"

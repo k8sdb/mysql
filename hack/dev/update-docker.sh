@@ -17,7 +17,6 @@ show_help() {
   echo "    --db-only                    update only database images"
   echo "    --tools-only                 update only database-tools images"
   echo "    --exporter-only              update only database-exporter images"
-  echo "    --operator-only              update only operator image"
 }
 
 while test $# -gt 0; do
@@ -30,28 +29,18 @@ while test $# -gt 0; do
       export DB_UPDATE=1
       export TOOLS_UPDATE=0
       export EXPORTER_UPDATE=0
-      export OPERATOR_UPDATE=0
       shift
       ;;
     --tools-only)
       export DB_UPDATE=0
       export TOOLS_UPDATE=1
       export EXPORTER_UPDATE=0
-      export OPERATOR_UPDATE=0
       shift
       ;;
     --exporter-only)
       export DB_UPDATE=0
       export TOOLS_UPDATE=0
       export EXPORTER_UPDATE=1
-      export OPERATOR_UPDATE=0
-      shift
-      ;;
-    --operator-only)
-      export DB_UPDATE=0
-      export TOOLS_UPDATE=0
-      export EXPORTER_UPDATE=0
-      export OPERATOR_UPDATE=1
       shift
       ;;
     *)
@@ -98,10 +87,4 @@ if [ "$EXPORTER_UPDATE" -eq 1 ]; then
   for exporter in "${exporters[@]}"; do
     ${REPO_ROOT}/hack/docker/mysqld-exporter/${exporter}/make.sh
   done
-fi
-
-if [ "$OPERATOR_UPDATE" -eq 1 ]; then
-  cowsay -f tux "Processing Operator images" || true
-  ${REPO_ROOT}/hack/docker/my-operator/make.sh build
-  ${REPO_ROOT}/hack/docker/my-operator/make.sh push
 fi

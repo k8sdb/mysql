@@ -7,6 +7,11 @@ import (
 	"strconv"
 	"strings"
 
+	"stash.appscode.dev/stash/apis"
+	api_v1beta1 "stash.appscode.dev/stash/apis/stash/v1beta1"
+	cs "stash.appscode.dev/stash/client/clientset/versioned"
+	"stash.appscode.dev/stash/pkg/restic"
+
 	"github.com/appscode/go/types"
 	"github.com/pkg/errors"
 	core "k8s.io/api/core/v1"
@@ -22,10 +27,6 @@ import (
 	v1 "kmodules.xyz/offshoot-api/api/v1"
 	oc_cs "kmodules.xyz/openshift/client/clientset/versioned"
 	wapi "kmodules.xyz/webhook-runtime/apis/workload/v1"
-	"stash.appscode.dev/stash/apis"
-	api_v1beta1 "stash.appscode.dev/stash/apis/stash/v1beta1"
-	cs "stash.appscode.dev/stash/client/clientset/versioned"
-	"stash.appscode.dev/stash/pkg/restic"
 )
 
 var (
@@ -36,6 +37,7 @@ const (
 	CallerWebhook       = "webhook"
 	CallerController    = "controller"
 	PushgatewayLocalURL = "http://localhost:56789"
+	DefaultHost         = "host-0"
 )
 
 type RepoLabelData struct {
@@ -50,21 +52,19 @@ func GetHostName(target interface{}) (string, error) {
 	// target nil for cluster backup
 	var targetRef api_v1beta1.TargetRef
 	if target == nil {
-		return "host-0", nil
+		return DefaultHost, nil
 	}
 
 	// read targetRef field from BackupTarget or RestoreTarget
-	switch target.(type) {
+	switch t := target.(type) {
 	case *api_v1beta1.BackupTarget:
-		t := target.(*api_v1beta1.BackupTarget)
 		if t == nil {
-			return "host-0", nil
+			return DefaultHost, nil
 		}
 		targetRef = t.Ref
 	case *api_v1beta1.RestoreTarget:
-		t := target.(*api_v1beta1.RestoreTarget)
 		if t == nil {
-			return "host-0", nil
+			return DefaultHost, nil
 		}
 
 		// if replicas or volumeClaimTemplate is specified then  restore is done via job.
@@ -101,7 +101,7 @@ func GetHostName(target interface{}) (string, error) {
 		}
 		return nodeName, nil
 	default:
-		return "host-0", nil
+		return DefaultHost, nil
 	}
 }
 
