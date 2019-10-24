@@ -3,32 +3,20 @@ module kubedb.dev/mysql
 go 1.12
 
 require (
-	cloud.google.com/go v0.41.0 // indirect
-	contrib.go.opencensus.io/exporter/ocagent v0.4.12 // indirect
-	github.com/Azure/azure-pipeline-go v0.1.9 // indirect
-	github.com/Azure/azure-storage-blob-go v0.6.0 // indirect
 	github.com/appscode/go v0.0.0-20191016085057-e186b6c94a3b
 	github.com/codeskyblue/go-sh v0.0.0-20190412065543-76bd3d59ff27
 	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/prometheus-operator v0.30.1
 	github.com/fatih/structs v1.1.0
-	github.com/go-ini/ini v1.25.4 // indirect
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-xorm/xorm v0.7.4
-	github.com/golang/snappy v0.0.1 // indirect
-	github.com/google/martian v2.1.1-0.20190517191504-25dcb96d9e51+incompatible // indirect
 	github.com/google/uuid v1.1.1
-	github.com/lib/pq v1.1.0 // indirect
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1
-	github.com/prometheus/client_golang v0.9.4 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.3
-	golang.org/x/net v0.0.0-20190620200207-3b0461eec859 // indirect
 	gomodules.xyz/stow v0.2.2
-	google.golang.org/api v0.7.0 // indirect
-	google.golang.org/genproto v0.0.0-20190508193815-b515fa19cec8 // indirect
 	k8s.io/api v0.0.0-20190503110853-61630f889b3c
 	k8s.io/apiextensions-apiserver v0.0.0-20190516231611-bf6753f2aa24
 	k8s.io/apimachinery v0.0.0-20190508063446-a3da69d3723c
