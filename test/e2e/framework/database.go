@@ -62,15 +62,11 @@ func (f *Framework) EventuallyDatabaseReady(meta metav1.ObjectMeta, dbName strin
 			}
 			defer en.Close()
 
-			if err := en.Ping(); err != nil {
-				return false
-			}
-			return true
+			return en.Ping() == nil
 		},
 		time.Minute*10,
 		time.Second*20,
 	)
-	return nil
 }
 
 func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta, dbName string) GomegaAsyncAssertion {
@@ -92,17 +88,11 @@ func (f *Framework) EventuallyCreateTable(meta metav1.ObjectMeta, dbName string)
 				return false
 			}
 
-			err = en.Sync(new(KubedbTable))
-			if err != nil {
-				fmt.Println("creation error", err)
-				return false
-			}
-			return true
+			return en.Sync(new(KubedbTable)) == nil
 		},
 		time.Minute*10,
 		time.Second*20,
 	)
-	return nil
 }
 
 func (f *Framework) EventuallyInsertRow(meta metav1.ObjectMeta, dbName string, clientPodIndex, total int) GomegaAsyncAssertion {
@@ -138,7 +128,6 @@ func (f *Framework) EventuallyInsertRow(meta metav1.ObjectMeta, dbName string, c
 		time.Minute*10,
 		time.Second*10,
 	)
-	return nil
 }
 
 func (f *Framework) EventuallyCountRow(meta metav1.ObjectMeta, dbName string, clientPodIndex int) GomegaAsyncAssertion {

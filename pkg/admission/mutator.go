@@ -80,7 +80,7 @@ func (a *MySQLMutator) Admit(req *admission.AdmissionRequest) *admission.Admissi
 	if err != nil {
 		return hookapi.StatusBadRequest(err)
 	}
-	mysqlMod, err := setDefaultValues(a.client, a.extClient, obj.(*api.MySQL).DeepCopy())
+	mysqlMod, err := setDefaultValues(a.extClient, obj.(*api.MySQL).DeepCopy())
 	if err != nil {
 		return hookapi.StatusForbidden(err)
 	} else if mysqlMod != nil {
@@ -98,7 +98,7 @@ func (a *MySQLMutator) Admit(req *admission.AdmissionRequest) *admission.Admissi
 }
 
 // setDefaultValues provides the defaulting that is performed in mutating stage of creating/updating a MySQL database
-func setDefaultValues(client kubernetes.Interface, extClient cs.Interface, mysql *api.MySQL) (runtime.Object, error) {
+func setDefaultValues(extClient cs.Interface, mysql *api.MySQL) (runtime.Object, error) {
 	if mysql.Spec.Version == "" {
 		return nil, errors.New(`'spec.version' is missing`)
 	}

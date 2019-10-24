@@ -255,8 +255,9 @@ var _ = Describe("MySQL", func() {
 			})
 
 			Context("with custom SA Name", func() {
+				var customSecret *core.Secret
+
 				BeforeEach(func() {
-					var customSecret *core.Secret
 					customSecret = f.SecretForDatabaseAuthentication(mysql.ObjectMeta, false)
 					mysql.Spec.DatabaseSecret = &core.SecretVolumeSource{
 						SecretName: customSecret.Name,
