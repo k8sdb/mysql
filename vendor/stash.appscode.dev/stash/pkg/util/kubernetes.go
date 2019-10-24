@@ -6,6 +6,10 @@ import (
 	"strings"
 	"time"
 
+	"stash.appscode.dev/stash/apis"
+	api "stash.appscode.dev/stash/apis/stash/v1alpha1"
+	v1beta1_api "stash.appscode.dev/stash/apis/stash/v1beta1"
+
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
 	snapshot_cs "github.com/kubernetes-csi/external-snapshotter/pkg/client/clientset/versioned"
@@ -19,9 +23,6 @@ import (
 	store "kmodules.xyz/objectstore-api/api/v1"
 	oc_cs "kmodules.xyz/openshift/client/clientset/versioned"
 	wapi "kmodules.xyz/webhook-runtime/apis/workload/v1"
-	"stash.appscode.dev/stash/apis"
-	api "stash.appscode.dev/stash/apis/stash/v1alpha1"
-	v1beta1_api "stash.appscode.dev/stash/apis/stash/v1beta1"
 )
 
 const (
@@ -487,7 +488,7 @@ func WaitUntilDeploymentConfigReady(c oc_cs.Interface, meta metav1.ObjectMeta) e
 func WaitUntilVolumeSnapshotReady(c snapshot_cs.Interface, meta metav1.ObjectMeta) error {
 	return wait.PollImmediate(RetryInterval, 2*time.Hour, func() (bool, error) {
 		if obj, err := c.SnapshotV1alpha1().VolumeSnapshots(meta.Namespace).Get(meta.Name, metav1.GetOptions{}); err == nil {
-			return obj.Status.ReadyToUse == true, nil
+			return obj.Status.ReadyToUse, nil
 		}
 		return false, nil
 	})

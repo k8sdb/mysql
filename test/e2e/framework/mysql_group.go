@@ -60,10 +60,7 @@ func (f *Framework) EventuallyCreateDatabase(meta metav1.ObjectMeta, dbName stri
 			}
 
 			_, err = en.Exec("CREATE DATABASE kubedb")
-			if err != nil {
-				return false
-			}
-			return true
+			return err == nil
 		},
 		time.Minute*10,
 		time.Second*20,
@@ -83,13 +80,7 @@ func (f *Framework) InsertRowFromSecondary(meta metav1.ObjectMeta, dbName string
 			if err != nil {
 				return true
 			}
-			defer func() {
-				err = en.Close()
-				return
-			}()
-			if err != nil {
-				return true
-			}
+			defer en.Close()
 
 			if err := en.Ping(); err != nil {
 				return true
