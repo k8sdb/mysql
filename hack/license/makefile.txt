@@ -1,6 +1,5 @@
-#!/bin/bash
-
-# Copyright The KubeDB Authors.
+# Copyright 2019 AppsCode Inc.
+# Copyright 2016 The Kubernetes Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,17 +12,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-set -xeou pipefail
-
-DOCKER_REGISTRY=${DOCKER_REGISTRY:-kubedb}
-
-IMG=mysql
-
-DB_VERSION=8.0.3
-TAG="$DB_VERSION"
-
-docker pull $IMG:$DB_VERSION
-
-docker tag $IMG:$DB_VERSION "$DOCKER_REGISTRY/$IMG:$TAG"
-docker push "$DOCKER_REGISTRY/$IMG:$TAG"
