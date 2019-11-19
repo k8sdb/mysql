@@ -3,16 +3,16 @@ package framework
 import (
 	"time"
 
+	"kubedb.dev/apimachinery/apis/kubedb"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+
 	"github.com/appscode/go/crypto/rand"
 	jsonTypes "github.com/appscode/go/encoding/json/types"
 	"github.com/appscode/go/types"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"kubedb.dev/apimachinery/apis/kubedb"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 )
 
 var (
@@ -41,15 +41,6 @@ func (f *Invocation) ProxySQL(backendObjName string) *api.ProxySQL {
 					Name:     backendObjName,
 				},
 				Replicas: types.Int32P(api.PerconaXtraDBDefaultClusterSize),
-			},
-			StorageType: api.StorageTypeDurable,
-			Storage: &corev1.PersistentVolumeClaimSpec{
-				Resources: corev1.ResourceRequirements{
-					Requests: corev1.ResourceList{
-						corev1.ResourceStorage: resource.MustParse(proxysqlPvcStorageSize),
-					},
-				},
-				StorageClassName: types.StringP(f.StorageClass),
 			},
 			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
 				Type: appsv1.RollingUpdateStatefulSetStrategyType,
