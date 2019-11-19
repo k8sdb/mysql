@@ -161,11 +161,11 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			},
 			VolumeMounts: []core.VolumeMount{
 				{
-					Name: "conf",
+					Name:      "conf",
 					MountPath: "/etc/mysql",
 				},
 				{
-					Name: "tmp",
+					Name:      "tmp",
 					MountPath: "/tmp",
 				},
 			},
