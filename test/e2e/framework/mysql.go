@@ -24,7 +24,6 @@ import (
 	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
 
 	"github.com/appscode/go/crypto/rand"
-	jsonTypes "github.com/appscode/go/encoding/json/types"
 	"github.com/appscode/go/types"
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
@@ -55,7 +54,7 @@ func (f *Invocation) MySQL() *api.MySQL {
 			},
 		},
 		Spec: api.MySQLSpec{
-			Version: jsonTypes.StrYo(DBCatalogName),
+			Version: DBCatalogName,
 			Storage: &core.PersistentVolumeClaimSpec{
 				Resources: core.ResourceRequirements{
 					Requests: core.ResourceList{
@@ -77,7 +76,7 @@ func (f *Invocation) MySQLGroup() *api.MySQL {
 		Mode: &clusterMode,
 		Group: &api.MySQLGroupSpec{
 			Name:         "dc002fc3-c412-4d18-b1d4-66c1fbfbbc9b",
-			BaseServerID: types.UIntP(api.MySQLDefaultBaseServerID),
+			BaseServerID: types.Int64P(api.MySQLDefaultBaseServerID),
 		},
 	}
 
