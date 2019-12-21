@@ -479,7 +479,7 @@ func validGroup(old api.MySQL) api.MySQL {
 		Mode: &clusterMode,
 		Group: &api.MySQLGroupSpec{
 			Name:         "dc002fc3-c412-4d18-b1d4-66c1fbfbbc9b",
-			BaseServerID: types.UIntP(api.MySQLDefaultBaseServerID),
+			BaseServerID: types.Int64P(api.MySQLDefaultBaseServerID),
 		},
 	}
 
@@ -545,14 +545,14 @@ func groupWithInvalidGroupName() api.MySQL {
 
 func groupWithBaseServerIDZero() api.MySQL {
 	old := validGroup(sampleMySQL())
-	old.Spec.Topology.Group.BaseServerID = types.UIntP(0)
+	old.Spec.Topology.Group.BaseServerID = types.Int64P(0)
 
 	return old
 }
 
 func groupWithBaseServerIDExceededMaxLimit() api.MySQL {
 	old := validGroup(sampleMySQL())
-	old.Spec.Topology.Group.BaseServerID = types.UIntP(api.MySQLMaxBaseServerID + 1)
+	old.Spec.Topology.Group.BaseServerID = types.Int64P(api.MySQLMaxBaseServerID + 1)
 
 	return old
 }
