@@ -125,6 +125,10 @@ type ElasticsearchSpec struct {
 	// TerminationPolicy controls the delete operation for database
 	// +optional
 	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,19,opt,name=terminationPolicy,casttype=TerminationPolicy"`
+
+	// Indicates that the db is paused.
+	// +optional
+	Paused bool `json:"paused,omitempty" protobuf:"varint,20,opt,name=paused"`
 }
 
 type ElasticsearchClusterTopology struct {
