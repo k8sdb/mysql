@@ -3933,6 +3933,133 @@ spec:
                               type: array
                             prometheus:
                               properties:
+                                exporter:
+                                  properties:
+                                    args:
+                                      items:
+                                        type: string
+                                      type: array
+                                    env:
+                                      items:
+                                        properties:
+                                          name:
+                                            type: string
+                                          value:
+                                            type: string
+                                          valueFrom:
+                                            properties:
+                                              configMapKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                              fieldRef:
+                                                properties:
+                                                  apiVersion:
+                                                    type: string
+                                                  fieldPath:
+                                                    type: string
+                                                required:
+                                                - fieldPath
+                                                type: object
+                                              resourceFieldRef:
+                                                properties:
+                                                  containerName:
+                                                    type: string
+                                                  divisor:
+                                                    type: string
+                                                  resource:
+                                                    type: string
+                                                required:
+                                                - resource
+                                                type: object
+                                              secretKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                            type: object
+                                        required:
+                                        - name
+                                        type: object
+                                      type: array
+                                    port:
+                                      format: int32
+                                      type: integer
+                                    resources:
+                                      properties:
+                                        limits:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                        requests:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                      type: object
+                                    securityContext:
+                                      properties:
+                                        allowPrivilegeEscalation:
+                                          type: boolean
+                                        capabilities:
+                                          properties:
+                                            add:
+                                              items:
+                                                type: string
+                                              type: array
+                                            drop:
+                                              items:
+                                                type: string
+                                              type: array
+                                          type: object
+                                        privileged:
+                                          type: boolean
+                                        procMount:
+                                          type: string
+                                        readOnlyRootFilesystem:
+                                          type: boolean
+                                        runAsGroup:
+                                          format: int64
+                                          type: integer
+                                        runAsNonRoot:
+                                          type: boolean
+                                        runAsUser:
+                                          format: int64
+                                          type: integer
+                                        seLinuxOptions:
+                                          properties:
+                                            level:
+                                              type: string
+                                            role:
+                                              type: string
+                                            type:
+                                              type: string
+                                            user:
+                                              type: string
+                                          type: object
+                                        windowsOptions:
+                                          properties:
+                                            gmsaCredentialSpec:
+                                              type: string
+                                            gmsaCredentialSpecName:
+                                              type: string
+                                            runAsUserName:
+                                              type: string
+                                          type: object
+                                      type: object
+                                  type: object
                                 interval:
                                   type: string
                                 labels:
@@ -4007,6 +4134,8 @@ spec:
                                   type: object
                               type: object
                           type: object
+                        paused:
+                          type: boolean
                         podTemplate:
                           properties:
                             controller:
@@ -8829,6 +8958,133 @@ spec:
                               type: array
                             prometheus:
                               properties:
+                                exporter:
+                                  properties:
+                                    args:
+                                      items:
+                                        type: string
+                                      type: array
+                                    env:
+                                      items:
+                                        properties:
+                                          name:
+                                            type: string
+                                          value:
+                                            type: string
+                                          valueFrom:
+                                            properties:
+                                              configMapKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                              fieldRef:
+                                                properties:
+                                                  apiVersion:
+                                                    type: string
+                                                  fieldPath:
+                                                    type: string
+                                                required:
+                                                - fieldPath
+                                                type: object
+                                              resourceFieldRef:
+                                                properties:
+                                                  containerName:
+                                                    type: string
+                                                  divisor:
+                                                    type: string
+                                                  resource:
+                                                    type: string
+                                                required:
+                                                - resource
+                                                type: object
+                                              secretKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                            type: object
+                                        required:
+                                        - name
+                                        type: object
+                                      type: array
+                                    port:
+                                      format: int32
+                                      type: integer
+                                    resources:
+                                      properties:
+                                        limits:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                        requests:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                      type: object
+                                    securityContext:
+                                      properties:
+                                        allowPrivilegeEscalation:
+                                          type: boolean
+                                        capabilities:
+                                          properties:
+                                            add:
+                                              items:
+                                                type: string
+                                              type: array
+                                            drop:
+                                              items:
+                                                type: string
+                                              type: array
+                                          type: object
+                                        privileged:
+                                          type: boolean
+                                        procMount:
+                                          type: string
+                                        readOnlyRootFilesystem:
+                                          type: boolean
+                                        runAsGroup:
+                                          format: int64
+                                          type: integer
+                                        runAsNonRoot:
+                                          type: boolean
+                                        runAsUser:
+                                          format: int64
+                                          type: integer
+                                        seLinuxOptions:
+                                          properties:
+                                            level:
+                                              type: string
+                                            role:
+                                              type: string
+                                            type:
+                                              type: string
+                                            user:
+                                              type: string
+                                          type: object
+                                        windowsOptions:
+                                          properties:
+                                            gmsaCredentialSpec:
+                                              type: string
+                                            gmsaCredentialSpecName:
+                                              type: string
+                                            runAsUserName:
+                                              type: string
+                                          type: object
+                                      type: object
+                                  type: object
                                 interval:
                                   type: string
                                 labels:
@@ -8903,6 +9159,8 @@ spec:
                                   type: object
                               type: object
                           type: object
+                        paused:
+                          type: boolean
                         podTemplate:
                           properties:
                             controller:
@@ -12163,6 +12421,133 @@ spec:
                               type: array
                             prometheus:
                               properties:
+                                exporter:
+                                  properties:
+                                    args:
+                                      items:
+                                        type: string
+                                      type: array
+                                    env:
+                                      items:
+                                        properties:
+                                          name:
+                                            type: string
+                                          value:
+                                            type: string
+                                          valueFrom:
+                                            properties:
+                                              configMapKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                              fieldRef:
+                                                properties:
+                                                  apiVersion:
+                                                    type: string
+                                                  fieldPath:
+                                                    type: string
+                                                required:
+                                                - fieldPath
+                                                type: object
+                                              resourceFieldRef:
+                                                properties:
+                                                  containerName:
+                                                    type: string
+                                                  divisor:
+                                                    type: string
+                                                  resource:
+                                                    type: string
+                                                required:
+                                                - resource
+                                                type: object
+                                              secretKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                            type: object
+                                        required:
+                                        - name
+                                        type: object
+                                      type: array
+                                    port:
+                                      format: int32
+                                      type: integer
+                                    resources:
+                                      properties:
+                                        limits:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                        requests:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                      type: object
+                                    securityContext:
+                                      properties:
+                                        allowPrivilegeEscalation:
+                                          type: boolean
+                                        capabilities:
+                                          properties:
+                                            add:
+                                              items:
+                                                type: string
+                                              type: array
+                                            drop:
+                                              items:
+                                                type: string
+                                              type: array
+                                          type: object
+                                        privileged:
+                                          type: boolean
+                                        procMount:
+                                          type: string
+                                        readOnlyRootFilesystem:
+                                          type: boolean
+                                        runAsGroup:
+                                          format: int64
+                                          type: integer
+                                        runAsNonRoot:
+                                          type: boolean
+                                        runAsUser:
+                                          format: int64
+                                          type: integer
+                                        seLinuxOptions:
+                                          properties:
+                                            level:
+                                              type: string
+                                            role:
+                                              type: string
+                                            type:
+                                              type: string
+                                            user:
+                                              type: string
+                                          type: object
+                                        windowsOptions:
+                                          properties:
+                                            gmsaCredentialSpec:
+                                              type: string
+                                            gmsaCredentialSpecName:
+                                              type: string
+                                            runAsUserName:
+                                              type: string
+                                          type: object
+                                      type: object
+                                  type: object
                                 interval:
                                   type: string
                                 labels:
@@ -12237,6 +12622,8 @@ spec:
                                   type: object
                               type: object
                           type: object
+                        paused:
+                          type: boolean
                         podTemplate:
                           properties:
                             controller:
@@ -14211,6 +14598,133 @@ spec:
                               type: array
                             prometheus:
                               properties:
+                                exporter:
+                                  properties:
+                                    args:
+                                      items:
+                                        type: string
+                                      type: array
+                                    env:
+                                      items:
+                                        properties:
+                                          name:
+                                            type: string
+                                          value:
+                                            type: string
+                                          valueFrom:
+                                            properties:
+                                              configMapKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                              fieldRef:
+                                                properties:
+                                                  apiVersion:
+                                                    type: string
+                                                  fieldPath:
+                                                    type: string
+                                                required:
+                                                - fieldPath
+                                                type: object
+                                              resourceFieldRef:
+                                                properties:
+                                                  containerName:
+                                                    type: string
+                                                  divisor:
+                                                    type: string
+                                                  resource:
+                                                    type: string
+                                                required:
+                                                - resource
+                                                type: object
+                                              secretKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                            type: object
+                                        required:
+                                        - name
+                                        type: object
+                                      type: array
+                                    port:
+                                      format: int32
+                                      type: integer
+                                    resources:
+                                      properties:
+                                        limits:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                        requests:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                      type: object
+                                    securityContext:
+                                      properties:
+                                        allowPrivilegeEscalation:
+                                          type: boolean
+                                        capabilities:
+                                          properties:
+                                            add:
+                                              items:
+                                                type: string
+                                              type: array
+                                            drop:
+                                              items:
+                                                type: string
+                                              type: array
+                                          type: object
+                                        privileged:
+                                          type: boolean
+                                        procMount:
+                                          type: string
+                                        readOnlyRootFilesystem:
+                                          type: boolean
+                                        runAsGroup:
+                                          format: int64
+                                          type: integer
+                                        runAsNonRoot:
+                                          type: boolean
+                                        runAsUser:
+                                          format: int64
+                                          type: integer
+                                        seLinuxOptions:
+                                          properties:
+                                            level:
+                                              type: string
+                                            role:
+                                              type: string
+                                            type:
+                                              type: string
+                                            user:
+                                              type: string
+                                          type: object
+                                        windowsOptions:
+                                          properties:
+                                            gmsaCredentialSpec:
+                                              type: string
+                                            gmsaCredentialSpecName:
+                                              type: string
+                                            runAsUserName:
+                                              type: string
+                                          type: object
+                                      type: object
+                                  type: object
                                 interval:
                                   type: string
                                 labels:
@@ -14285,6 +14799,8 @@ spec:
                                   type: object
                               type: object
                           type: object
+                        paused:
+                          type: boolean
                         podTemplate:
                           properties:
                             controller:
@@ -19399,6 +19915,133 @@ spec:
                               type: array
                             prometheus:
                               properties:
+                                exporter:
+                                  properties:
+                                    args:
+                                      items:
+                                        type: string
+                                      type: array
+                                    env:
+                                      items:
+                                        properties:
+                                          name:
+                                            type: string
+                                          value:
+                                            type: string
+                                          valueFrom:
+                                            properties:
+                                              configMapKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                              fieldRef:
+                                                properties:
+                                                  apiVersion:
+                                                    type: string
+                                                  fieldPath:
+                                                    type: string
+                                                required:
+                                                - fieldPath
+                                                type: object
+                                              resourceFieldRef:
+                                                properties:
+                                                  containerName:
+                                                    type: string
+                                                  divisor:
+                                                    type: string
+                                                  resource:
+                                                    type: string
+                                                required:
+                                                - resource
+                                                type: object
+                                              secretKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                            type: object
+                                        required:
+                                        - name
+                                        type: object
+                                      type: array
+                                    port:
+                                      format: int32
+                                      type: integer
+                                    resources:
+                                      properties:
+                                        limits:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                        requests:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                      type: object
+                                    securityContext:
+                                      properties:
+                                        allowPrivilegeEscalation:
+                                          type: boolean
+                                        capabilities:
+                                          properties:
+                                            add:
+                                              items:
+                                                type: string
+                                              type: array
+                                            drop:
+                                              items:
+                                                type: string
+                                              type: array
+                                          type: object
+                                        privileged:
+                                          type: boolean
+                                        procMount:
+                                          type: string
+                                        readOnlyRootFilesystem:
+                                          type: boolean
+                                        runAsGroup:
+                                          format: int64
+                                          type: integer
+                                        runAsNonRoot:
+                                          type: boolean
+                                        runAsUser:
+                                          format: int64
+                                          type: integer
+                                        seLinuxOptions:
+                                          properties:
+                                            level:
+                                              type: string
+                                            role:
+                                              type: string
+                                            type:
+                                              type: string
+                                            user:
+                                              type: string
+                                          type: object
+                                        windowsOptions:
+                                          properties:
+                                            gmsaCredentialSpec:
+                                              type: string
+                                            gmsaCredentialSpecName:
+                                              type: string
+                                            runAsUserName:
+                                              type: string
+                                          type: object
+                                      type: object
+                                  type: object
                                 interval:
                                   type: string
                                 labels:
@@ -19473,6 +20116,8 @@ spec:
                                   type: object
                               type: object
                           type: object
+                        paused:
+                          type: boolean
                         podTemplate:
                           properties:
                             controller:
@@ -30129,6 +30774,133 @@ spec:
                               type: array
                             prometheus:
                               properties:
+                                exporter:
+                                  properties:
+                                    args:
+                                      items:
+                                        type: string
+                                      type: array
+                                    env:
+                                      items:
+                                        properties:
+                                          name:
+                                            type: string
+                                          value:
+                                            type: string
+                                          valueFrom:
+                                            properties:
+                                              configMapKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                              fieldRef:
+                                                properties:
+                                                  apiVersion:
+                                                    type: string
+                                                  fieldPath:
+                                                    type: string
+                                                required:
+                                                - fieldPath
+                                                type: object
+                                              resourceFieldRef:
+                                                properties:
+                                                  containerName:
+                                                    type: string
+                                                  divisor:
+                                                    type: string
+                                                  resource:
+                                                    type: string
+                                                required:
+                                                - resource
+                                                type: object
+                                              secretKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                            type: object
+                                        required:
+                                        - name
+                                        type: object
+                                      type: array
+                                    port:
+                                      format: int32
+                                      type: integer
+                                    resources:
+                                      properties:
+                                        limits:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                        requests:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                      type: object
+                                    securityContext:
+                                      properties:
+                                        allowPrivilegeEscalation:
+                                          type: boolean
+                                        capabilities:
+                                          properties:
+                                            add:
+                                              items:
+                                                type: string
+                                              type: array
+                                            drop:
+                                              items:
+                                                type: string
+                                              type: array
+                                          type: object
+                                        privileged:
+                                          type: boolean
+                                        procMount:
+                                          type: string
+                                        readOnlyRootFilesystem:
+                                          type: boolean
+                                        runAsGroup:
+                                          format: int64
+                                          type: integer
+                                        runAsNonRoot:
+                                          type: boolean
+                                        runAsUser:
+                                          format: int64
+                                          type: integer
+                                        seLinuxOptions:
+                                          properties:
+                                            level:
+                                              type: string
+                                            role:
+                                              type: string
+                                            type:
+                                              type: string
+                                            user:
+                                              type: string
+                                          type: object
+                                        windowsOptions:
+                                          properties:
+                                            gmsaCredentialSpec:
+                                              type: string
+                                            gmsaCredentialSpecName:
+                                              type: string
+                                            runAsUserName:
+                                              type: string
+                                          type: object
+                                      type: object
+                                  type: object
                                 interval:
                                   type: string
                                 labels:
@@ -30203,6 +30975,8 @@ spec:
                                   type: object
                               type: object
                           type: object
+                        paused:
+                          type: boolean
                         podTemplate:
                           properties:
                             controller:
@@ -33466,6 +34240,133 @@ spec:
                               type: array
                             prometheus:
                               properties:
+                                exporter:
+                                  properties:
+                                    args:
+                                      items:
+                                        type: string
+                                      type: array
+                                    env:
+                                      items:
+                                        properties:
+                                          name:
+                                            type: string
+                                          value:
+                                            type: string
+                                          valueFrom:
+                                            properties:
+                                              configMapKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                              fieldRef:
+                                                properties:
+                                                  apiVersion:
+                                                    type: string
+                                                  fieldPath:
+                                                    type: string
+                                                required:
+                                                - fieldPath
+                                                type: object
+                                              resourceFieldRef:
+                                                properties:
+                                                  containerName:
+                                                    type: string
+                                                  divisor:
+                                                    type: string
+                                                  resource:
+                                                    type: string
+                                                required:
+                                                - resource
+                                                type: object
+                                              secretKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                            type: object
+                                        required:
+                                        - name
+                                        type: object
+                                      type: array
+                                    port:
+                                      format: int32
+                                      type: integer
+                                    resources:
+                                      properties:
+                                        limits:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                        requests:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                      type: object
+                                    securityContext:
+                                      properties:
+                                        allowPrivilegeEscalation:
+                                          type: boolean
+                                        capabilities:
+                                          properties:
+                                            add:
+                                              items:
+                                                type: string
+                                              type: array
+                                            drop:
+                                              items:
+                                                type: string
+                                              type: array
+                                          type: object
+                                        privileged:
+                                          type: boolean
+                                        procMount:
+                                          type: string
+                                        readOnlyRootFilesystem:
+                                          type: boolean
+                                        runAsGroup:
+                                          format: int64
+                                          type: integer
+                                        runAsNonRoot:
+                                          type: boolean
+                                        runAsUser:
+                                          format: int64
+                                          type: integer
+                                        seLinuxOptions:
+                                          properties:
+                                            level:
+                                              type: string
+                                            role:
+                                              type: string
+                                            type:
+                                              type: string
+                                            user:
+                                              type: string
+                                          type: object
+                                        windowsOptions:
+                                          properties:
+                                            gmsaCredentialSpec:
+                                              type: string
+                                            gmsaCredentialSpecName:
+                                              type: string
+                                            runAsUserName:
+                                              type: string
+                                          type: object
+                                      type: object
+                                  type: object
                                 interval:
                                   type: string
                                 labels:
@@ -33540,6 +34441,8 @@ spec:
                                   type: object
                               type: object
                           type: object
+                        paused:
+                          type: boolean
                         podTemplate:
                           properties:
                             controller:
@@ -39337,6 +40240,133 @@ spec:
                               type: array
                             prometheus:
                               properties:
+                                exporter:
+                                  properties:
+                                    args:
+                                      items:
+                                        type: string
+                                      type: array
+                                    env:
+                                      items:
+                                        properties:
+                                          name:
+                                            type: string
+                                          value:
+                                            type: string
+                                          valueFrom:
+                                            properties:
+                                              configMapKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                              fieldRef:
+                                                properties:
+                                                  apiVersion:
+                                                    type: string
+                                                  fieldPath:
+                                                    type: string
+                                                required:
+                                                - fieldPath
+                                                type: object
+                                              resourceFieldRef:
+                                                properties:
+                                                  containerName:
+                                                    type: string
+                                                  divisor:
+                                                    type: string
+                                                  resource:
+                                                    type: string
+                                                required:
+                                                - resource
+                                                type: object
+                                              secretKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                            type: object
+                                        required:
+                                        - name
+                                        type: object
+                                      type: array
+                                    port:
+                                      format: int32
+                                      type: integer
+                                    resources:
+                                      properties:
+                                        limits:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                        requests:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                      type: object
+                                    securityContext:
+                                      properties:
+                                        allowPrivilegeEscalation:
+                                          type: boolean
+                                        capabilities:
+                                          properties:
+                                            add:
+                                              items:
+                                                type: string
+                                              type: array
+                                            drop:
+                                              items:
+                                                type: string
+                                              type: array
+                                          type: object
+                                        privileged:
+                                          type: boolean
+                                        procMount:
+                                          type: string
+                                        readOnlyRootFilesystem:
+                                          type: boolean
+                                        runAsGroup:
+                                          format: int64
+                                          type: integer
+                                        runAsNonRoot:
+                                          type: boolean
+                                        runAsUser:
+                                          format: int64
+                                          type: integer
+                                        seLinuxOptions:
+                                          properties:
+                                            level:
+                                              type: string
+                                            role:
+                                              type: string
+                                            type:
+                                              type: string
+                                            user:
+                                              type: string
+                                          type: object
+                                        windowsOptions:
+                                          properties:
+                                            gmsaCredentialSpec:
+                                              type: string
+                                            gmsaCredentialSpecName:
+                                              type: string
+                                            runAsUserName:
+                                              type: string
+                                          type: object
+                                      type: object
+                                  type: object
                                 interval:
                                   type: string
                                 labels:
@@ -39411,6 +40441,8 @@ spec:
                                   type: object
                               type: object
                           type: object
+                        paused:
+                          type: boolean
                         podTemplate:
                           properties:
                             controller:
@@ -41456,6 +42488,133 @@ spec:
                               type: array
                             prometheus:
                               properties:
+                                exporter:
+                                  properties:
+                                    args:
+                                      items:
+                                        type: string
+                                      type: array
+                                    env:
+                                      items:
+                                        properties:
+                                          name:
+                                            type: string
+                                          value:
+                                            type: string
+                                          valueFrom:
+                                            properties:
+                                              configMapKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                              fieldRef:
+                                                properties:
+                                                  apiVersion:
+                                                    type: string
+                                                  fieldPath:
+                                                    type: string
+                                                required:
+                                                - fieldPath
+                                                type: object
+                                              resourceFieldRef:
+                                                properties:
+                                                  containerName:
+                                                    type: string
+                                                  divisor:
+                                                    type: string
+                                                  resource:
+                                                    type: string
+                                                required:
+                                                - resource
+                                                type: object
+                                              secretKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  name:
+                                                    type: string
+                                                  optional:
+                                                    type: boolean
+                                                required:
+                                                - key
+                                                type: object
+                                            type: object
+                                        required:
+                                        - name
+                                        type: object
+                                      type: array
+                                    port:
+                                      format: int32
+                                      type: integer
+                                    resources:
+                                      properties:
+                                        limits:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                        requests:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                      type: object
+                                    securityContext:
+                                      properties:
+                                        allowPrivilegeEscalation:
+                                          type: boolean
+                                        capabilities:
+                                          properties:
+                                            add:
+                                              items:
+                                                type: string
+                                              type: array
+                                            drop:
+                                              items:
+                                                type: string
+                                              type: array
+                                          type: object
+                                        privileged:
+                                          type: boolean
+                                        procMount:
+                                          type: string
+                                        readOnlyRootFilesystem:
+                                          type: boolean
+                                        runAsGroup:
+                                          format: int64
+                                          type: integer
+                                        runAsNonRoot:
+                                          type: boolean
+                                        runAsUser:
+                                          format: int64
+                                          type: integer
+                                        seLinuxOptions:
+                                          properties:
+                                            level:
+                                              type: string
+                                            role:
+                                              type: string
+                                            type:
+                                              type: string
+                                            user:
+                                              type: string
+                                          type: object
+                                        windowsOptions:
+                                          properties:
+                                            gmsaCredentialSpec:
+                                              type: string
+                                            gmsaCredentialSpecName:
+                                              type: string
+                                            runAsUserName:
+                                              type: string
+                                          type: object
+                                      type: object
+                                  type: object
                                 interval:
                                   type: string
                                 labels:
@@ -41530,6 +42689,8 @@ spec:
                                   type: object
                               type: object
                           type: object
+                        paused:
+                          type: boolean
                         podTemplate:
                           properties:
                             controller:
