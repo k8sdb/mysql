@@ -111,11 +111,13 @@ type TerminationPolicy string
 
 const (
 	// Pauses database into a DormantDatabase
-	// Deprecated: Use spec.paused = true
+	// Deprecated: Use spec.halted = true
 	TerminationPolicyPause TerminationPolicy = "Pause"
-	// Deletes database pods, service, pvcs but leave the snapshot data intact. This will not create a DormantDatabase.
+	// Deletes database pods, service but leave the PVCs and snapshot data intact.
+	TerminationPolicyHalt TerminationPolicy = "Halt"
+	// Deletes database pods, service, pvcs but leave the snapshot data intact.
 	TerminationPolicyDelete TerminationPolicy = "Delete"
-	// Deletes database pods, service, pvcs and snapshot data. This will not create a DormantDatabase.
+	// Deletes database pods, service, pvcs and snapshot data.
 	TerminationPolicyWipeOut TerminationPolicy = "WipeOut"
 	// Rejects attempt to delete database using ValidationWebhook. This replaces spec.doNotPause = true
 	TerminationPolicyDoNotTerminate TerminationPolicy = "DoNotTerminate"

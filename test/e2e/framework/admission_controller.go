@@ -20,6 +20,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	catlog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
@@ -33,6 +34,8 @@ import (
 	kext_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	kApi "k8s.io/kube-aggregator/pkg/apis/apiregistration/v1beta1"
 	kutil "kmodules.xyz/client-go"
@@ -54,6 +57,36 @@ func (f *Framework) isApiSvcReady(apiSvcName string) error {
 	}
 	log.Errorf("APIService %v not ready yet", apiSvcName)
 	return fmt.Errorf("APIService %v not ready yet", apiSvcName)
+}
+
+func (f *Framework) restartOperator() {
+	if SelfHostedOperator {
+		if pods, err := f.kubeClient.CoreV1().Pods("kube-system").List(metav1.ListOptions{
+			LabelSelector: labels.Set{
+				"app": "kubedb",
+			}.String(),
+		}); err != nil {
+			Expect(err).NotTo(HaveOccurred())
+		} else {
+			for i := range pods.Items {
+				if strings.HasPrefix(pods.Items[i].Name, "kubedb") {
+					err = f.kubeClient.CoreV1().Pods("kube-system").Delete(pods.Items[i].Name, &metav1.DeleteOptions{})
+					Expect(err).NotTo(HaveOccurred())
+
+					break
+				}
+			}
+		}
+	}
+}
+
+func (f *Framework) EnsureAPIServiceReady() GomegaAsyncAssertion {
+	if f.isApiSvcReady("v1alpha1.mutators.kubedb.com") != nil ||
+		f.isApiSvcReady("v1alpha1.validators.kubedb.com") != nil {
+		f.restartOperator()
+	}
+
+	return f.EventuallyAPIServiceReady()
 }
 
 func (f *Framework) EventuallyAPIServiceReady() GomegaAsyncAssertion {
@@ -88,6 +121,9 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 	defer GinkgoRecover()
 
 	// ensure crds. Mainly for catalogVersions CRD.
+	kubeClient, err := kubernetes.NewForConfig(config)
+	Expect(err).NotTo(HaveOccurred())
+
 	apiExtKubeClient, err := kext_cs.NewForConfig(config)
 	Expect(err).NotTo(HaveOccurred())
 
@@ -95,7 +131,7 @@ func (f *Framework) RunOperatorAndServer(config *restclient.Config, kubeconfigPa
 	crds := []*crd_api.CustomResourceDefinition{
 		catlog.MySQLVersion{}.CustomResourceDefinition(),
 	}
-	err = apiext_util.RegisterCRDs(apiExtKubeClient, crds)
+	err = apiext_util.RegisterCRDs(kubeClient.Discovery(), apiExtKubeClient, crds)
 	Expect(err).NotTo(HaveOccurred())
 
 	sh := shell.NewSession()

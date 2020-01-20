@@ -149,11 +149,10 @@ func (c *Controller) createDormantDatabase(mysql *api.MySQL) (*api.DormantDataba
 		Spec: api.DormantDatabaseSpec{
 			Origin: api.Origin{
 				PartialObjectMeta: ofst.PartialObjectMeta{
-					Name:              mysql.Name,
-					Namespace:         mysql.Namespace,
-					Labels:            mysql.Labels,
-					Annotations:       mysql.Annotations,
-					CreationTimestamp: mysql.CreationTimestamp,
+					Name:        mysql.Name,
+					Namespace:   mysql.Namespace,
+					Labels:      mysql.Labels,
+					Annotations: mysql.Annotations,
 				},
 				Spec: api.OriginSpec{
 					MySQL: &mysql.Spec,

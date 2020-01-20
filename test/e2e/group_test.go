@@ -125,7 +125,15 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 		dbName = "mysql"
 		dbNameKubedb = "kubedb"
 
+		By("Ensure the apiservices are ready")
+		f.EnsureAPIServiceReady().Should(Succeed())
 		CheckDBVersionForGroupReplication()
+	})
+
+	JustAfterEach(func() {
+		if CurrentGinkgoTestDescription().Failed {
+			f.PrintDebugHelpers(mysql.Name, int(*mysql.Spec.Replicas))
+		}
 	})
 
 	Context("Behaviour tests", func() {

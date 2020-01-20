@@ -72,7 +72,7 @@ const (
 	// And the maximum group size is 9. So MySQLMaxBaseServerID is the maximum safe value
 	// for BaseServerID calculated as max MySQL server_id value - max Replication Group size.
 	// xref: https://dev.mysql.com/doc/refman/5.7/en/replication-options.html
-	MySQLMaxBaseServerID int64 = 2 ^ 32 - 1 - 9
+	MySQLMaxBaseServerID int64 = ((1 << 32) - 1) - 9
 
 	PerconaXtraDBClusterRecommendedVersion    = "5.7"
 	PerconaXtraDBMaxClusterNameLength         = 32

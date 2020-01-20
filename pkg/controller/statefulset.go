@@ -154,6 +154,16 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 					Protocol:      core.ProtocolTCP,
 				},
 			},
+			VolumeMounts: []core.VolumeMount{
+				//{
+				//	Name:      "conf",
+				//	MountPath: "/etc/mysql",
+				//},
+				{
+					Name:      "tmp",
+					MountPath: "/tmp",
+				},
+			},
 		}
 		if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
 			*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
@@ -172,7 +182,53 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 				container.ReadinessProbe = nil
 			}
 		}
+		probe := core.Probe{
+			Handler: core.Handler{
+				Exec: &core.ExecAction{
+					Command: []string{
+						"bash",
+						"-c",
+						`
+export MYSQL_PWD=${MYSQL_ROOT_PASSWORD}
+mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
+`,
+					},
+				},
+			},
+		}
+		if mysql.Spec.Topology == nil {
+			container.ReadinessProbe = &probe
+			container.LivenessProbe = &probe
+		}
+		if container.ReadinessProbe != nil {
+			container.ReadinessProbe.InitialDelaySeconds = 60
+			container.ReadinessProbe.PeriodSeconds = 10
+			container.ReadinessProbe.TimeoutSeconds = 50
+			container.ReadinessProbe.SuccessThreshold = 1
+			container.ReadinessProbe.FailureThreshold = 3
+		}
+		if container.LivenessProbe != nil {
+			container.LivenessProbe.InitialDelaySeconds = 60
+			container.LivenessProbe.PeriodSeconds = 10
+			container.LivenessProbe.TimeoutSeconds = 50
+			container.LivenessProbe.SuccessThreshold = 1
+			container.LivenessProbe.FailureThreshold = 3
+		}
 		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, container)
+		in.Spec.Template.Spec.Volumes = []core.Volume{
+			//{
+			//	Name: "conf",
+			//	VolumeSource: core.VolumeSource{
+			//		EmptyDir: &core.EmptyDirVolumeSource{},
+			//	},
+			//},
+			{
+				Name: "tmp",
+				VolumeSource: core.VolumeSource{
+					EmptyDir: &core.EmptyDirVolumeSource{},
+				},
+			},
+		}
 
 		if mysql.GetMonitoringVendor() == mona.VendorPrometheus {
 			in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{

@@ -23,6 +23,7 @@ import (
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 
 	"github.com/appscode/go/types"
+	shell "github.com/codeskyblue/go-sh"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,32 +44,6 @@ func deleteInBackground() *metav1.DeleteOptions {
 func deleteInForeground() *metav1.DeleteOptions {
 	policy := metav1.DeletePropagationForeground
 	return &metav1.DeleteOptions{PropagationPolicy: &policy}
-}
-
-func (f *Invocation) GetCustomConfig(configs []string) *core.ConfigMap {
-	configs = append([]string{"[mysqld]"}, configs...)
-	return &core.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      f.app,
-			Namespace: f.namespace,
-		},
-		Data: map[string]string{
-			"my-custom.cnf": strings.Join(configs, "\n"),
-		},
-	}
-}
-
-func (f *Invocation) CreateConfigMap(obj *core.ConfigMap) error {
-	_, err := f.kubeClient.CoreV1().ConfigMaps(obj.Namespace).Create(obj)
-	return err
-}
-
-func (f *Framework) DeleteConfigMap(meta metav1.ObjectMeta) error {
-	err := f.kubeClient.CoreV1().ConfigMaps(meta.Namespace).Delete(meta.Name, deleteInForeground())
-	if !kerr.IsNotFound(err) {
-		return err
-	}
-	return nil
 }
 
 func (f *Framework) CleanWorkloadLeftOvers() {
@@ -109,4 +84,101 @@ func (f *Framework) WaitUntilPodRunningBySelector(mysql *api.MySQL) error {
 		},
 		int(types.Int32(mysql.Spec.Replicas)),
 	)
+}
+
+func isDebugTarget(containers []core.Container) (bool, []string) {
+	for _, c := range containers {
+		if c.Name == "stash" || c.Name == "stash-init" {
+			return true, []string{"-c", c.Name}
+		} else if strings.HasPrefix(c.Name, "update-status") {
+			return true, []string{"--all-containers"}
+		}
+	}
+	return false, nil
+}
+
+func (f *Framework) PrintDebugHelpers(mysqlName string, replicas int) {
+	fmt.Println("\n============================== mysql replicas ========================")
+	fmt.Println("\n=================================", replicas, "==============================")
+	fmt.Println("\n======================================================================")
+
+	sh := shell.NewSession()
+
+	fmt.Println("\n======================================[ Apiservices ]===================================================")
+	if err := sh.Command("/usr/bin/kubectl", "get", "apiservice", "v1alpha1.mutators.kubedb.com", "-o=jsonpath=\"{.status}\"").Run(); err != nil {
+		fmt.Println(err)
+	}
+	if err := sh.Command("/usr/bin/kubectl", "get", "apiservice", "v1alpha1.validators.kubedb.com", "-o=jsonpath=\"{.status}\"").Run(); err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("\n======================================[ Describe Pod in kube-system namespace ]===================================================")
+	if err := sh.Command("/usr/bin/kubectl", "describe", "pod", "-n", "kube-system").Run(); err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("\n======================================[ Describe Job ]===================================================")
+	if err := sh.Command("/usr/bin/kubectl", "describe", "job", "-n", f.Namespace()).Run(); err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("\n===============[ Debug info for Stash sidecar/init-container/backup job/restore job ]===================")
+	if pods, err := f.kubeClient.CoreV1().Pods(f.Namespace()).List(metav1.ListOptions{}); err == nil {
+		for _, pod := range pods.Items {
+			debugTarget, containerArgs := isDebugTarget(append(pod.Spec.InitContainers, pod.Spec.Containers...))
+			if debugTarget {
+				fmt.Printf("\n--------------- Describe Pod: %s -------------------\n", pod.Name)
+				if err := sh.Command("/usr/bin/kubectl", "describe", "po", "-n", f.Namespace(), pod.Name).Run(); err != nil {
+					fmt.Println(err)
+				}
+
+				fmt.Printf("\n---------------- Log from Pod: %s ------------------\n", pod.Name)
+				logArgs := []interface{}{"logs", "-n", f.Namespace(), pod.Name}
+				for i := range containerArgs {
+					logArgs = append(logArgs, containerArgs[i])
+				}
+				err = sh.Command("/usr/bin/kubectl", logArgs...).
+					Command("cut", "-f", "4-", "-d ").
+					Command("awk", `{$2=$2;print}`).
+					Command("uniq").Run()
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
+		}
+	} else {
+		fmt.Println(err)
+	}
+
+	fmt.Println("\n======================================[ Describe Pod ]===================================================")
+	if err := sh.Command("/usr/bin/kubectl", "describe", "po", "-n", f.Namespace()).Run(); err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("\n======================================[ Describe MySQL ]===================================================")
+	if err := sh.Command("/usr/bin/kubectl", "describe", "mysql", mysqlName, "-n", f.Namespace()).Run(); err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("\n======================================[ MySQL Server Log ]===================================================")
+	for i := 0; i < replicas; i++ {
+		if err := sh.Command("/usr/bin/kubectl", "logs", fmt.Sprintf("%s-%d", mysqlName, i), "-n", f.Namespace()).Run(); err != nil {
+			fmt.Println(err)
+		}
+	}
+
+	fmt.Println("\n======================================[ Describe BackupSession ]==========================================")
+	if err := sh.Command("/usr/bin/kubectl", "describe", "backupsession", "-n", f.Namespace()).Run(); err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("\n======================================[ Describe RestoreSession ]==========================================")
+	if err := sh.Command("/usr/bin/kubectl", "describe", "restoresession", "-n", f.Namespace()).Run(); err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("\n======================================[ Describe Nodes ]===================================================")
+	if err := sh.Command("/usr/bin/kubectl", "describe", "nodes").Run(); err != nil {
+		fmt.Println(err)
+	}
 }

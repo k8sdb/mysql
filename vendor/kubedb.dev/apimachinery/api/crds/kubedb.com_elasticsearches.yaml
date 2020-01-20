@@ -2573,6 +2573,8 @@ spec:
               type: boolean
             enableSSL:
               type: boolean
+            halted:
+              type: boolean
             init:
               properties:
                 postgresWAL:

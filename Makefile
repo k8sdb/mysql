@@ -67,7 +67,7 @@ TAG              := $(VERSION)_$(OS)_$(ARCH)
 TAG_PROD         := $(TAG)
 TAG_DBG          := $(VERSION)-dbg_$(OS)_$(ARCH)
 
-GO_VERSION       ?= 1.13.5
+GO_VERSION       ?= 1.13.6
 BUILD_IMAGE      ?= appscode/golang-dev:$(GO_VERSION)
 
 OUTBIN = bin/$(OS)_$(ARCH)/$(BIN)
@@ -422,7 +422,7 @@ check-license:
 		ltag -t "./hack/license" --excludes "vendor contrib third_party libbuild" --check -v
 
 .PHONY: ci
-ci: verify check-license lint build unit-tests #cover
+ci: check-license lint build unit-tests # verify #cover
 
 .PHONY: qa
 qa:
