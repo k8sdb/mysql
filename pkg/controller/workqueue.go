@@ -70,10 +70,18 @@ func (c *Controller) runMySQL(key string) error {
 				return nil
 			}
 
-			if err := c.create(mysql); err != nil {
-				log.Errorln(err)
-				c.pushFailureEvent(mysql, err.Error())
-				return err
+			if mysql.Spec.Halted {
+				if err := c.halt(mysql); err != nil {
+					log.Errorln(err)
+					c.pushFailureEvent(mysql, err.Error())
+					return err
+				}
+			} else {
+				if err := c.create(mysql); err != nil {
+					log.Errorln(err)
+					c.pushFailureEvent(mysql, err.Error())
+					return err
+				}
 			}
 		}
 	}

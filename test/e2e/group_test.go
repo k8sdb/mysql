@@ -20,7 +20,6 @@ import (
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	"kubedb.dev/mysql/test/e2e/framework"
-	"kubedb.dev/mysql/test/e2e/matcher"
 
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
@@ -58,6 +57,7 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 		By("Waiting for database to be ready")
 		f.EventuallyDatabaseReady(mysql.ObjectMeta, dbName).Should(BeTrue())
 	}
+
 	var deleteTestResource = func() {
 		if mysql == nil {
 			log.Infoln("Skipping cleanup. Reason: mysql is nil")
@@ -74,6 +74,13 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
+		By("Update mysql to set spec.terminationPolicy = WipeOut")
+		_, err = f.PatchMySQL(my.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+			in.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+			return in
+		})
+		Expect(err).NotTo(HaveOccurred())
+
 		By("Delete mysql")
 		err = f.DeleteMySQL(mysql.ObjectMeta)
 		if err != nil {
@@ -84,25 +91,13 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
-		if my.Spec.TerminationPolicy == api.TerminationPolicyPause {
-			By("Wait for mysql to be paused")
-			f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
-
-			By("WipeOut mysql")
-			_, err := f.PatchDormantDatabase(mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
-				in.Spec.WipeOut = true
-				return in
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			By("Delete Dormant Database")
-			err = f.DeleteDormantDatabase(mysql.ObjectMeta)
-			Expect(err).NotTo(HaveOccurred())
-		}
+		By("Wait for mysql to be deleted")
+		f.EventuallyMySQL(mysql.ObjectMeta).Should(BeFalse())
 
 		By("Wait for mysql resources to be wipedOut")
 		f.EventuallyWipedOut(mysql.ObjectMeta).Should(Succeed())
 	}
+
 	var writeOnPrimary = func(primaryPodIndex int) {
 		By(fmt.Sprintf("Write on primary '%s-%d'", mysql.Name, primaryPodIndex))
 		f.EventuallyCreateDatabase(mysql.ObjectMeta, dbName).Should(BeTrue())

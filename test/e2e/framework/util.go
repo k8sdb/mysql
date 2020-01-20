@@ -24,6 +24,7 @@ import (
 
 	"github.com/appscode/go/types"
 	shell "github.com/codeskyblue/go-sh"
+	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -83,6 +84,61 @@ func (f *Framework) WaitUntilPodRunningBySelector(mysql *api.MySQL) error {
 			MatchLabels: mysql.OffshootSelectors(),
 		},
 		int(types.Int32(mysql.Spec.Replicas)),
+	)
+}
+
+func (f *Framework) EventuallyWipedOut(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+	return Eventually(
+		func() error {
+			labelMap := map[string]string{
+				api.LabelDatabaseName: meta.Name,
+				api.LabelDatabaseKind: api.ResourceKindMySQL,
+			}
+			labelSelector := labels.SelectorFromSet(labelMap)
+
+			// check if pvcs is wiped out
+			pvcList, err := f.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).List(
+				metav1.ListOptions{
+					LabelSelector: labelSelector.String(),
+				},
+			)
+			if err != nil {
+				return err
+			}
+			if len(pvcList.Items) > 0 {
+				return fmt.Errorf("PVCs have not wiped out yet")
+			}
+
+			// check if secrets are wiped out
+			secretList, err := f.kubeClient.CoreV1().Secrets(meta.Namespace).List(
+				metav1.ListOptions{
+					LabelSelector: labelSelector.String(),
+				},
+			)
+			if err != nil {
+				return err
+			}
+			if len(secretList.Items) > 0 {
+				return fmt.Errorf("secrets have not wiped out yet")
+			}
+
+			// check if appbinds are wiped out
+			appBindingList, err := f.appCatalogClient.AppBindings(meta.Namespace).List(
+				metav1.ListOptions{
+					LabelSelector: labelSelector.String(),
+				},
+			)
+			if err != nil {
+				return err
+			}
+			if len(appBindingList.Items) > 0 {
+				return fmt.Errorf("appBindings have not wiped out yet")
+			}
+
+			return nil
+		},
+		time.Minute*5,
+		time.Second*5,
 	)
 }
 
