@@ -34,20 +34,6 @@ import (
 	stashv1beta1 "stash.appscode.dev/stash/apis/stash/v1beta1"
 )
 
-//var (
-//	//StashMySQLBackupTask  = "my-backup-8.0.14"
-//	//StashMySQLRestoreTask = "my-restore-8.0.14"
-//	StashMySQLBackupTask  = "my-backup-" + DBCatalogName
-//	StashMySQLRestoreTask = "my-restore-" + DBCatalogName
-//)
-//
-//const (
-//	MySQLBackupTaskPrefix  = "mysql-backup-"
-//	MySQLRestoreTaskPrefix = "mysql-restore-"
-//	//MySQLBackupFunction  = "mysql-backup-8.0.14"
-//	//MySQLRestoreFunction = "mysql-restore-8.0.14"
-//)
-
 func (f *Framework) FoundStashCRDs() bool {
 	return controller.FoundStashCRDs(f.apiExtKubeClient)
 }

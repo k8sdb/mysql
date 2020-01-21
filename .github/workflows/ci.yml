@@ -107,6 +107,7 @@ jobs:
         echo "installing local-path provisioner ..."
         kubectl delete storageclass --all
         kubectl apply -f https://github.com/kmodules/local-path-provisioner/raw/k-1.11/deploy/local-path-storage.yaml
+        kubectl apply -f https://github.com/rancher/local-path-provisioner/raw/v0.0.12/deploy/provisioner.yaml
         kubectl wait --for=condition=Ready pods -n local-path-storage --all --timeout=5m
         kubectl apply -f hack/kubernetes/storageclass/standard.yaml
         echo
@@ -135,23 +136,8 @@ jobs:
     - name: Install stash and addons
       env:
         REGISTRY: kubedbci
-#        DOCKER_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-#        USERNAME: 1gtm
       run: |
-        #docker login --username ${USERNAME} --password ${DOCKER_TOKEN}
         make stash-install
-
-        # export KUBECONFIG="$(kind get kubeconfig-path)"
-        # if [ -x "$(command -v helm)" ]; then
-        #     helm init --client-only
-        # fi
-
-        #==== debug :: TODO: delete
-        #export STASH_DOCKER_REGISTRY=kubedbci
-        #export STASH_IMAGE_TAG=v0.9.0-rc.2-18-gec5c9efd_linux_amd64
-        # end =====
-
-        # make stash-install
 
     - name: Run e2e tests
       env:
@@ -166,9 +152,5 @@ jobs:
         echo >> hack/config/.env
         echo "GOOGLE_SERVICE_ACCOUNT_JSON_KEY=$(echo $GOOGLE_SERVICE_ACCOUNT_JSON_KEY)" >> hack/config/.env
         make install
-        kubectl patch -p '{"spec":{"db":{"image":"alittleprogramming/mysql:5.7.25-test"}}}' --type="merge" mysqlversion 5.7.25
-        kubectl patch -p '{"spec":{"db":{"image":"alittleprogramming/mysql:8.0.3-test"}}}' --type="merge" mysqlversion 8.0.3
-        kubectl patch -p '{"spec":{"db":{"image":"alittleprogramming/mysql:8.0.14-test"}}}' --type="merge" mysqlversion 8.0.14
         echo
-        #make e2e-parallel TEST_ARGS="--db-catalog=${{ matrix.db }}" || (kubectl describe deployment -n kube-system kubedb; kubectl logs -n kube-system deployment/kubedb; kubectl describe deployment -n kube-system stash; kubectl logs -n kube-system deployment/stash operator; exit 1;)
-        GINKGO_ARGS="-p -stream --flakeAttempts=2" make e2e-tests TEST_ARGS="--db-catalog=${{ matrix.db }}" || (kubectl describe deployment -n kube-system kubedb; kubectl logs -n kube-system deployment/kubedb; kubectl describe deployment -n kube-system stash; kubectl logs -n kube-system deployment/stash operator; exit 1;)
+        make e2e-tests GINKGO_ARGS="-p -stream --flakeAttempts=2" TEST_ARGS="--db-catalog=${{ matrix.db }}" || (kubectl describe deployment -n kube-system kubedb; kubectl logs -n kube-system deployment/kubedb; kubectl describe deployment -n kube-system stash; kubectl logs -n kube-system deployment/stash operator; exit 1;)
