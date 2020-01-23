@@ -106,7 +106,6 @@ jobs:
         echo
         echo "installing local-path provisioner ..."
         kubectl delete storageclass --all
-        kubectl apply -f https://github.com/kmodules/local-path-provisioner/raw/k-1.11/deploy/local-path-storage.yaml
         kubectl apply -f https://github.com/rancher/local-path-provisioner/raw/v0.0.12/deploy/provisioner.yaml
         kubectl wait --for=condition=Ready pods -n local-path-storage --all --timeout=5m
         kubectl apply -f hack/kubernetes/storageclass/standard.yaml
