@@ -17,24 +17,3 @@ nodes:
     - containerPath: /opt/local-path-provisioner
       hostPath: /mnt
       readOnly: false
-kubeadmConfigPatches:
-- |
-  kind: MasterConfiguration
-  apiServerExtraArgs:
-    "feature-gates": "DynamicProvisioningScheduling=true"
-  controllerManagerExtraArgs:
-    "feature-gates": "DynamicProvisioningScheduling=true"
-  schedulerExtraArgs:
-    "feature-gates": "DynamicProvisioningScheduling=true"
-  nodeRegistration:
-    kubeletExtraArgs:
-      "feature-gates": "DynamicProvisioningScheduling=true"
-  kubeProxy:
-    config:
-      featureGates:
-        DynamicProvisioningScheduling: true
-- |
-  kind: NodeConfiguration
-  nodeRegistration:
-    kubeletExtraArgs:
-      "feature-gates": "DynamicProvisioningScheduling=true"
