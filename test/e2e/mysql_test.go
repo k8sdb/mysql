@@ -63,9 +63,6 @@ var _ = Describe("MySQL", func() {
 		garbageMySQL = new(api.MySQLList)
 		skipMessage = ""
 		dbName = "mysql"
-
-		By("Ensure the apiservices are ready")
-		f.EnsureAPIServiceReady().Should(Succeed())
 	})
 
 	var createAndWaitForRunning = func() {

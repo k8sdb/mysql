@@ -262,7 +262,7 @@ unit-tests: $(BUILD_DIRS)
 	    "
 
 # - e2e-tests can hold both ginkgo args (as GINKGO_ARGS) and program/test args (as TEST_ARGS).
-#       make e2e-tests TEST_ARGS="--selfhosted-operator=false --storageclass=standard" GINKGO_ARGS="--flakeAttempts=2"
+#       make e2e-tests TEST_ARGS="--storageclass=standard" GINKGO_ARGS="--flakeAttempts=2"
 #
 # - Minimalist:
 #       make e2e-tests

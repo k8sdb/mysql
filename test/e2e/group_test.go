@@ -125,8 +125,6 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 		dbName = "mysql"
 		dbNameKubedb = "kubedb"
 
-		By("Ensure the apiservices are ready")
-		f.EnsureAPIServiceReady().Should(Succeed())
 		CheckDBVersionForGroupReplication()
 	})
 
