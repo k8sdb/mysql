@@ -36,7 +36,7 @@ require (
 
 replace (
 	cloud.google.com/go => cloud.google.com/go v0.38.0
-	git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
+	git.apache.org/thrift.git => github.com/apache/thrift v0.12.1-0.20181231034149-e2109b914cef 
 	github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v32.5.0+incompatible
 	github.com/Azure/go-ansiterm => github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78
 	github.com/Azure/go-autorest => github.com/Azure/go-autorest v13.0.0+incompatible
