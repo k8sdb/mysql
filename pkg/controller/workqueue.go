@@ -65,6 +65,11 @@ func (c *Controller) runMySQL(key string) error {
 			if err != nil {
 				return err
 			}
+
+			if mysql.Spec.Paused {
+				return nil
+			}
+
 			if err := c.create(mysql); err != nil {
 				log.Errorln(err)
 				c.pushFailureEvent(mysql, err.Error())
