@@ -154,6 +154,12 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 					Protocol:      core.ProtocolTCP,
 				},
 			},
+			VolumeMounts: []core.VolumeMount{
+				{
+					Name:      "tmp",
+					MountPath: "/tmp",
+				},
+			},
 		}
 		if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil &&
 			*mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
@@ -172,7 +178,43 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 				container.ReadinessProbe = nil
 			}
 		}
+
+		// TODO: probe for standalone needs to be set from mutator
+		probe := core.Probe{
+			Handler: core.Handler{
+				Exec: &core.ExecAction{
+					Command: []string{
+						"bash",
+						"-c",
+						`
+export MYSQL_PWD=${MYSQL_ROOT_PASSWORD}
+mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
+`,
+					},
+				},
+			},
+		}
+		if mysql.Spec.Topology == nil {
+			container.ReadinessProbe = &probe
+			container.LivenessProbe = &probe
+		}
+		if container.ReadinessProbe != nil {
+			container.ReadinessProbe.InitialDelaySeconds = 60
+			container.ReadinessProbe.PeriodSeconds = 10
+			container.ReadinessProbe.TimeoutSeconds = 50
+			container.ReadinessProbe.SuccessThreshold = 1
+			container.ReadinessProbe.FailureThreshold = 3
+		}
+
 		in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, container)
+		in.Spec.Template.Spec.Volumes = []core.Volume{
+			{
+				Name: "tmp",
+				VolumeSource: core.VolumeSource{
+					EmptyDir: &core.EmptyDirVolumeSource{},
+				},
+			},
+		}
 
 		if mysql.GetMonitoringVendor() == mona.VendorPrometheus {
 			in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
@@ -219,7 +261,9 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		in.Spec.Template.Spec.ImagePullSecrets = mysql.Spec.PodTemplate.Spec.ImagePullSecrets
 		in.Spec.Template.Spec.PriorityClassName = mysql.Spec.PodTemplate.Spec.PriorityClassName
 		in.Spec.Template.Spec.Priority = mysql.Spec.PodTemplate.Spec.Priority
-		in.Spec.Template.Spec.SecurityContext = mysql.Spec.PodTemplate.Spec.SecurityContext
+		if in.Spec.Template.Spec.SecurityContext == nil {
+			in.Spec.Template.Spec.SecurityContext = mysql.Spec.PodTemplate.Spec.SecurityContext
+		}
 		in.Spec.Template.Spec.ServiceAccountName = mysql.Spec.PodTemplate.Spec.ServiceAccountName
 		in.Spec.UpdateStrategy = mysql.Spec.UpdateStrategy
 		in = upsertUserEnv(in, mysql)

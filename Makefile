@@ -67,7 +67,7 @@ TAG              := $(VERSION)_$(OS)_$(ARCH)
 TAG_PROD         := $(TAG)
 TAG_DBG          := $(VERSION)-dbg_$(OS)_$(ARCH)
 
-GO_VERSION       ?= 1.13.5
+GO_VERSION       ?= 1.13.6
 BUILD_IMAGE      ?= appscode/golang-dev:$(GO_VERSION)
 
 OUTBIN = bin/$(OS)_$(ARCH)/$(BIN)
@@ -262,7 +262,7 @@ unit-tests: $(BUILD_DIRS)
 	    "
 
 # - e2e-tests can hold both ginkgo args (as GINKGO_ARGS) and program/test args (as TEST_ARGS).
-#       make e2e-tests TEST_ARGS="--selfhosted-operator=false --storageclass=standard" GINKGO_ARGS="--flakeAttempts=2"
+#       make e2e-tests TEST_ARGS="--storageclass=standard" GINKGO_ARGS="--flakeAttempts=2"
 #
 # - Minimalist:
 #       make e2e-tests

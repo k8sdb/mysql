@@ -326,13 +326,17 @@ message ElasticsearchSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 18;
 
+  // Indicates that the database is paused and controller will not sync any changes made to this spec.
+  // +optional
+  optional bool paused = 19;
+
+  // Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
+  // +optional
+  optional bool halted = 20;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 19;
-
-  // Indicates that the db is paused.
-  // +optional
-  optional bool paused = 20;
+  optional string terminationPolicy = 21;
 }
 
 message ElasticsearchStatus {
@@ -411,13 +415,17 @@ message EtcdSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 12;
 
+  // Indicates that the database is paused and controller will not sync any changes made to this spec.
+  // +optional
+  optional bool paused = 13;
+
+  // Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
+  // +optional
+  optional bool halted = 14;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 13;
-
-  // Indicates that the db is paused.
-  // +optional
-  optional bool paused = 14;
+  optional string terminationPolicy = 15;
 }
 
 message EtcdStatus {
@@ -525,13 +533,17 @@ message MariaDBSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 11;
 
+  // Indicates that the database is paused and controller will not sync any changes made to this spec.
+  // +optional
+  optional bool paused = 12;
+
+  // Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
+  // +optional
+  optional bool halted = 13;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 12;
-
-  // Indicates that the db is paused.
-  // +optional
-  optional bool paused = 13;
+  optional string terminationPolicy = 14;
 }
 
 message MariaDBStatus {
@@ -603,13 +615,17 @@ message MemcachedSpec {
   // +optional
   optional k8s.io.api.apps.v1.DeploymentStrategy strategy = 4;
 
+  // Indicates that the database is paused and controller will not sync any changes made to this spec.
+  // +optional
+  optional bool paused = 11;
+
+  // Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
+  // +optional
+  optional bool halted = 12;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 11;
-
-  // Indicates that the db is paused.
-  // +optional
-  optional bool paused = 12;
+  optional string terminationPolicy = 13;
 }
 
 message MemcachedStatus {
@@ -774,13 +790,17 @@ message MongoDBSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 17;
 
+  // Indicates that the database is paused and controller will not sync any changes made to this spec.
+  // +optional
+  optional bool paused = 18;
+
+  // Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
+  // +optional
+  optional bool halted = 19;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 18;
-
-  // Indicates that the db is paused.
-  // +optional
-  optional bool paused = 19;
+  optional string terminationPolicy = 20;
 }
 
 message MongoDBStatus {
@@ -893,13 +913,17 @@ message MySQLSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 13;
 
+  // Indicates that the database is paused and controller will not sync any changes made to this spec.
+  // +optional
+  optional bool paused = 14;
+
+  // Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
+  // +optional
+  optional bool halted = 15;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 14;
-
-  // Indicates that the db is paused.
-  // +optional
-  optional bool paused = 15;
+  optional string terminationPolicy = 16;
 }
 
 message MySQLStatus {
@@ -1022,13 +1046,17 @@ message PerconaXtraDBSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 11;
 
+  // Indicates that the database is paused and controller will not sync any changes made to this spec.
+  // +optional
+  optional bool paused = 12;
+
+  // Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
+  // +optional
+  optional bool halted = 13;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 12;
-
-  // Indicates that the db is paused.
-  // +optional
-  optional bool paused = 13;
+  optional string terminationPolicy = 14;
 }
 
 message PerconaXtraDBStatus {
@@ -1099,6 +1127,10 @@ message PgBouncerSpec {
   // TLS contains tls configurations for client and server.
   // +optional
   optional TLSConfig tls = 9;
+
+  // Indicates that the database is paused and controller will not sync any changes made to this spec.
+  // +optional
+  optional bool paused = 10;
 }
 
 message PgBouncerStatus {
@@ -1201,13 +1233,17 @@ message PostgresSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 17;
 
+  // Indicates that the database is paused and controller will not sync any changes made to this spec.
+  // +optional
+  optional bool paused = 18;
+
+  // Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
+  // +optional
+  optional bool halted = 19;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 18;
-
-  // Indicates that the db is paused.
-  // +optional
-  optional bool paused = 19;
+  optional string terminationPolicy = 20;
 }
 
 message PostgresStatus {
@@ -1299,7 +1335,7 @@ message ProxySQLSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 10;
 
-  // Indicates that the db is paused.
+  // Indicates that the database is paused and controller will not sync any changes made to this spec.
   // +optional
   optional bool paused = 11;
 }
@@ -1400,13 +1436,17 @@ message RedisSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 11;
 
+  // Indicates that the database is paused and controller will not sync any changes made to this spec.
+  // +optional
+  optional bool paused = 12;
+
+  // Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
+  // +optional
+  optional bool halted = 13;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 12;
-
-  // Indicates that the db is paused.
-  // +optional
-  optional bool paused = 13;
+  optional string terminationPolicy = 14;
 }
 
 message RedisStatus {

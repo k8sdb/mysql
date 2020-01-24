@@ -18,15 +18,17 @@ SHELL=/bin/bash -o pipefail
 # To test stash integration
 .PHONY: stash-install
 stash-install:
-	@curl -fsSL https://github.com/stashed/installer/raw/v0.9.0-rc.2/deploy/stash.sh | bash
-	@curl -fsSL https://github.com/stashed/catalog/raw/master/deploy/script.sh | bash -s -- --catalog=stash-mysql --docker-registry=stashed
+	@cd ../../stash.appscode.dev/stash; \
+	make install; \
+	curl -fsSL https://github.com/stashed/catalog/raw/v0.2.0/deploy/script.sh | bash -s -- --catalog=stash-mysql --docker-registry=stashed
 
 .PHONY: stash-uninstall
 stash-uninstall:
-	@curl -fsSL https://github.com/stashed/catalog/raw/v0.9.0-rc.2/deploy/script.sh | bash -s -- --catalog=stash-mysql --uninstall || true
-	@curl -fsSL https://github.com/stashed/installer/raw/master/deploy/stash.sh | bash -s -- --uninstall
+	@curl -fsSL https://github.com/stashed/catalog/raw/v0.2.0/deploy/script.sh | bash -s -- --catalog=stash-mysql --uninstall || true;
+	@cd ../../stash.appscode.dev/stash; \
+    make uninstall
 
 .PHONY: stash-purge
 stash-purge:
 	@cd /tmp
-	@curl -fsSL https://github.com/stashed/installer/raw/master/deploy/stash.sh | bash -s -- --uninstall --purge
+	@curl -fsSL https://github.com/stashed/installer/raw/v0.2.0/deploy/stash.sh | bash -s -- --uninstall --purge

@@ -49,9 +49,6 @@ spec:
                       additionalProperties:
                         type: string
                       type: object
-                    creationTimestamp:
-                      format: date-time
-                      type: string
                     generateName:
                       type: string
                     labels:
@@ -2612,6 +2609,8 @@ spec:
                         disableSecurity:
                           type: boolean
                         enableSSL:
+                          type: boolean
+                        halted:
                           type: boolean
                         init:
                           properties:
@@ -7643,6 +7642,8 @@ spec:
                             secretName:
                               type: string
                           type: object
+                        halted:
+                          type: boolean
                         init:
                           properties:
                             postgresWAL:
@@ -11106,6 +11107,8 @@ spec:
                             secretName:
                               type: string
                           type: object
+                        halted:
+                          type: boolean
                         init:
                           properties:
                             postgresWAL:
@@ -14532,6 +14535,8 @@ spec:
                               - volumePath
                               type: object
                           type: object
+                        halted:
+                          type: boolean
                         monitor:
                           properties:
                             agent:
@@ -18600,6 +18605,8 @@ spec:
                             secretName:
                               type: string
                           type: object
+                        halted:
+                          type: boolean
                         init:
                           properties:
                             postgresWAL:
@@ -29459,6 +29466,8 @@ spec:
                             secretName:
                               type: string
                           type: object
+                        halted:
+                          type: boolean
                         init:
                           properties:
                             postgresWAL:
@@ -32925,6 +32934,8 @@ spec:
                             secretName:
                               type: string
                           type: object
+                        halted:
+                          type: boolean
                         init:
                           properties:
                             postgresWAL:
@@ -38909,6 +38920,8 @@ spec:
                             secretName:
                               type: string
                           type: object
+                        halted:
+                          type: boolean
                         init:
                           properties:
                             postgresWAL:
@@ -42420,6 +42433,8 @@ spec:
                               - volumePath
                               type: object
                           type: object
+                        halted:
+                          type: boolean
                         mode:
                           type: string
                         monitor:

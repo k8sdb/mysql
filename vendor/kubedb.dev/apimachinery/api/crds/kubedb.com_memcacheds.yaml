@@ -624,6 +624,8 @@ spec:
                   - volumePath
                   type: object
               type: object
+            halted:
+              type: boolean
             monitor:
               properties:
                 agent:

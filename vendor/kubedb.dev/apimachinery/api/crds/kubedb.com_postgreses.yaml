@@ -3182,6 +3182,8 @@ spec:
                 secretName:
                   type: string
               type: object
+            halted:
+              type: boolean
             init:
               properties:
                 postgresWAL:
