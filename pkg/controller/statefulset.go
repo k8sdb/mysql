@@ -27,6 +27,7 @@ import (
 	"github.com/appscode/go/types"
 	"github.com/fatih/structs"
 	"github.com/pkg/errors"
+	"github.com/the-redback/go-oneliners"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -105,7 +106,8 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 	older := &apps.StatefulSet{}
 	newer := &apps.StatefulSet{}
 	st, vt, err := app_util.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
-		older = in
+		older = in.DeepCopy()
+		oneliners.PrettyJson(in, "before createOrPatch")
 		in.Labels = mysql.OffshootLabels()
 		in.Annotations = mysql.Spec.PodTemplate.Controller.Annotations
 		core_util.EnsureOwnerReference(&in.ObjectMeta, owner)
@@ -273,7 +275,9 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 		in.Spec.UpdateStrategy = mysql.Spec.UpdateStrategy
 		in = upsertUserEnv(in, mysql)
 
-		newer = in
+		newer = in.DeepCopy()
+		oneliners.PrettyJson(in, "after createOrPatch")
+		fmt.Printf("----------------------- diff: %v", meta.Diff(older, newer))
 		return in
 	})
 
