@@ -26,6 +26,7 @@ import (
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
 	"github.com/fatih/structs"
+	"github.com/pkg/errors"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -33,6 +34,7 @@ import (
 	kutil "kmodules.xyz/client-go"
 	app_util "kmodules.xyz/client-go/apps/v1"
 	core_util "kmodules.xyz/client-go/core/v1"
+	"kmodules.xyz/client-go/meta"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
 
@@ -100,7 +102,10 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		return nil, kutil.VerbUnchanged, err
 	}
 
-	return app_util.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
+	older := &apps.StatefulSet{}
+	newer := &apps.StatefulSet{}
+	st, vt, err := app_util.CreateOrPatchStatefulSet(c.Client, statefulSetMeta, func(in *apps.StatefulSet) *apps.StatefulSet {
+		older = in
 		in.Labels = mysql.OffshootLabels()
 		in.Annotations = mysql.Spec.PodTemplate.Controller.Annotations
 		core_util.EnsureOwnerReference(&in.ObjectMeta, owner)
@@ -268,9 +273,14 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 		in.Spec.UpdateStrategy = mysql.Spec.UpdateStrategy
 		in = upsertUserEnv(in, mysql)
 
+		newer = in
 		return in
 	})
 
+	if err != nil {
+		return st, vt, errors.Wrap(err, fmt.Sprintf("diff: %v", meta.Diff(older, newer)))
+	}
+	return st, vt, err
 }
 
 func upsertDataVolume(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {
