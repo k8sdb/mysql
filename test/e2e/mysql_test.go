@@ -583,12 +583,12 @@ var _ = Describe("MySQL", func() {
 					By("Checking Row Count of Table")
 					f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
 
-					mysql, err := f.GetMySQL(mysql.ObjectMeta)
+					my, err := f.GetMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(mysql.Spec.Init).NotTo(BeNil())
+					Expect(my.Spec.Init).NotTo(BeNil())
 
 					By("Checking MySQL crd does not have kubedb.com/initialized annotation")
-					_, err = meta_util.GetString(mysql.Annotations, api.AnnotationInitialized)
+					_, err = meta_util.GetString(my.Annotations, api.AnnotationInitialized)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -648,12 +648,12 @@ var _ = Describe("MySQL", func() {
 						By("Checking Row Count of Table")
 						f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
 
-						mysql, err := f.GetMySQL(mysql.ObjectMeta)
+						my, err := f.GetMySQL(mysql.ObjectMeta)
 						Expect(err).NotTo(HaveOccurred())
-						Expect(mysql.Spec.Init).ShouldNot(BeNil())
+						Expect(my.Spec.Init).ShouldNot(BeNil())
 
 						By("Checking MySQL crd does not have kubedb.com/initialized annotation")
-						_, err = meta_util.GetString(mysql.Annotations, api.AnnotationInitialized)
+						_, err = meta_util.GetString(my.Annotations, api.AnnotationInitialized)
 						Expect(err).To(HaveOccurred())
 					}
 				})
