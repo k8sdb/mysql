@@ -113,7 +113,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		core_util.EnsureOwnerReference(&in.ObjectMeta, owner)
 
 		in.Spec.Replicas = mysql.Spec.Replicas
-		in.Spec.ServiceName = c.GoverningService
+		in.Spec.ServiceName = mysql.GoverningServiceName()
 		in.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: mysql.OffshootSelectors(),
 		}
@@ -175,7 +175,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			}
 			userProvidedArgs := strings.Join(mysql.Spec.PodTemplate.Spec.Args, " ")
 			container.Args = []string{
-				fmt.Sprintf("-service=%s", c.GoverningService),
+				fmt.Sprintf("-service=%s", mysql.GoverningServiceName()),
 				fmt.Sprintf("-on-start=/on-start.sh %s", userProvidedArgs),
 			}
 			if container.LivenessProbe != nil && structs.IsZero(*container.LivenessProbe) {
