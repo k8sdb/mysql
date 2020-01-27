@@ -58,6 +58,7 @@ var _ = Describe("MySQL", func() {
 	)
 
 	BeforeEach(func() {
+		secret = nil
 		f = root.Invoke()
 		mysql = f.MySQL()
 		garbageMySQL = new(api.MySQLList)
@@ -132,10 +133,6 @@ var _ = Describe("MySQL", func() {
 
 		By("Checking Row Count of Table")
 		f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
-
-		By("Create Secret")
-		err := f.CreateSecret(secret)
-		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var deleteTestResource = func() {
@@ -451,7 +448,7 @@ var _ = Describe("MySQL", func() {
 		Context("Resume", func() {
 
 			Context("Super Fast User - Create-Delete-Create-Delete-Create ", func() {
-				It("should resume DormantDatabase successfully", func() {
+				It("should resume database successfully", func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
@@ -501,7 +498,7 @@ var _ = Describe("MySQL", func() {
 			})
 
 			Context("Without Init", func() {
-				It("should resume DormantDatabase successfully", func() {
+				It("should resume database successfully", func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
@@ -561,7 +558,7 @@ var _ = Describe("MySQL", func() {
 					Expect(f.DeleteConfigMap(initScriptConfigmap.ObjectMeta)).NotTo(HaveOccurred())
 				})
 
-				It("should resume DormantDatabase successfully", func() {
+				It("should resume database successfully", func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
@@ -623,7 +620,7 @@ var _ = Describe("MySQL", func() {
 					Expect(f.DeleteConfigMap(initScriptConfigmap.ObjectMeta)).NotTo(HaveOccurred())
 				})
 
-				It("should resume DormantDatabase successfully", func() {
+				It("should resume database successfully", func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
@@ -695,7 +692,7 @@ var _ = Describe("MySQL", func() {
 
 			Context("with TerminationPolicyHalt", func() {
 
-				It("should create DormantDatabase and resume from it", func() {
+				It("should run successfully", func() {
 					// Run MySQL and take snapshot
 					shouldInsertData()
 
@@ -751,7 +748,7 @@ var _ = Describe("MySQL", func() {
 					mysql.Spec.TerminationPolicy = api.TerminationPolicyDelete
 				})
 
-				It("should not create DormantDatabase and should not delete secret and snapshot", func() {
+				It("should run successfully", func() {
 					// Run MySQL and take snapshot
 					shouldInsertData()
 
@@ -776,7 +773,7 @@ var _ = Describe("MySQL", func() {
 					mysql.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
 				})
 
-				It("should not create DormantDatabase and should wipeOut all", func() {
+				It("should not create database and should wipeOut all", func() {
 					// Run MySQL
 					shouldInsertData()
 
