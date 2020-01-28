@@ -203,6 +203,11 @@ func (f *Framework) PrintDebugHelpers(mysqlName string, replicas int) {
 		fmt.Println(err)
 	}
 
+	fmt.Println("\n======================================[ Describe statefulsets ]===================================================")
+	if err := sh.Command("/usr/bin/kubectl", "describe", "sts", "-n", f.Namespace()).Run(); err != nil {
+		fmt.Println(err)
+	}
+
 	fmt.Println("\n======================================[ Describe MySQL ]===================================================")
 	if err := sh.Command("/usr/bin/kubectl", "describe", "mysql", mysqlName, "-n", f.Namespace()).Run(); err != nil {
 		fmt.Println(err)

@@ -11,13 +11,11 @@ require (
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-xorm/xorm v0.7.9
 	github.com/google/uuid v1.1.1
-	github.com/hokaccha/go-prettyjson v0.0.0-20190818114111-108c894c2c0e // indirect
 	github.com/onsi/ginkgo v1.8.0
 	github.com/onsi/gomega v1.5.0
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v0.0.5
 	github.com/spf13/pflag v1.0.5
-	github.com/the-redback/go-oneliners v0.0.0-20190417084731-74f7694e6dae
 	k8s.io/api v0.0.0-20191122220107-b5267f2975e0
 	k8s.io/apiextensions-apiserver v0.0.0-20191114105449-027877536833
 	k8s.io/apimachinery v0.16.5-beta.1

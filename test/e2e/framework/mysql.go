@@ -130,7 +130,7 @@ func (f *Framework) EventuallyMySQLPhase(meta metav1.ObjectMeta) GomegaAsyncAsse
 			Expect(err).NotTo(HaveOccurred())
 			return db.Status.Phase
 		},
-		time.Minute*5,
+		time.Minute*13,
 		time.Second*5,
 	)
 }
