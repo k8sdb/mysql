@@ -46,10 +46,11 @@ func (_ MongoDB) CustomResourceDefinition() *apiextensions.CustomResourceDefinit
 var _ apis.ResourceInfo = &MongoDB{}
 
 const (
-	MongoTLSKeyFileName    = "ca.key"
-	MongoTLSCertFileName   = "ca.cert"
-	MongoServerPemFileName = "mongo.pem"
-	MongoClientPemFileName = "client.pem"
+	MongoTLSKeyFileName  = "ca.key"
+	MongoTLSCertFileName = "ca.crt"
+	MongoPemFileName     = "mongo.pem"
+	MongoClientFileName  = "client.pem"
+	MongoCertDirectory   = "/var/run/mongodb/tls"
 
 	MongoDBShardLabelKey  = "mongodb.kubedb.com/node.shard"
 	MongoDBConfigLabelKey = "mongodb.kubedb.com/node.config"
@@ -372,15 +373,15 @@ func (m *MongoDB) SetDefaults(mgVersion *v1alpha1.MongoDBVersion, topology *core
 		// set default affinity (PodAntiAffinity)
 		shardLabels := m.OffshootSelectors()
 		shardLabels[MongoDBShardLabelKey] = m.ShardNodeTemplate()
-		m.setDefaultAffinity(&m.Spec.ShardTopology.Shard.PodTemplate, shardLabels, topology, int(m.Spec.ShardTopology.Shard.Replicas)*int(m.Spec.ShardTopology.Shard.Shards))
+		m.setDefaultAffinity(&m.Spec.ShardTopology.Shard.PodTemplate, shardLabels, topology)
 
 		configServerLabels := m.OffshootSelectors()
 		configServerLabels[MongoDBConfigLabelKey] = m.ConfigSvrNodeName()
-		m.setDefaultAffinity(&m.Spec.ShardTopology.ConfigServer.PodTemplate, configServerLabels, topology, int(m.Spec.ShardTopology.ConfigServer.Replicas))
+		m.setDefaultAffinity(&m.Spec.ShardTopology.ConfigServer.PodTemplate, configServerLabels, topology)
 
 		mongosLabels := m.OffshootSelectors()
 		mongosLabels[MongoDBMongosLabelKey] = m.MongosNodeName()
-		m.setDefaultAffinity(&m.Spec.ShardTopology.Mongos.PodTemplate, mongosLabels, topology, int(m.Spec.ShardTopology.Mongos.Replicas))
+		m.setDefaultAffinity(&m.Spec.ShardTopology.Mongos.PodTemplate, mongosLabels, topology)
 	} else {
 		if m.Spec.Replicas == nil {
 			m.Spec.Replicas = types.Int32P(1)
@@ -396,7 +397,7 @@ func (m *MongoDB) SetDefaults(mgVersion *v1alpha1.MongoDBVersion, topology *core
 		// set default probes
 		m.setDefaultProbes(m.Spec.PodTemplate, mgVersion)
 		// set default affinity (PodAntiAffinity)
-		m.setDefaultAffinity(m.Spec.PodTemplate, m.OffshootSelectors(), topology, int(*m.Spec.Replicas))
+		m.setDefaultAffinity(m.Spec.PodTemplate, m.OffshootSelectors(), topology)
 	}
 }
 
@@ -408,10 +409,10 @@ func (m *MongoDB) setDefaultProbes(podTemplate *ofst.PodTemplateSpec, mgVersion 
 	if podTemplate == nil {
 		return
 	}
-
 	var sslArgs string
 	if m.Spec.SSLMode == SSLModeRequireSSL {
-		sslArgs = fmt.Sprintf("--tls --tlsCAFile=/data/configdb/%v --tlsCertificateKeyFile=/data/configdb/%v", MongoTLSCertFileName, MongoClientPemFileName)
+		sslArgs = fmt.Sprintf("--tls --tlsCAFile=%v/%v --tlsCertificateKeyFile=%v/%v",
+			MongoCertDirectory, MongoTLSCertFileName, MongoCertDirectory, MongoClientFileName)
 
 		breakingVer, err := version.NewVersion("4.1")
 		if err != nil {
@@ -426,16 +427,16 @@ func (m *MongoDB) setDefaultProbes(podTemplate *ofst.PodTemplateSpec, mgVersion 
 			return
 		}
 		if currentVer.Equal(exceptionVer) {
-			sslArgs = fmt.Sprintf("--tls --tlsCAFile=/data/configdb/%v --tlsPEMKeyFile=/data/configdb/%v", MongoTLSCertFileName, MongoClientPemFileName)
+			sslArgs = fmt.Sprintf("--tls --tlsCAFile=%v/%v --tlsPEMKeyFile=%v/%v", MongoCertDirectory, MongoTLSCertFileName, MongoCertDirectory, MongoClientFileName)
 		} else if currentVer.LessThan(breakingVer) {
-			sslArgs = fmt.Sprintf("--ssl --sslCAFile=/data/configdb/%v --sslPEMKeyFile=/data/configdb/%v", MongoTLSCertFileName, MongoClientPemFileName)
+			sslArgs = fmt.Sprintf("--ssl --sslCAFile=%v/%v --sslPEMKeyFile=%v/%v", MongoCertDirectory, MongoTLSCertFileName, MongoCertDirectory, MongoClientFileName)
 		}
 	}
 
 	cmd := []string{
 		"bash",
 		"-c",
-		fmt.Sprintf(`if [[ $(mongo admin --host=localhost %v --username=$MONGO_INITDB_ROOT_USERNAME --password=$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase=admin --quiet --eval "db.adminCommand('ping').ok" ) -eq "1" ]]; then 
+		fmt.Sprintf(`set -x; if [[ $(mongo admin --host=localhost %v --username=$MONGO_INITDB_ROOT_USERNAME --password=$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase=admin --quiet --eval "db.adminCommand('ping').ok" ) -eq "1" ]]; then 
           exit 0
         fi
         exit 1`, sslArgs),
@@ -470,8 +471,10 @@ func (m *MongoDB) setDefaultProbes(podTemplate *ofst.PodTemplateSpec, mgVersion 
 }
 
 // setDefaultAffinity
-func (m *MongoDB) setDefaultAffinity(podTemplate *ofst.PodTemplateSpec, labels map[string]string, topology *core_util.Topology, totalPods int) {
-	if podTemplate == nil || podTemplate.Spec.Affinity != nil {
+func (m *MongoDB) setDefaultAffinity(podTemplate *ofst.PodTemplateSpec, labels map[string]string, topology *core_util.Topology) {
+	if podTemplate == nil {
+		return
+	} else if podTemplate.Spec.Affinity != nil {
 		// Update topologyKey fields according to Kubernetes version
 		topology.ConvertAffinity(podTemplate.Spec.Affinity)
 		return
@@ -479,10 +482,21 @@ func (m *MongoDB) setDefaultAffinity(podTemplate *ofst.PodTemplateSpec, labels m
 
 	podTemplate.Spec.Affinity = &core.Affinity{
 		PodAntiAffinity: &core.PodAntiAffinity{
-			// Prefer to not schedule multiple pods on the node with same zone
 			PreferredDuringSchedulingIgnoredDuringExecution: []core.WeightedPodAffinityTerm{
+				// Prefer to not schedule multiple pods on the same node
 				{
 					Weight: 100,
+					PodAffinityTerm: core.PodAffinityTerm{
+						Namespaces: []string{m.Namespace},
+						LabelSelector: &metav1.LabelSelector{
+							MatchLabels: labels,
+						},
+						TopologyKey: core.LabelHostname,
+					},
+				},
+				// Prefer to not schedule multiple pods on the node with same zone
+				{
+					Weight: 50,
 					PodAffinityTerm: core.PodAffinityTerm{
 						Namespaces: []string{m.Namespace},
 						LabelSelector: &metav1.LabelSelector{
@@ -493,19 +507,6 @@ func (m *MongoDB) setDefaultAffinity(podTemplate *ofst.PodTemplateSpec, labels m
 				},
 			},
 		},
-	}
-
-	// If there are more nodes than pods, don't schedule multiple pods on the same node
-	if topology.TotalNodes > totalPods {
-		podTemplate.Spec.Affinity.PodAntiAffinity.RequiredDuringSchedulingIgnoredDuringExecution = []core.PodAffinityTerm{
-			{
-				Namespaces: []string{m.Namespace},
-				LabelSelector: &metav1.LabelSelector{
-					MatchLabels: labels,
-				},
-				TopologyKey: core.LabelHostname,
-			},
-		}
 	}
 }
 

@@ -1022,6 +1022,11 @@ func (in *MongoDBSpec) DeepCopyInto(out *MongoDBSpec) {
 	}
 	in.ServiceTemplate.DeepCopyInto(&out.ServiceTemplate)
 	in.UpdateStrategy.DeepCopyInto(&out.UpdateStrategy)
+	if in.TLS != nil {
+		in, out := &in.TLS, &out.TLS
+		*out = new(TLSConfig)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
@@ -1205,6 +1210,11 @@ func (in *MySQLSpec) DeepCopyInto(out *MySQLSpec) {
 	in.PodTemplate.DeepCopyInto(&out.PodTemplate)
 	in.ServiceTemplate.DeepCopyInto(&out.ServiceTemplate)
 	in.UpdateStrategy.DeepCopyInto(&out.UpdateStrategy)
+	if in.TLS != nil {
+		in, out := &in.TLS, &out.TLS
+		*out = new(TLSConfig)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
@@ -1331,6 +1341,11 @@ func (in *PerconaXtraDBSpec) DeepCopyInto(out *PerconaXtraDBSpec) {
 	in.PodTemplate.DeepCopyInto(&out.PodTemplate)
 	in.ServiceTemplate.DeepCopyInto(&out.ServiceTemplate)
 	in.UpdateStrategy.DeepCopyInto(&out.UpdateStrategy)
+	if in.TLS != nil {
+		in, out := &in.TLS, &out.TLS
+		*out = new(TLSConfig)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
@@ -1626,6 +1641,11 @@ func (in *PostgresSpec) DeepCopyInto(out *PostgresSpec) {
 	in.ServiceTemplate.DeepCopyInto(&out.ServiceTemplate)
 	in.ReplicaServiceTemplate.DeepCopyInto(&out.ReplicaServiceTemplate)
 	in.UpdateStrategy.DeepCopyInto(&out.UpdateStrategy)
+	if in.TLS != nil {
+		in, out := &in.TLS, &out.TLS
+		*out = new(TLSConfig)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
@@ -1800,6 +1820,11 @@ func (in *ProxySQLSpec) DeepCopyInto(out *ProxySQLSpec) {
 	in.PodTemplate.DeepCopyInto(&out.PodTemplate)
 	in.ServiceTemplate.DeepCopyInto(&out.ServiceTemplate)
 	in.UpdateStrategy.DeepCopyInto(&out.UpdateStrategy)
+	if in.TLS != nil {
+		in, out := &in.TLS, &out.TLS
+		*out = new(TLSConfig)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 

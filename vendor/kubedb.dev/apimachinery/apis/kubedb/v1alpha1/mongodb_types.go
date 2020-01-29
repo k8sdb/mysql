@@ -116,9 +116,13 @@ type MongoDBSpec struct {
 	// +optional
 	Halted bool `json:"halted,omitempty" protobuf:"varint,19,opt,name=halted"`
 
+	// TLS contains tls configurations for client and server.
+	// +optional
+	TLS *TLSConfig `json:"tls,omitempty" protobuf:"bytes,20,opt,name=tls"`
+
 	// TerminationPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,20,opt,name=terminationPolicy,casttype=TerminationPolicy"`
+	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,21,opt,name=terminationPolicy,casttype=TerminationPolicy"`
 }
 
 // ClusterAuthMode represents the clusterAuthMode of mongodb clusters ( replicaset or sharding)
@@ -210,7 +214,7 @@ type MongoDBMongosNode struct {
 	MongoDBNode `json:",inline" protobuf:"bytes,5,opt,name=mongoDBNode"`
 
 	// The deployment strategy to use to replace existing pods with new ones.
-	// +optional
+	// Deprecated: Deployment has been Replaced by StatefulSet. MongosNode now uses spec.updateStrategy
 	Strategy apps.DeploymentStrategy `json:"strategy,omitempty" protobuf:"bytes,4,opt,name=strategy"`
 }
 

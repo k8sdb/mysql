@@ -594,7 +594,7 @@ message MongoDBMongosNode {
   optional MongoDBNode mongoDBNode = 5;
 
   // The deployment strategy to use to replace existing pods with new ones.
-  // +optional
+  // Deprecated: Deployment has been Replaced by StatefulSet. MongosNode now uses spec.updateStrategy
   optional k8s.io.api.apps.v1.DeploymentStrategy strategy = 4;
 }
 
@@ -715,9 +715,13 @@ message MongoDBSpec {
   // +optional
   optional bool halted = 19;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 20;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 20;
+  optional string terminationPolicy = 21;
 }
 
 message MongoDBStatus {
@@ -834,9 +838,13 @@ message MySQLSpec {
   // +optional
   optional bool halted = 15;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 16;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 16;
+  optional string terminationPolicy = 17;
 }
 
 message MySQLStatus {
@@ -922,9 +930,13 @@ message PerconaXtraDBSpec {
   // +optional
   optional bool halted = 13;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 14;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 14;
+  optional string terminationPolicy = 15;
 }
 
 message PerconaXtraDBStatus {
@@ -1105,9 +1117,13 @@ message PostgresSpec {
   // +optional
   optional bool halted = 19;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 20;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 20;
+  optional string terminationPolicy = 21;
 }
 
 message PostgresStatus {
@@ -1199,9 +1215,13 @@ message ProxySQLSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 10;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 11;
+
   // Indicates that the database is paused and controller will not sync any changes made to this spec.
   // +optional
-  optional bool paused = 11;
+  optional bool paused = 12;
 }
 
 message ProxySQLStatus {

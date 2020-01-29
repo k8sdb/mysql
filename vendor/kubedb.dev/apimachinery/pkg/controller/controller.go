@@ -34,6 +34,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
+	corelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
 	core_util "kmodules.xyz/client-go/core/v1"
@@ -78,6 +79,10 @@ type Config struct {
 	// restoreSession queue
 	RSQueue    *queue.Worker
 	RSInformer cache.SharedIndexInformer
+
+	// Secret
+	SecretInformer cache.SharedIndexInformer
+	SecretLister   corelisters.SecretLister
 
 	OperatorNamespace       string
 	GoverningService        string
