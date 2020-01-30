@@ -106,7 +106,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 		core_util.EnsureOwnerReference(&in.ObjectMeta, owner)
 
 		in.Spec.Replicas = mysql.Spec.Replicas
-		in.Spec.ServiceName = c.GoverningService
+		in.Spec.ServiceName = mysql.GoverningServiceName()
 		in.Spec.Selector = &metav1.LabelSelector{
 			MatchLabels: mysql.OffshootSelectors(),
 		}
@@ -168,7 +168,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kut
 			}
 			userProvidedArgs := strings.Join(mysql.Spec.PodTemplate.Spec.Args, " ")
 			container.Args = []string{
-				fmt.Sprintf("-service=%s", c.GoverningService),
+				fmt.Sprintf("-service=%s", mysql.GoverningServiceName()),
 				fmt.Sprintf("-on-start=/on-start.sh %s", userProvidedArgs),
 			}
 			if container.LivenessProbe != nil && structs.IsZero(*container.LivenessProbe) {
@@ -228,19 +228,19 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 					// owner: https://github.com/prometheus/mysqld_exporter#setting-the-mysql-servers-data-source-name
 					fmt.Sprintf(`export DATA_SOURCE_NAME="${MYSQL_ROOT_USERNAME:-}:${MYSQL_ROOT_PASSWORD:-}@(127.0.0.1:3306)/"
 						/bin/mysqld_exporter --web.listen-address=:%v --web.telemetry-path=%v %v`,
-						mysql.Spec.Monitor.Prometheus.Port, mysql.StatsService().Path(), strings.Join(mysql.Spec.Monitor.Args, " ")),
+						mysql.Spec.Monitor.Prometheus.Exporter.Port, mysql.StatsService().Path(), strings.Join(mysql.Spec.Monitor.Prometheus.Exporter.Args, " ")),
 				},
 				Image: mysqlVersion.Spec.Exporter.Image,
 				Ports: []core.ContainerPort{
 					{
 						Name:          api.PrometheusExporterPortName,
 						Protocol:      core.ProtocolTCP,
-						ContainerPort: mysql.Spec.Monitor.Prometheus.Port,
+						ContainerPort: mysql.Spec.Monitor.Prometheus.Exporter.Port,
 					},
 				},
-				Env:             mysql.Spec.Monitor.Env,
-				Resources:       mysql.Spec.Monitor.Resources,
-				SecurityContext: mysql.Spec.Monitor.SecurityContext,
+				Env:             mysql.Spec.Monitor.Prometheus.Exporter.Env,
+				Resources:       mysql.Spec.Monitor.Prometheus.Exporter.Resources,
+				SecurityContext: mysql.Spec.Monitor.Prometheus.Exporter.SecurityContext,
 			})
 		}
 		// Set Admin Secret as MYSQL_ROOT_PASSWORD env variable
@@ -270,7 +270,6 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 
 		return in
 	})
-
 }
 
 func upsertDataVolume(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {

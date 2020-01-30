@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"strings"
 
+	"github.com/appscode/go/crypto/rand"
 	shell "github.com/codeskyblue/go-sh"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
@@ -44,7 +45,7 @@ func (f *Framework) InitScriptConfigMap() (*core.ConfigMap, error) {
 
 	return &core.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "my-init-script",
+			Name:      rand.WithUniqSuffix("my-init-script"),
 			Namespace: f.namespace,
 		},
 		Data: map[string]string{

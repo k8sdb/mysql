@@ -229,7 +229,7 @@ var cases = []struct {
 		"foo",
 		"default",
 		admission.Update,
-		pauseDatabase(sampleMySQL()),
+		haltDatabase(sampleMySQL()),
 		sampleMySQL(),
 		false,
 		true,
@@ -244,12 +244,12 @@ var cases = []struct {
 		true,
 		false,
 	},
-	{"Delete MySQL when Spec.TerminationPolicy=Pause",
+	{"Delete MySQL when Spec.TerminationPolicy=Halt",
 		requestKind,
 		"foo",
 		"default",
 		admission.Delete,
-		pauseDatabase(sampleMySQL()),
+		haltDatabase(sampleMySQL()),
 		api.MySQL{},
 		true,
 		true,
@@ -452,7 +452,9 @@ func editSpecMonitor(old api.MySQL) api.MySQL {
 	old.Spec.Monitor = &mona.AgentSpec{
 		Agent: mona.AgentPrometheusBuiltin,
 		Prometheus: &mona.PrometheusSpec{
-			Port: 1289,
+			Exporter: &mona.PrometheusExporterSpec{
+				Port: 1289,
+			},
 		},
 	}
 	return old
@@ -461,13 +463,13 @@ func editSpecMonitor(old api.MySQL) api.MySQL {
 // should be failed because more fields required for COreOS Monitoring
 func editSpecInvalidMonitor(old api.MySQL) api.MySQL {
 	old.Spec.Monitor = &mona.AgentSpec{
-		Agent: mona.AgentCoreOSPrometheus,
+		Agent: mona.AgentPrometheusOperator,
 	}
 	return old
 }
 
-func pauseDatabase(old api.MySQL) api.MySQL {
-	old.Spec.TerminationPolicy = api.TerminationPolicyPause
+func haltDatabase(old api.MySQL) api.MySQL {
+	old.Spec.TerminationPolicy = api.TerminationPolicyHalt
 	return old
 }
 

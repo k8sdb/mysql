@@ -88,10 +88,6 @@ type MySQLSpec struct {
 	// +optional
 	Init *InitSpec `json:"init,omitempty" protobuf:"bytes,7,opt,name=init"`
 
-	// BackupSchedule spec to specify how database backup will be taken
-	// +optional
-	BackupSchedule *BackupScheduleSpec `json:"backupSchedule,omitempty" protobuf:"bytes,8,opt,name=backupSchedule"`
-
 	// Monitor is used monitor database instance
 	// +optional
 	Monitor *mona.AgentSpec `json:"monitor,omitempty" protobuf:"bytes,9,opt,name=monitor"`
@@ -121,9 +117,13 @@ type MySQLSpec struct {
 	// +optional
 	Halted bool `json:"halted,omitempty" protobuf:"varint,15,opt,name=halted"`
 
+	// TLS contains tls configurations for client and server.
+	// +optional
+	TLS *TLSConfig `json:"tls,omitempty" protobuf:"bytes,16,opt,name=tls"`
+
 	// TerminationPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,16,opt,name=terminationPolicy,casttype=TerminationPolicy"`
+	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,17,opt,name=terminationPolicy,casttype=TerminationPolicy"`
 }
 
 type MySQLClusterTopology struct {

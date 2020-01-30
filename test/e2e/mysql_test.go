@@ -58,6 +58,7 @@ var _ = Describe("MySQL", func() {
 	)
 
 	BeforeEach(func() {
+		secret = nil
 		f = root.Invoke()
 		mysql = f.MySQL()
 		garbageMySQL = new(api.MySQLList)
@@ -104,16 +105,13 @@ var _ = Describe("MySQL", func() {
 		err = f.DeleteMySQL(mysql.ObjectMeta)
 		Expect(err).NotTo(HaveOccurred())
 
-		By("Wait for mysql to be paused")
-		f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+		By("Wait for mysql to be deleted")
+		f.EventuallyMySQL(mysql.ObjectMeta).Should(BeFalse())
 
 		// Create MySQL object again to resume it
 		By("Create MySQL: " + mysql.Name)
 		err = f.CreateMySQL(mysql)
 		Expect(err).NotTo(HaveOccurred())
-
-		By("Wait for DormantDatabase to be deleted")
-		f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
 
 		By("Wait for Running mysql")
 		f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
@@ -135,10 +133,6 @@ var _ = Describe("MySQL", func() {
 
 		By("Checking Row Count of Table")
 		f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
-
-		By("Create Secret")
-		err := f.CreateSecret(secret)
-		Expect(err).NotTo(HaveOccurred())
 	}
 
 	var deleteTestResource = func() {
@@ -157,6 +151,13 @@ var _ = Describe("MySQL", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
+		By("Update mysql to set spec.terminationPolicy = WipeOut")
+		_, err = f.PatchMySQL(my.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+			in.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
+			return in
+		})
+		Expect(err).NotTo(HaveOccurred())
+
 		By("Delete mysql")
 		err = f.DeleteMySQL(mysql.ObjectMeta)
 		if err != nil {
@@ -167,21 +168,8 @@ var _ = Describe("MySQL", func() {
 			Expect(err).NotTo(HaveOccurred())
 		}
 
-		if my.Spec.TerminationPolicy == api.TerminationPolicyPause {
-			By("Wait for mysql to be paused")
-			f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
-
-			By("WipeOut mysql")
-			_, err := f.PatchDormantDatabase(mysql.ObjectMeta, func(in *api.DormantDatabase) *api.DormantDatabase {
-				in.Spec.WipeOut = true
-				return in
-			})
-			Expect(err).NotTo(HaveOccurred())
-
-			By("Delete Dormant Database")
-			err = f.DeleteDormantDatabase(mysql.ObjectMeta)
-			Expect(err).NotTo(HaveOccurred())
-		}
+		By("Wait for mysql to be deleted")
+		f.EventuallyMySQL(mysql.ObjectMeta).Should(BeFalse())
 
 		By("Wait for mysql resources to be wipedOut")
 		f.EventuallyWipedOut(mysql.ObjectMeta).Should(Succeed())
@@ -229,7 +217,7 @@ var _ = Describe("MySQL", func() {
 					err := f.CreateSecret(customSecret)
 					Expect(err).NotTo(HaveOccurred())
 					mysql.Spec.PodTemplate.Spec.ServiceAccountName = "my-custom-sa"
-					mysql.Spec.TerminationPolicy = api.TerminationPolicyPause
+					mysql.Spec.TerminationPolicy = api.TerminationPolicyHalt
 				})
 
 				It("should start and resume successfully", func() {
@@ -242,7 +230,7 @@ var _ = Describe("MySQL", func() {
 					_, err := f.GetMySQL(mysql.ObjectMeta)
 					if err != nil {
 						if kerr.IsNotFound(err) {
-							// Postgres was not created. Hence, rest of cleanup is not necessary.
+							// MySQL was not created. Hence, rest of cleanup is not necessary.
 							return
 						}
 						Expect(err).NotTo(HaveOccurred())
@@ -252,15 +240,15 @@ var _ = Describe("MySQL", func() {
 					err = f.DeleteMySQL(mysql.ObjectMeta)
 					if err != nil {
 						if kerr.IsNotFound(err) {
-							// Postgres was not created. Hence, rest of cleanup is not necessary.
-							log.Infof("Skipping rest of cleanup. Reason: Postgres %s is not found.", mysql.Name)
+							// MySQL was not created. Hence, rest of cleanup is not necessary.
+							log.Infof("Skipping rest of cleanup. Reason: MySQL %s is not found.", mysql.Name)
 							return
 						}
 						Expect(err).NotTo(HaveOccurred())
 					}
 
-					By("Wait for mysql to be paused")
-					f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+					By("Wait for mysql to be deleted")
+					f.EventuallyMySQL(mysql.ObjectMeta).Should(BeFalse())
 
 					By("Resume DB")
 					createAndWaitForRunning()
@@ -327,7 +315,6 @@ var _ = Describe("MySQL", func() {
 			//	 or	from helm chart in `stash.appscode.dev/mysql/chart/mysql-stash`
 			Context("With Stash/Restic", func() {
 				var bc *stashV1beta1.BackupConfiguration
-				var bs *stashV1beta1.BackupSession
 				var rs *stashV1beta1.RestoreSession
 				var repo *stashV1alpha1.Repository
 
@@ -338,10 +325,6 @@ var _ = Describe("MySQL", func() {
 				})
 
 				AfterEach(func() {
-					By("Deleting BackupConfiguration")
-					err := f.DeleteBackupConfiguration(bc.ObjectMeta)
-					Expect(err).NotTo(HaveOccurred())
-
 					By("Deleting RestoreSession")
 					err = f.DeleteRestoreSession(rs.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
@@ -395,12 +378,12 @@ var _ = Describe("MySQL", func() {
 					err = f.CreateBackupConfiguration(bc)
 					Expect(err).NotTo(HaveOccurred())
 
-					By("Wait until BackupSession be created")
-					bs, err = f.WaitUntilBackkupSessionBeCreated(bc.ObjectMeta)
+					By("Check for snapshot count in stash-repository")
+					f.EventuallySnapshotInRepository(repo.ObjectMeta).Should(matcher.MoreThan(2))
 
-					// eventually backupsession succeeded
-					By("Check for Succeeded backupsession")
-					f.EventuallyBackupSessionPhase(bs.ObjectMeta).Should(Equal(stashV1beta1.BackupSessionSucceeded))
+					By("Delete BackupConfiguration to stop backup scheduling")
+					err = f.DeleteBackupConfiguration(bc.ObjectMeta)
+					Expect(err).NotTo(HaveOccurred())
 
 					oldMySQL, err := f.GetMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
@@ -409,7 +392,7 @@ var _ = Describe("MySQL", func() {
 
 					By("Create mysql from stash")
 					*mysql = *f.MySQL()
-					rs = f.RestoreSession(mysql.ObjectMeta, oldMySQL.ObjectMeta)
+					rs = f.RestoreSession(mysql.ObjectMeta, repo)
 					mysql.Spec.DatabaseSecret = oldMySQL.Spec.DatabaseSecret
 					mysql.Spec.Init = &api.InitSpec{
 						StashRestoreSession: &core.LocalObjectReference{
@@ -419,6 +402,9 @@ var _ = Describe("MySQL", func() {
 
 					// Create and wait for running MySQL
 					createAndWaitForInitializing()
+
+					By("Waiting for database to be ready")
+					f.EventuallyDatabaseReady(mysql.ObjectMeta, dbName).Should(BeTrue())
 
 					By("Create RestoreSession")
 					err = f.CreateRestoreSession(rs)
@@ -440,8 +426,8 @@ var _ = Describe("MySQL", func() {
 					BeforeEach(func() {
 						secret = f.SecretForGCSBackend()
 						secret = f.PatchSecretForRestic(secret)
-						bc = f.BackupConfiguration(mysql.ObjectMeta)
-						repo = f.Repository(mysql.ObjectMeta, secret.Name)
+						repo = f.Repository(mysql.ObjectMeta)
+						bc = f.BackupConfiguration(mysql.ObjectMeta, repo)
 
 						repo.Spec.Backend = store.Backend{
 							GCS: &store.GCSSpec{
@@ -462,7 +448,7 @@ var _ = Describe("MySQL", func() {
 		Context("Resume", func() {
 
 			Context("Super Fast User - Create-Delete-Create-Delete-Create ", func() {
-				It("should resume DormantDatabase successfully", func() {
+				It("should resume database successfully", func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
@@ -479,13 +465,16 @@ var _ = Describe("MySQL", func() {
 					err = f.DeleteMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 
-					By("Wait for mysql to be paused")
-					f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+					By("Wait for mysql to be deleted")
+					f.EventuallyMySQL(mysql.ObjectMeta).Should(BeFalse())
 
 					// Create MySQL object again to resume it
 					By("Create MySQL: " + mysql.Name)
 					err = f.CreateMySQL(mysql)
 					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for Running mysql")
+					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
 					// Delete without caring if DB is resumed
 					By("Delete mysql")
@@ -500,9 +489,6 @@ var _ = Describe("MySQL", func() {
 					err = f.CreateMySQL(mysql)
 					Expect(err).NotTo(HaveOccurred())
 
-					By("Wait for DormantDatabase to be deleted")
-					f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
-
 					By("Wait for Running mysql")
 					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
@@ -512,7 +498,7 @@ var _ = Describe("MySQL", func() {
 			})
 
 			Context("Without Init", func() {
-				It("should resume DormantDatabase successfully", func() {
+				It("should resume database successfully", func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
@@ -529,16 +515,13 @@ var _ = Describe("MySQL", func() {
 					err = f.DeleteMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 
-					By("Wait for mysql to be paused")
-					f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+					By("Wait for mysql to be deleted")
+					f.EventuallyMySQL(mysql.ObjectMeta).Should(BeFalse())
 
 					// Create MySQL object again to resume it
 					By("Create MySQL: " + mysql.Name)
 					err = f.CreateMySQL(mysql)
 					Expect(err).NotTo(HaveOccurred())
-
-					By("Wait for DormantDatabase to be deleted")
-					f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
 
 					By("Wait for Running mysql")
 					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
@@ -575,7 +558,7 @@ var _ = Describe("MySQL", func() {
 					Expect(f.DeleteConfigMap(initScriptConfigmap.ObjectMeta)).NotTo(HaveOccurred())
 				})
 
-				It("should resume DormantDatabase successfully", func() {
+				It("should resume database successfully", func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
@@ -586,16 +569,13 @@ var _ = Describe("MySQL", func() {
 					err = f.DeleteMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 
-					By("Wait for mysql to be paused")
-					f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+					By("Wait for mysql to be deleted")
+					f.EventuallyMySQL(mysql.ObjectMeta).Should(BeFalse())
 
 					// Create MySQL object again to resume it
 					By("Create MySQL: " + mysql.Name)
 					err = f.CreateMySQL(mysql)
 					Expect(err).NotTo(HaveOccurred())
-
-					By("Wait for DormantDatabase to be deleted")
-					f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
 
 					By("Wait for Running mysql")
 					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
@@ -603,12 +583,12 @@ var _ = Describe("MySQL", func() {
 					By("Checking Row Count of Table")
 					f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
 
-					mysql, err := f.GetMySQL(mysql.ObjectMeta)
+					my, err := f.GetMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
-					Expect(mysql.Spec.Init).NotTo(BeNil())
+					Expect(my.Spec.Init).NotTo(BeNil())
 
 					By("Checking MySQL crd does not have kubedb.com/initialized annotation")
-					_, err = meta_util.GetString(mysql.Annotations, api.AnnotationInitialized)
+					_, err = meta_util.GetString(my.Annotations, api.AnnotationInitialized)
 					Expect(err).To(HaveOccurred())
 				})
 			})
@@ -640,7 +620,7 @@ var _ = Describe("MySQL", func() {
 					Expect(f.DeleteConfigMap(initScriptConfigmap.ObjectMeta)).NotTo(HaveOccurred())
 				})
 
-				It("should resume DormantDatabase successfully", func() {
+				It("should resume database successfully", func() {
 					// Create and wait for running MySQL
 					createAndWaitForRunning()
 
@@ -654,16 +634,13 @@ var _ = Describe("MySQL", func() {
 						err = f.DeleteMySQL(mysql.ObjectMeta)
 						Expect(err).NotTo(HaveOccurred())
 
-						By("Wait for mysql to be paused")
-						f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+						By("Wait for mysql to be deleted")
+						f.EventuallyMySQL(mysql.ObjectMeta).Should(BeFalse())
 
 						// Create MySQL object again to resume it
 						By("Create MySQL: " + mysql.Name)
 						err = f.CreateMySQL(mysql)
 						Expect(err).NotTo(HaveOccurred())
-
-						By("Wait for DormantDatabase to be deleted")
-						f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
 
 						By("Wait for Running mysql")
 						f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
@@ -671,12 +648,12 @@ var _ = Describe("MySQL", func() {
 						By("Checking Row Count of Table")
 						f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
 
-						mysql, err := f.GetMySQL(mysql.ObjectMeta)
+						my, err := f.GetMySQL(mysql.ObjectMeta)
 						Expect(err).NotTo(HaveOccurred())
-						Expect(mysql.Spec.Init).ShouldNot(BeNil())
+						Expect(my.Spec.Init).ShouldNot(BeNil())
 
 						By("Checking MySQL crd does not have kubedb.com/initialized annotation")
-						_, err = meta_util.GetString(mysql.Annotations, api.AnnotationInitialized)
+						_, err = meta_util.GetString(my.Annotations, api.AnnotationInitialized)
 						Expect(err).To(HaveOccurred())
 					}
 				})
@@ -684,10 +661,6 @@ var _ = Describe("MySQL", func() {
 		})
 
 		Context("Termination Policy", func() {
-
-			BeforeEach(func() {
-				secret = f.SecretForGCSBackend()
-			})
 
 			Context("with TerminationDoNotTerminate", func() {
 				BeforeEach(func() {
@@ -702,42 +675,53 @@ var _ = Describe("MySQL", func() {
 					err = f.DeleteMySQL(mysql.ObjectMeta)
 					Expect(err).Should(HaveOccurred())
 
-					By("MySQL is not paused. Check for mysql")
+					By("MySQL is not halted. Check for mysql")
 					f.EventuallyMySQL(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Check for Running mysql")
 					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
-					By("Update mysql to set spec.terminationPolicy = Pause")
+					By("Update mysql to set spec.terminationPolicy = Halt")
 					_, err := f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
-						in.Spec.TerminationPolicy = api.TerminationPolicyPause
+						in.Spec.TerminationPolicy = api.TerminationPolicyHalt
 						return in
 					})
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})
 
-			Context("with TerminationPolicyPause (default)", func() {
+			Context("with TerminationPolicyHalt", func() {
 
-				AfterEach(func() {
-					By("Deleting secret: " + secret.Name)
-					err := f.DeleteSecret(secret.ObjectMeta)
-					if err != nil && !kerr.IsNotFound(err) {
-						Expect(err).NotTo(HaveOccurred())
-					}
-				})
-
-				It("should create DormantDatabase and resume from it", func() {
-					// Run MySQL and insert some sample data
+				It("should run successfully", func() {
+					// Run MySQL and take snapshot
 					shouldInsertData()
+
+					By("Halt MySQL: Update mysql to set spec.halted = true")
+					_, err := f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+						in.Spec.Halted = true
+						return in
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for halted mysql")
+					f.EventuallyMySQLPhase(mysql.ObjectMeta).Should(Equal(api.DatabasePhaseHalted))
+
+					By("Resume MySQL: Update mysql to set spec.halted = false")
+					_, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
+						in.Spec.Halted = false
+						return in
+					})
+					Expect(err).NotTo(HaveOccurred())
+
+					By("Wait for Running mysql")
+					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Deleting MySQL crd")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 
-					// DormantDatabase.Status= paused, means mysql object is deleted
-					By("Waiting for mysql to be paused")
-					f.EventuallyDormantDatabaseStatus(mysql.ObjectMeta).Should(matcher.HavePaused())
+					By("Wait for mysql to be deleted")
+					f.EventuallyMySQL(mysql.ObjectMeta).Should(BeFalse())
 
 					By("Checking PVC hasn't been deleted")
 					f.EventuallyPVCCount(mysql.ObjectMeta).Should(Equal(1))
@@ -749,9 +733,6 @@ var _ = Describe("MySQL", func() {
 					By("Create (resume) MySQL: " + mysql.Name)
 					err = f.CreateMySQL(mysql)
 					Expect(err).NotTo(HaveOccurred())
-
-					By("Wait for DormantDatabase to be deleted")
-					f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
 
 					By("Wait for Running mysql")
 					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
@@ -767,27 +748,16 @@ var _ = Describe("MySQL", func() {
 					mysql.Spec.TerminationPolicy = api.TerminationPolicyDelete
 				})
 
-				AfterEach(func() {
-					By("Deleting secret: " + secret.Name)
-					err := f.DeleteSecret(secret.ObjectMeta)
-					if err != nil && !kerr.IsNotFound(err) {
-						Expect(err).NotTo(HaveOccurred())
-					}
-				})
-
-				It("should not create DormantDatabase and should not delete secret", func() {
-					// Run MySQL
+				It("should run successfully", func() {
+					// Run MySQL and take snapshot
 					shouldInsertData()
 
 					By("Delete mysql")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 
-					By("wait until mysql is deleted")
+					By("Wait for mysql to be deleted")
 					f.EventuallyMySQL(mysql.ObjectMeta).Should(BeFalse())
-
-					By("Checking DormantDatabase is not created")
-					f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
 
 					By("Checking PVC has been deleted")
 					f.EventuallyPVCCount(mysql.ObjectMeta).Should(Equal(0))
@@ -803,7 +773,7 @@ var _ = Describe("MySQL", func() {
 					mysql.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
 				})
 
-				It("should not create DormantDatabase and should wipeOut all", func() {
+				It("should not create database and should wipeOut all", func() {
 					// Run MySQL
 					shouldInsertData()
 
@@ -813,9 +783,6 @@ var _ = Describe("MySQL", func() {
 
 					By("wait until mysql is deleted")
 					f.EventuallyMySQL(mysql.ObjectMeta).Should(BeFalse())
-
-					By("Checking DormantDatabase is not created")
-					f.EventuallyDormantDatabase(mysql.ObjectMeta).Should(BeFalse())
 
 					By("Checking PVCs has been deleted")
 					f.EventuallyPVCCount(mysql.ObjectMeta).Should(Equal(0))
@@ -981,12 +948,12 @@ var _ = Describe("MySQL", func() {
 					It("should run successfully", shouldRunSuccessfully)
 				})
 
-				Context("With TerminationPolicyPause", func() {
+				Context("With TerminationPolicyHalt", func() {
 
 					BeforeEach(func() {
 						mysql.Spec.StorageType = api.StorageTypeEphemeral
 						mysql.Spec.Storage = nil
-						mysql.Spec.TerminationPolicy = api.TerminationPolicyPause
+						mysql.Spec.TerminationPolicy = api.TerminationPolicyHalt
 					})
 
 					It("should reject to create MySQL object", func() {

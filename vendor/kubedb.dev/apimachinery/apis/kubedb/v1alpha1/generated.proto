@@ -35,29 +35,6 @@ import "kmodules.xyz/offshoot-api/api/v1/generated.proto";
 // Package-wide variables from generator "generated".
 option go_package = "v1alpha1";
 
-message BackupScheduleSpec {
-  optional string cronExpression = 1;
-
-  // Snapshot Spec
-  optional kmodules.xyz.objectstore_api.api.v1.Backend backend = 2;
-
-  // StorageType can be durable or ephemeral.
-  // If not given, database storage type will be used.
-  // +optional
-  optional string storageType = 3;
-
-  // PodTemplate is an optional configuration for pods used to take database snapshots
-  // +optional
-  optional kmodules.xyz.offshoot_api.api.v1.PodTemplateSpec podTemplate = 4;
-
-  // PodVolumeClaimSpec is used to specify temporary storage for backup/restore Job.
-  // If not given, database's PvcSpec will be used.
-  // If storageType is durable, then a PVC will be created using this PVCSpec.
-  // If storageType is ephemeral, then an empty directory will be created of size PvcSpec.Resources.Requests[core.ResourceStorage].
-  // +optional
-  optional k8s.io.api.core.v1.PersistentVolumeClaimSpec podVolumeClaimSpec = 5;
-}
-
 message CertificateSpec {
   // Organization is the organization to be used on the Certificate
   // +optional
@@ -164,51 +141,6 @@ message Databases {
 }
 
 // +kubebuilder:object:root=true
-// +kubebuilder:resource:path=dormantdatabases,singular=dormantdatabase,shortName=drmn,categories={datastore,kubedb,appscode,all}
-// +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase"
-// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
-// Deprecated
-message DormantDatabase {
-  optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
-
-  optional DormantDatabaseSpec spec = 2;
-
-  optional DormantDatabaseStatus status = 3;
-}
-
-message DormantDatabaseList {
-  optional k8s.io.apimachinery.pkg.apis.meta.v1.ListMeta metadata = 1;
-
-  // Items is a list of DormantDatabase CRD objects
-  repeated DormantDatabase items = 2;
-}
-
-message DormantDatabaseSpec {
-  // If true, invoke wipe out operation
-  // +optional
-  optional bool wipeOut = 1;
-
-  // Origin to store original database information
-  optional Origin origin = 2;
-}
-
-message DormantDatabaseStatus {
-  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time pausingTime = 1;
-
-  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time wipeOutTime = 2;
-
-  optional string phase = 3;
-
-  optional string reason = 4;
-
-  // observedGeneration is the most recent generation observed for this resource. It corresponds to the
-  // resource's generation, which is updated on mutation by the API Server.
-  // +optional
-  optional int64 observedGeneration = 5;
-}
-
-// +kubebuilder:object:root=true
 // +kubebuilder:resource:path=elasticsearches,singular=elasticsearch,shortName=es,categories={datastore,kubedb,appscode,all}
 // +kubebuilder:subresource:status
 // +kubebuilder:printcolumn:name="Version",type="string",JSONPath=".spec.version"
@@ -293,10 +225,6 @@ message ElasticsearchSpec {
   // Init is used to initialize database
   // +optional
   optional InitSpec init = 11;
-
-  // BackupSchedule spec to specify how database backup will be taken
-  // +optional
-  optional BackupScheduleSpec backupSchedule = 12;
 
   // Monitor is used monitor database instance
   // +optional
@@ -391,10 +319,6 @@ message EtcdSpec {
   // +optional
   optional InitSpec init = 6;
 
-  // BackupSchedule spec to specify how database backup will be taken
-  // +optional
-  optional BackupScheduleSpec backupSchedule = 7;
-
   // Monitor is used monitor database instance
   // +optional
   optional kmodules.xyz.monitoring_agent_api.api.v1.AgentSpec monitor = 8;
@@ -441,9 +365,6 @@ message EtcdStatus {
 
 message InitSpec {
   optional ScriptSourceSpec scriptSource = 1;
-
-  // Deprecated
-  optional SnapshotSourceSpec snapshotSource = 2;
 
   optional PostgresWALSourceSpec postgresWAL = 3;
 
@@ -673,7 +594,7 @@ message MongoDBMongosNode {
   optional MongoDBNode mongoDBNode = 5;
 
   // The deployment strategy to use to replace existing pods with new ones.
-  // +optional
+  // Deprecated: Deployment has been Replaced by StatefulSet. MongosNode now uses spec.updateStrategy
   optional k8s.io.api.apps.v1.DeploymentStrategy strategy = 4;
 }
 
@@ -765,10 +686,6 @@ message MongoDBSpec {
   // +optional
   optional InitSpec init = 11;
 
-  // BackupSchedule spec to specify how database backup will be taken
-  // +optional
-  optional BackupScheduleSpec backupSchedule = 12;
-
   // Monitor is used monitor database instance
   // +optional
   optional kmodules.xyz.monitoring_agent_api.api.v1.AgentSpec monitor = 13;
@@ -798,9 +715,13 @@ message MongoDBSpec {
   // +optional
   optional bool halted = 19;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 20;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 20;
+  optional string terminationPolicy = 21;
 }
 
 message MongoDBStatus {
@@ -888,10 +809,6 @@ message MySQLSpec {
   // +optional
   optional InitSpec init = 7;
 
-  // BackupSchedule spec to specify how database backup will be taken
-  // +optional
-  optional BackupScheduleSpec backupSchedule = 8;
-
   // Monitor is used monitor database instance
   // +optional
   optional kmodules.xyz.monitoring_agent_api.api.v1.AgentSpec monitor = 9;
@@ -921,9 +838,13 @@ message MySQLSpec {
   // +optional
   optional bool halted = 15;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 16;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 16;
+  optional string terminationPolicy = 17;
 }
 
 message MySQLStatus {
@@ -935,51 +856,6 @@ message MySQLStatus {
   // resource's generation, which is updated on mutation by the API Server.
   // +optional
   optional int64 observedGeneration = 3;
-}
-
-message Origin {
-  optional kmodules.xyz.offshoot_api.api.v1.PartialObjectMeta metadata = 1;
-
-  // Origin Spec to store original database Spec
-  optional OriginSpec spec = 2;
-}
-
-message OriginSpec {
-  // Elasticsearch Spec
-  // +optional
-  optional ElasticsearchSpec elasticsearch = 1;
-
-  // Postgres Spec
-  // +optional
-  optional PostgresSpec postgres = 2;
-
-  // MySQL Spec
-  // +optional
-  optional MySQLSpec mysql = 3;
-
-  // PerconaXtraDB Spec
-  // +optional
-  optional PerconaXtraDBSpec perconaxtradb = 4;
-
-  // MariaDB Spec
-  // +optional
-  optional MariaDBSpec mariadb = 5;
-
-  // MongoDB Spec
-  // +optional
-  optional MongoDBSpec mongodb = 6;
-
-  // Redis Spec
-  // +optional
-  optional RedisSpec redis = 7;
-
-  // Memcached Spec
-  // +optional
-  optional MemcachedSpec memcached = 8;
-
-  // Etcd Spec
-  // +optional
-  optional EtcdSpec etcd = 9;
 }
 
 // +kubebuilder:object:root=true
@@ -1054,9 +930,13 @@ message PerconaXtraDBSpec {
   // +optional
   optional bool halted = 13;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 14;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 14;
+  optional string terminationPolicy = 15;
 }
 
 message PerconaXtraDBStatus {
@@ -1204,10 +1084,6 @@ message PostgresSpec {
   // +optional
   optional InitSpec init = 10;
 
-  // BackupSchedule spec to specify how database backup will be taken
-  // +optional
-  optional BackupScheduleSpec backupSchedule = 11;
-
   // Monitor is used monitor database instance
   // +optional
   optional kmodules.xyz.monitoring_agent_api.api.v1.AgentSpec monitor = 12;
@@ -1241,9 +1117,13 @@ message PostgresSpec {
   // +optional
   optional bool halted = 19;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 20;
+
   // TerminationPolicy controls the delete operation for database
   // +optional
-  optional string terminationPolicy = 20;
+  optional string terminationPolicy = 21;
 }
 
 message PostgresStatus {
@@ -1335,9 +1215,13 @@ message ProxySQLSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 10;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 11;
+
   // Indicates that the database is paused and controller will not sync any changes made to this spec.
   // +optional
-  optional bool paused = 11;
+  optional bool paused = 12;
 }
 
 message ProxySQLStatus {
@@ -1464,76 +1348,6 @@ message ScriptSourceSpec {
   optional string scriptPath = 1;
 
   optional k8s.io.api.core.v1.VolumeSource volumeSource = 2;
-}
-
-// +kubebuilder:object:root=true
-// +kubebuilder:resource:path=snapshots,singular=snapshot,shortName=snap,categories={datastore,kubedb,appscode,all}
-// +kubebuilder:subresource:status
-// +kubebuilder:printcolumn:name="DatabaseName",type="string",JSONPath=".spec.databaseName"
-// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase"
-// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
-// Deprecated
-message Snapshot {
-  optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
-
-  optional SnapshotSpec spec = 2;
-
-  optional SnapshotStatus status = 3;
-}
-
-message SnapshotList {
-  optional k8s.io.apimachinery.pkg.apis.meta.v1.ListMeta metadata = 1;
-
-  // Items is a list of Snapshot CRD objects
-  repeated Snapshot items = 2;
-}
-
-message SnapshotSourceSpec {
-  optional string namespace = 1;
-
-  optional string name = 2;
-
-  // Arguments to the restore job
-  repeated string args = 3;
-}
-
-message SnapshotSpec {
-  // Database name
-  optional string databaseName = 1;
-
-  // Snapshot Spec
-  optional kmodules.xyz.objectstore_api.api.v1.Backend backend = 2;
-
-  // StorageType can be durable or ephemeral.
-  // If not given, database storage type will be used.
-  // +optional
-  optional string storageType = 3;
-
-  // PodTemplate is an optional configuration for pods used to take database snapshots
-  // +optional
-  optional kmodules.xyz.offshoot_api.api.v1.PodTemplateSpec podTemplate = 4;
-
-  // PodVolumeClaimSpec is used to specify temporary storage for backup/restore Job.
-  // If not given, database's PvcSpec will be used.
-  // If storageType is durable, then a PVC will be created using this PVCSpec.
-  // If storageType is ephemeral, then an empty directory will be created of size PvcSpec.Resources.Requests[core.ResourceStorage].
-  // +optional
-  optional k8s.io.api.core.v1.PersistentVolumeClaimSpec podVolumeClaimSpec = 5;
-}
-
-message SnapshotStatus {
-  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time startTime = 1;
-
-  optional k8s.io.apimachinery.pkg.apis.meta.v1.Time completionTime = 2;
-
-  optional string phase = 3;
-
-  optional string reason = 4;
-
-  // observedGeneration is the most recent generation observed for this resource. It corresponds to the
-  // resource's generation, which is updated on mutation by the API Server.
-  // +optional
-  optional int64 observedGeneration = 5;
 }
 
 message TLSConfig {
