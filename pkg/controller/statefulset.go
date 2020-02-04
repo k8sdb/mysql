@@ -339,7 +339,7 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.Sta
 
 func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularMySQL || container.Name == "exporter" || container.Name == "labeler" {
+		if container.Name == api.ResourceSingularMySQL || container.Name == "exporter" || container.Name == "replication-mode-detector" {
 			envs := []core.EnvVar{
 				{
 					Name: "MYSQL_ROOT_PASSWORD",
