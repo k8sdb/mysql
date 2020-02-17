@@ -46,11 +46,11 @@ func (_ MongoDB) CustomResourceDefinition() *apiextensions.CustomResourceDefinit
 var _ apis.ResourceInfo = &MongoDB{}
 
 const (
-	MongoTLSKeyFileName  = "ca.key"
-	MongoTLSCertFileName = "ca.crt"
-	MongoPemFileName     = "mongo.pem"
-	MongoClientFileName  = "client.pem"
-	MongoCertDirectory   = "/var/run/mongodb/tls"
+	TLSCAKeyFileName    = "ca.key"
+	TLSCACertFileName   = "ca.crt"
+	MongoPemFileName    = "mongo.pem"
+	MongoClientFileName = "client.pem"
+	MongoCertDirectory  = "/var/run/mongodb/tls"
 
 	MongoDBShardLabelKey  = "mongodb.kubedb.com/node.shard"
 	MongoDBConfigLabelKey = "mongodb.kubedb.com/node.config"
@@ -343,14 +343,6 @@ func (m *MongoDB) SetDefaults(mgVersion *v1alpha1.MongoDBVersion, topology *core
 		}
 	}
 
-	// required to upgrade operator from 0.11.0 to 0.12.0
-	if m.Spec.ReplicaSet != nil && m.Spec.ReplicaSet.KeyFile != nil {
-		if m.Spec.CertificateSecret == nil {
-			m.Spec.CertificateSecret = m.Spec.ReplicaSet.KeyFile
-		}
-		m.Spec.ReplicaSet.KeyFile = nil
-	}
-
 	if m.Spec.ShardTopology != nil {
 		if m.Spec.ShardTopology.Mongos.Strategy.Type == "" {
 			m.Spec.ShardTopology.Mongos.Strategy.Type = apps.RollingUpdateDeploymentStrategyType
@@ -412,7 +404,7 @@ func (m *MongoDB) setDefaultProbes(podTemplate *ofst.PodTemplateSpec, mgVersion 
 	var sslArgs string
 	if m.Spec.SSLMode == SSLModeRequireSSL {
 		sslArgs = fmt.Sprintf("--tls --tlsCAFile=%v/%v --tlsCertificateKeyFile=%v/%v",
-			MongoCertDirectory, MongoTLSCertFileName, MongoCertDirectory, MongoClientFileName)
+			MongoCertDirectory, TLSCACertFileName, MongoCertDirectory, MongoClientFileName)
 
 		breakingVer, err := version.NewVersion("4.1")
 		if err != nil {
@@ -427,9 +419,9 @@ func (m *MongoDB) setDefaultProbes(podTemplate *ofst.PodTemplateSpec, mgVersion 
 			return
 		}
 		if currentVer.Equal(exceptionVer) {
-			sslArgs = fmt.Sprintf("--tls --tlsCAFile=%v/%v --tlsPEMKeyFile=%v/%v", MongoCertDirectory, MongoTLSCertFileName, MongoCertDirectory, MongoClientFileName)
+			sslArgs = fmt.Sprintf("--tls --tlsCAFile=%v/%v --tlsPEMKeyFile=%v/%v", MongoCertDirectory, TLSCACertFileName, MongoCertDirectory, MongoClientFileName)
 		} else if currentVer.LessThan(breakingVer) {
-			sslArgs = fmt.Sprintf("--ssl --sslCAFile=%v/%v --sslPEMKeyFile=%v/%v", MongoCertDirectory, MongoTLSCertFileName, MongoCertDirectory, MongoClientFileName)
+			sslArgs = fmt.Sprintf("--ssl --sslCAFile=%v/%v --sslPEMKeyFile=%v/%v", MongoCertDirectory, TLSCACertFileName, MongoCertDirectory, MongoClientFileName)
 		}
 	}
 
@@ -541,11 +533,17 @@ func (m *MongoDBSpec) GetSecrets() []string {
 	if m.DatabaseSecret != nil {
 		secrets = append(secrets, m.DatabaseSecret.SecretName)
 	}
-	if m.CertificateSecret != nil {
-		secrets = append(secrets, m.CertificateSecret.SecretName)
-	}
-	if m.ReplicaSet != nil && m.ReplicaSet.KeyFile != nil {
-		secrets = append(secrets, m.ReplicaSet.KeyFile.SecretName)
+	if m.KeyFile != nil {
+		secrets = append(secrets, m.KeyFile.SecretName)
 	}
 	return secrets
+}
+
+func (m *MongoDB) KeyFileRequired() bool {
+	if m == nil {
+		return false
+	}
+	return m.Spec.ClusterAuthMode == ClusterAuthModeKeyFile ||
+		m.Spec.ClusterAuthMode == ClusterAuthModeSendKeyFile ||
+		m.Spec.ClusterAuthMode == ClusterAuthModeSendX509
 }
