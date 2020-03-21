@@ -1,5 +1,28 @@
 # Change Log
 
+## [Unreleased](https://github.com/kubedb/mysql/tree/HEAD)
+
+[Full Changelog](https://github.com/kubedb/mysql/compare/v0.6.0-rc.0...HEAD)
+
+**Merged pull requests:**
+
+- Use stash.appscode.dev/apimachinery@v0.9.0-rc.6 [\#181](https://github.com/kubedb/mysql/pull/181) ([tamalsaha](https://github.com/tamalsaha))
+- Use stash@v0.9.0-rc.4 release [\#179](https://github.com/kubedb/mysql/pull/179) ([tamalsaha](https://github.com/tamalsaha))
+-  Introduce spec.halted and removed dormant and snapshot crd [\#178](https://github.com/kubedb/mysql/pull/178) ([the-redback](https://github.com/the-redback))
+- Add Pause Feature  [\#177](https://github.com/kubedb/mysql/pull/177) ([suaas21](https://github.com/suaas21))
+- Update github.com/apache/thrift v0.12.0 [\#176](https://github.com/kubedb/mysql/pull/176) ([MitaliBo](https://github.com/MitaliBo))
+- Enable subresource for MySQL crd. [\#175](https://github.com/kubedb/mysql/pull/175) ([tamalsaha](https://github.com/tamalsaha))
+- Update kubernetes client-go to 1.16.3 [\#174](https://github.com/kubedb/mysql/pull/174) ([tamalsaha](https://github.com/tamalsaha))
+- Use charts to install operator [\#173](https://github.com/kubedb/mysql/pull/173) ([tamalsaha](https://github.com/tamalsaha))
+- Matrix tests for github actions [\#172](https://github.com/kubedb/mysql/pull/172) ([the-redback](https://github.com/the-redback))
+- Add license header to files [\#171](https://github.com/kubedb/mysql/pull/171) ([tamalsaha](https://github.com/tamalsaha))
+- Fix linter errors. [\#169](https://github.com/kubedb/mysql/pull/169) ([tamalsaha](https://github.com/tamalsaha))
+- Enable make ci [\#168](https://github.com/kubedb/mysql/pull/168) ([tamalsaha](https://github.com/tamalsaha))
+- Remove EnableStatusSubresource [\#167](https://github.com/kubedb/mysql/pull/167) ([tamalsaha](https://github.com/tamalsaha))
+- Mount mysql config dir and tmp dir as emptydir [\#166](https://github.com/kubedb/mysql/pull/166) ([shudipta](https://github.com/shudipta))
+- Validate DBVersionSpecs and fixed broken build [\#165](https://github.com/kubedb/mysql/pull/165) ([the-redback](https://github.com/the-redback))
+- Run e2e tests using GitHub actions [\#164](https://github.com/kubedb/mysql/pull/164) ([tamalsaha](https://github.com/tamalsaha))
+
 ## [v0.6.0-rc.0](https://github.com/kubedb/mysql/tree/v0.6.0-rc.0) (2019-08-22)
 [Full Changelog](https://github.com/kubedb/mysql/compare/0.5.0...v0.6.0-rc.0)
 
