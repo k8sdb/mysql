@@ -171,22 +171,31 @@ func recursivelyVersionCompare(versionA []int64, versionB []int64) int {
 // Currently, we support Group Replication for version 5.7.25. validateVersion()
 // checks whether the given version has exactly these major (5), minor (7) and patch (25).
 func validateGroupServerVersion(version string) error {
-	recommended, err := semver.NewVersion(api.MySQLGRRecommendedVersion)
-	if err != nil {
-		return fmt.Errorf("unable to parse recommended MySQL version %s: %v", api.MySQLGRRecommendedVersion, err)
+	recomandedVersion := []string{
+		"5.7.25",
+		"8.0.3",
+		"8.0.14",
+		"8.0.18",
+		"8.0.19",
 	}
 
-	given, err := semver.NewVersion(version)
-	if err != nil {
-		return fmt.Errorf("unable to parse given MySQL version %s: %v", version, err)
+	for _, rv := range recomandedVersion {
+		recommended, err := semver.NewVersion(rv) // api.MySQLGRRecommendedVersion
+		if err != nil {
+			return fmt.Errorf("unable to parse recommended MySQL version %s: %v", rv, err)
+		}
+
+		given, err := semver.NewVersion(version)
+		if err != nil {
+			return fmt.Errorf("unable to parse given MySQL version %s: %v", version, err)
+		}
+
+		if cmp := recursivelyVersionCompare(recommended.Slice(), given.Slice()); cmp == 0 {
+			return nil
+		}
 	}
 
-	if cmp := recursivelyVersionCompare(recommended.Slice(), given.Slice()); cmp != 0 {
-		return fmt.Errorf("currently supported MySQL server version for group replication is %s, but used %s",
-			api.MySQLGRRecommendedVersion, version)
-	}
-
-	return nil
+	return fmt.Errorf("currently supported MySQL server version for group replication is %v, but used %s", recomandedVersion, version)
 }
 
 // On a replication master and each replication slave, the --server-id
