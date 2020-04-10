@@ -33,13 +33,14 @@ import (
 // MySQLModificationRequestsGetter has a method to return a MySQLModificationRequestInterface.
 // A group's client should implement this interface.
 type MySQLModificationRequestsGetter interface {
-	MySQLModificationRequests() MySQLModificationRequestInterface
+	MySQLModificationRequests(namespace string) MySQLModificationRequestInterface
 }
 
 // MySQLModificationRequestInterface has methods to work with MySQLModificationRequest resources.
 type MySQLModificationRequestInterface interface {
 	Create(*v1alpha1.MySQLModificationRequest) (*v1alpha1.MySQLModificationRequest, error)
 	Update(*v1alpha1.MySQLModificationRequest) (*v1alpha1.MySQLModificationRequest, error)
+	UpdateStatus(*v1alpha1.MySQLModificationRequest) (*v1alpha1.MySQLModificationRequest, error)
 	Delete(name string, options *v1.DeleteOptions) error
 	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
 	Get(name string, options v1.GetOptions) (*v1alpha1.MySQLModificationRequest, error)
@@ -52,12 +53,14 @@ type MySQLModificationRequestInterface interface {
 // mySQLModificationRequests implements MySQLModificationRequestInterface
 type mySQLModificationRequests struct {
 	client rest.Interface
+	ns     string
 }
 
 // newMySQLModificationRequests returns a MySQLModificationRequests
-func newMySQLModificationRequests(c *DbaV1alpha1Client) *mySQLModificationRequests {
+func newMySQLModificationRequests(c *DbaV1alpha1Client, namespace string) *mySQLModificationRequests {
 	return &mySQLModificationRequests{
 		client: c.RESTClient(),
+		ns:     namespace,
 	}
 }
 
@@ -65,6 +68,7 @@ func newMySQLModificationRequests(c *DbaV1alpha1Client) *mySQLModificationReques
 func (c *mySQLModificationRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.MySQLModificationRequest, err error) {
 	result = &v1alpha1.MySQLModificationRequest{}
 	err = c.client.Get().
+		Namespace(c.ns).
 		Resource("mysqlmodificationrequests").
 		Name(name).
 		VersionedParams(&options, scheme.ParameterCodec).
@@ -81,6 +85,7 @@ func (c *mySQLModificationRequests) List(opts v1.ListOptions) (result *v1alpha1.
 	}
 	result = &v1alpha1.MySQLModificationRequestList{}
 	err = c.client.Get().
+		Namespace(c.ns).
 		Resource("mysqlmodificationrequests").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -97,6 +102,7 @@ func (c *mySQLModificationRequests) Watch(opts v1.ListOptions) (watch.Interface,
 	}
 	opts.Watch = true
 	return c.client.Get().
+		Namespace(c.ns).
 		Resource("mysqlmodificationrequests").
 		VersionedParams(&opts, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -107,6 +113,7 @@ func (c *mySQLModificationRequests) Watch(opts v1.ListOptions) (watch.Interface,
 func (c *mySQLModificationRequests) Create(mySQLModificationRequest *v1alpha1.MySQLModificationRequest) (result *v1alpha1.MySQLModificationRequest, err error) {
 	result = &v1alpha1.MySQLModificationRequest{}
 	err = c.client.Post().
+		Namespace(c.ns).
 		Resource("mysqlmodificationrequests").
 		Body(mySQLModificationRequest).
 		Do().
@@ -118,8 +125,25 @@ func (c *mySQLModificationRequests) Create(mySQLModificationRequest *v1alpha1.My
 func (c *mySQLModificationRequests) Update(mySQLModificationRequest *v1alpha1.MySQLModificationRequest) (result *v1alpha1.MySQLModificationRequest, err error) {
 	result = &v1alpha1.MySQLModificationRequest{}
 	err = c.client.Put().
+		Namespace(c.ns).
 		Resource("mysqlmodificationrequests").
 		Name(mySQLModificationRequest.Name).
+		Body(mySQLModificationRequest).
+		Do().
+		Into(result)
+	return
+}
+
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+
+func (c *mySQLModificationRequests) UpdateStatus(mySQLModificationRequest *v1alpha1.MySQLModificationRequest) (result *v1alpha1.MySQLModificationRequest, err error) {
+	result = &v1alpha1.MySQLModificationRequest{}
+	err = c.client.Put().
+		Namespace(c.ns).
+		Resource("mysqlmodificationrequests").
+		Name(mySQLModificationRequest.Name).
+		SubResource("status").
 		Body(mySQLModificationRequest).
 		Do().
 		Into(result)
@@ -129,6 +153,7 @@ func (c *mySQLModificationRequests) Update(mySQLModificationRequest *v1alpha1.My
 // Delete takes name of the mySQLModificationRequest and deletes it. Returns an error if one occurs.
 func (c *mySQLModificationRequests) Delete(name string, options *v1.DeleteOptions) error {
 	return c.client.Delete().
+		Namespace(c.ns).
 		Resource("mysqlmodificationrequests").
 		Name(name).
 		Body(options).
@@ -143,6 +168,7 @@ func (c *mySQLModificationRequests) DeleteCollection(options *v1.DeleteOptions, 
 		timeout = time.Duration(*listOptions.TimeoutSeconds) * time.Second
 	}
 	return c.client.Delete().
+		Namespace(c.ns).
 		Resource("mysqlmodificationrequests").
 		VersionedParams(&listOptions, scheme.ParameterCodec).
 		Timeout(timeout).
@@ -155,6 +181,7 @@ func (c *mySQLModificationRequests) DeleteCollection(options *v1.DeleteOptions, 
 func (c *mySQLModificationRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.MySQLModificationRequest, err error) {
 	result = &v1alpha1.MySQLModificationRequest{}
 	err = c.client.Patch(pt).
+		Namespace(c.ns).
 		Resource("mysqlmodificationrequests").
 		SubResource(subresources...).
 		Name(name).

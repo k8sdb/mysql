@@ -32,6 +32,7 @@ import (
 // FakeMySQLModificationRequests implements MySQLModificationRequestInterface
 type FakeMySQLModificationRequests struct {
 	Fake *FakeDbaV1alpha1
+	ns   string
 }
 
 var mysqlmodificationrequestsResource = schema.GroupVersionResource{Group: "dba.kubedb.com", Version: "v1alpha1", Resource: "mysqlmodificationrequests"}
@@ -41,7 +42,8 @@ var mysqlmodificationrequestsKind = schema.GroupVersionKind{Group: "dba.kubedb.c
 // Get takes name of the mySQLModificationRequest, and returns the corresponding mySQLModificationRequest object, and an error if there is any.
 func (c *FakeMySQLModificationRequests) Get(name string, options v1.GetOptions) (result *v1alpha1.MySQLModificationRequest, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootGetAction(mysqlmodificationrequestsResource, name), &v1alpha1.MySQLModificationRequest{})
+		Invokes(testing.NewGetAction(mysqlmodificationrequestsResource, c.ns, name), &v1alpha1.MySQLModificationRequest{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -51,7 +53,8 @@ func (c *FakeMySQLModificationRequests) Get(name string, options v1.GetOptions) 
 // List takes label and field selectors, and returns the list of MySQLModificationRequests that match those selectors.
 func (c *FakeMySQLModificationRequests) List(opts v1.ListOptions) (result *v1alpha1.MySQLModificationRequestList, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootListAction(mysqlmodificationrequestsResource, mysqlmodificationrequestsKind, opts), &v1alpha1.MySQLModificationRequestList{})
+		Invokes(testing.NewListAction(mysqlmodificationrequestsResource, mysqlmodificationrequestsKind, c.ns, opts), &v1alpha1.MySQLModificationRequestList{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -72,13 +75,15 @@ func (c *FakeMySQLModificationRequests) List(opts v1.ListOptions) (result *v1alp
 // Watch returns a watch.Interface that watches the requested mySQLModificationRequests.
 func (c *FakeMySQLModificationRequests) Watch(opts v1.ListOptions) (watch.Interface, error) {
 	return c.Fake.
-		InvokesWatch(testing.NewRootWatchAction(mysqlmodificationrequestsResource, opts))
+		InvokesWatch(testing.NewWatchAction(mysqlmodificationrequestsResource, c.ns, opts))
+
 }
 
 // Create takes the representation of a mySQLModificationRequest and creates it.  Returns the server's representation of the mySQLModificationRequest, and an error, if there is any.
 func (c *FakeMySQLModificationRequests) Create(mySQLModificationRequest *v1alpha1.MySQLModificationRequest) (result *v1alpha1.MySQLModificationRequest, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootCreateAction(mysqlmodificationrequestsResource, mySQLModificationRequest), &v1alpha1.MySQLModificationRequest{})
+		Invokes(testing.NewCreateAction(mysqlmodificationrequestsResource, c.ns, mySQLModificationRequest), &v1alpha1.MySQLModificationRequest{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -88,7 +93,20 @@ func (c *FakeMySQLModificationRequests) Create(mySQLModificationRequest *v1alpha
 // Update takes the representation of a mySQLModificationRequest and updates it. Returns the server's representation of the mySQLModificationRequest, and an error, if there is any.
 func (c *FakeMySQLModificationRequests) Update(mySQLModificationRequest *v1alpha1.MySQLModificationRequest) (result *v1alpha1.MySQLModificationRequest, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootUpdateAction(mysqlmodificationrequestsResource, mySQLModificationRequest), &v1alpha1.MySQLModificationRequest{})
+		Invokes(testing.NewUpdateAction(mysqlmodificationrequestsResource, c.ns, mySQLModificationRequest), &v1alpha1.MySQLModificationRequest{})
+
+	if obj == nil {
+		return nil, err
+	}
+	return obj.(*v1alpha1.MySQLModificationRequest), err
+}
+
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclient:noStatus comment above the type to avoid generating UpdateStatus().
+func (c *FakeMySQLModificationRequests) UpdateStatus(mySQLModificationRequest *v1alpha1.MySQLModificationRequest) (*v1alpha1.MySQLModificationRequest, error) {
+	obj, err := c.Fake.
+		Invokes(testing.NewUpdateSubresourceAction(mysqlmodificationrequestsResource, "status", c.ns, mySQLModificationRequest), &v1alpha1.MySQLModificationRequest{})
+
 	if obj == nil {
 		return nil, err
 	}
@@ -98,13 +116,14 @@ func (c *FakeMySQLModificationRequests) Update(mySQLModificationRequest *v1alpha
 // Delete takes name of the mySQLModificationRequest and deletes it. Returns an error if one occurs.
 func (c *FakeMySQLModificationRequests) Delete(name string, options *v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewRootDeleteAction(mysqlmodificationrequestsResource, name), &v1alpha1.MySQLModificationRequest{})
+		Invokes(testing.NewDeleteAction(mysqlmodificationrequestsResource, c.ns, name), &v1alpha1.MySQLModificationRequest{})
+
 	return err
 }
 
 // DeleteCollection deletes a collection of objects.
 func (c *FakeMySQLModificationRequests) DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error {
-	action := testing.NewRootDeleteCollectionAction(mysqlmodificationrequestsResource, listOptions)
+	action := testing.NewDeleteCollectionAction(mysqlmodificationrequestsResource, c.ns, listOptions)
 
 	_, err := c.Fake.Invokes(action, &v1alpha1.MySQLModificationRequestList{})
 	return err
@@ -113,7 +132,8 @@ func (c *FakeMySQLModificationRequests) DeleteCollection(options *v1.DeleteOptio
 // Patch applies the patch and returns the patched mySQLModificationRequest.
 func (c *FakeMySQLModificationRequests) Patch(name string, pt types.PatchType, data []byte, subresources ...string) (result *v1alpha1.MySQLModificationRequest, err error) {
 	obj, err := c.Fake.
-		Invokes(testing.NewRootPatchSubresourceAction(mysqlmodificationrequestsResource, name, pt, data, subresources...), &v1alpha1.MySQLModificationRequest{})
+		Invokes(testing.NewPatchSubresourceAction(mysqlmodificationrequestsResource, c.ns, name, pt, data, subresources...), &v1alpha1.MySQLModificationRequest{})
+
 	if obj == nil {
 		return nil, err
 	}

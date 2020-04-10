@@ -79,7 +79,7 @@ func (v *version) MongoDBModificationRequests() MongoDBModificationRequestInform
 
 // MySQLModificationRequests returns a MySQLModificationRequestInformer.
 func (v *version) MySQLModificationRequests() MySQLModificationRequestInformer {
-	return &mySQLModificationRequestInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+	return &mySQLModificationRequestInformer{factory: v.factory, namespace: v.namespace, tweakListOptions: v.tweakListOptions}
 }
 
 // PerconaXtraDBModificationRequests returns a PerconaXtraDBModificationRequestInformer.

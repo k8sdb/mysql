@@ -16,7 +16,10 @@ limitations under the License.
 
 package v1alpha1
 
-import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+import (
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
 
 const (
 	ResourceCodeMySQLModificationRequest     = "mymodreq"
@@ -25,16 +28,17 @@ const (
 	ResourcePluralMySQLModificationRequest   = "mysqlmodificationrequests"
 )
 
-// MySQLModificationRequest defines a MySQL database version.
+// MySQLModificationRequest defines a MySQL Modification Request object.
 
 // +genclient
-// +genclient:nonNamespaced
-// +genclient:skipVerbs=updateStatus
 // +k8s:openapi-gen=true
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=mysqlmodificationrequests,singular=mysqlmodificationrequest,shortName=mymodreq,categories={datastore,kubedb,appscode}
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 type MySQLModificationRequest struct {
 	metav1.TypeMeta   `json:",inline,omitempty"`
 	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
@@ -42,15 +46,50 @@ type MySQLModificationRequest struct {
 	Status            MySQLModificationRequestStatus `json:"status,omitempty" protobuf:"bytes,3,opt,name=status"`
 }
 
-// MySQLModificationRequestSpec is the spec for elasticsearch version
+// MySQLModificationRequestSpec is the spec for MySQLModificationRequest version
 type MySQLModificationRequestSpec struct {
+	// Specifies the database reference
+	DatabaseRef v1.LocalObjectReference `json:"databaseRef" protobuf:"bytes,1,opt,name=databaseRef"`
+	// Specifies the modification request type; ScaleUp, ScaleDown, Upgrade etc.
+	Type ModificationRequestType `json:"type" protobuf:"bytes,2,opt,name=type"`
+	// Specifies the field information that needed to be updated
+	Update *UpdateSpec `json:"update,omitempty" protobuf:"bytes,3,opt,name=update"`
+	//Specifies the scaling info of database
+	Scale *ScaleSpec `json:"scale,omitempty" protobuf:"bytes,4,opt,name=scale"`
+	//Specifies the current suffix of the StatefulSet
+	CurStsSuffix int32 `json:"curStsSuffix,omitempty" protobuf:"varint,5,opt,name=curStsSuffix"`
 }
 
-// MySQLModificationRequestStatus is the status for elasticsearch version
+type UpdateSpec struct {
+	// Specifies the ElasticsearchVersion object name
+	TargetVersion string `json:"targetVersion,omitempty" protobuf:"bytes,1,opt,name=targetVersion"`
+}
+
+// ScaleSpec contains the scaling information of the Elasticsearch
+type ScaleSpec struct {
+	// Number of master nodes
+	Master *int32 `json:"master,omitempty" protobuf:"bytes,1,opt,name=master"`
+	// Number of data nodes
+	Data *int32 `json:"data,omitempty" protobuf:"bytes,2,opt,name=data"`
+	// Number of client nodes
+	Client *int32 `json:"client,omitempty" protobuf:"bytes,3,opt,name=client"`
+}
+
+// MySQLModificationRequestStatus is the status for MySQLModificationRequest object
 type MySQLModificationRequestStatus struct {
+	// Specifies the current phase of the modification request
+	// +optional
+	Phase ModificationRequestPhase `json:"phase,omitempty" protobuf:"bytes,1,opt,name=phase,casttype=ModificationRequestPhase"`
+	// Specifies the reason behind the current status, if any
+	// +optional
+	Reason string `json:"reason,omitempty" protobuf:"bytes,2,opt,name=reason"`
 	// Conditions applied to the request, such as approval or denial.
 	// +optional
-	Conditions []MySQLModificationRequestCondition `json:"conditions,omitempty" protobuf:"bytes,1,rep,name=conditions"`
+	Conditions []MySQLModificationRequestCondition `json:"conditions,omitempty" protobuf:"bytes,3,rep,name=conditions"`
+	// observedGeneration is the most recent generation observed for this resource. It corresponds to the
+	// resource's generation, which is updated on mutation by the API Server.
+	// +optional
+	ObservedGeneration int64 `json:"observedGeneration,omitempty" protobuf:"varint,4,opt,name=observedGeneration"`
 }
 
 type MySQLModificationRequestCondition struct {

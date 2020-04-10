@@ -45,8 +45,8 @@ func (c *FakeDbaV1alpha1) MongoDBModificationRequests() v1alpha1.MongoDBModifica
 	return &FakeMongoDBModificationRequests{c}
 }
 
-func (c *FakeDbaV1alpha1) MySQLModificationRequests() v1alpha1.MySQLModificationRequestInterface {
-	return &FakeMySQLModificationRequests{c}
+func (c *FakeDbaV1alpha1) MySQLModificationRequests(namespace string) v1alpha1.MySQLModificationRequestInterface {
+	return &FakeMySQLModificationRequests{c, namespace}
 }
 
 func (c *FakeDbaV1alpha1) PerconaXtraDBModificationRequests() v1alpha1.PerconaXtraDBModificationRequestInterface {

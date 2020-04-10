@@ -6,6 +6,13 @@ metadata:
     app: kubedb
   name: mysqlmodificationrequests.dba.kubedb.com
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .status.phase
+    name: Status
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   group: dba.kubedb.com
   names:
     categories:
@@ -20,6 +27,8 @@ spec:
     singular: mysqlmodificationrequest
   preserveUnknownFields: false
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       properties:
@@ -36,12 +45,55 @@ spec:
         metadata:
           type: object
         spec:
-          description: MySQLModificationRequestSpec is the spec for elasticsearch
+          description: MySQLModificationRequestSpec is the spec for MySQLModificationRequest
             version
+          properties:
+            curStsSuffix:
+              description: Specifies the current suffix of the StatefulSet
+              format: int32
+              type: integer
+            databaseRef:
+              description: Specifies the database reference
+              properties:
+                name:
+                  description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    TODO: Add other useful fields. apiVersion, kind, uid?'
+                  type: string
+              type: object
+            scale:
+              description: Specifies the scaling info of database
+              properties:
+                client:
+                  description: Number of client nodes
+                  format: int32
+                  type: integer
+                data:
+                  description: Number of data nodes
+                  format: int32
+                  type: integer
+                master:
+                  description: Number of master nodes
+                  format: int32
+                  type: integer
+              type: object
+            type:
+              description: Specifies the modification request type; ScaleUp, ScaleDown,
+                Upgrade etc.
+              type: string
+            update:
+              description: Specifies the field information that needed to be updated
+              properties:
+                targetVersion:
+                  description: Specifies the ElasticsearchVersion object name
+                  type: string
+              type: object
+          required:
+          - databaseRef
+          - type
           type: object
         status:
-          description: MySQLModificationRequestStatus is the status for elasticsearch
-            version
+          description: MySQLModificationRequestStatus is the status for MySQLModificationRequest
+            object
           properties:
             conditions:
               description: Conditions applied to the request, such as approval or
@@ -66,6 +118,18 @@ spec:
                 - type
                 type: object
               type: array
+            observedGeneration:
+              description: observedGeneration is the most recent generation observed
+                for this resource. It corresponds to the resource's generation, which
+                is updated on mutation by the API Server.
+              format: int64
+              type: integer
+            phase:
+              description: Specifies the current phase of the modification request
+              type: string
+            reason:
+              description: Specifies the reason behind the current status, if any
+              type: string
           type: object
       type: object
   version: v1alpha1

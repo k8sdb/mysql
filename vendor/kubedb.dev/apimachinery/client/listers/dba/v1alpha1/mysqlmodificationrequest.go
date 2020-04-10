@@ -30,8 +30,8 @@ import (
 type MySQLModificationRequestLister interface {
 	// List lists all MySQLModificationRequests in the indexer.
 	List(selector labels.Selector) (ret []*v1alpha1.MySQLModificationRequest, err error)
-	// Get retrieves the MySQLModificationRequest from the index for a given name.
-	Get(name string) (*v1alpha1.MySQLModificationRequest, error)
+	// MySQLModificationRequests returns an object that can list and get MySQLModificationRequests.
+	MySQLModificationRequests(namespace string) MySQLModificationRequestNamespaceLister
 	MySQLModificationRequestListerExpansion
 }
 
@@ -53,9 +53,38 @@ func (s *mySQLModificationRequestLister) List(selector labels.Selector) (ret []*
 	return ret, err
 }
 
-// Get retrieves the MySQLModificationRequest from the index for a given name.
-func (s *mySQLModificationRequestLister) Get(name string) (*v1alpha1.MySQLModificationRequest, error) {
-	obj, exists, err := s.indexer.GetByKey(name)
+// MySQLModificationRequests returns an object that can list and get MySQLModificationRequests.
+func (s *mySQLModificationRequestLister) MySQLModificationRequests(namespace string) MySQLModificationRequestNamespaceLister {
+	return mySQLModificationRequestNamespaceLister{indexer: s.indexer, namespace: namespace}
+}
+
+// MySQLModificationRequestNamespaceLister helps list and get MySQLModificationRequests.
+type MySQLModificationRequestNamespaceLister interface {
+	// List lists all MySQLModificationRequests in the indexer for a given namespace.
+	List(selector labels.Selector) (ret []*v1alpha1.MySQLModificationRequest, err error)
+	// Get retrieves the MySQLModificationRequest from the indexer for a given namespace and name.
+	Get(name string) (*v1alpha1.MySQLModificationRequest, error)
+	MySQLModificationRequestNamespaceListerExpansion
+}
+
+// mySQLModificationRequestNamespaceLister implements the MySQLModificationRequestNamespaceLister
+// interface.
+type mySQLModificationRequestNamespaceLister struct {
+	indexer   cache.Indexer
+	namespace string
+}
+
+// List lists all MySQLModificationRequests in the indexer for a given namespace.
+func (s mySQLModificationRequestNamespaceLister) List(selector labels.Selector) (ret []*v1alpha1.MySQLModificationRequest, err error) {
+	err = cache.ListAllByNamespace(s.indexer, s.namespace, selector, func(m interface{}) {
+		ret = append(ret, m.(*v1alpha1.MySQLModificationRequest))
+	})
+	return ret, err
+}
+
+// Get retrieves the MySQLModificationRequest from the indexer for a given namespace and name.
+func (s mySQLModificationRequestNamespaceLister) Get(name string) (*v1alpha1.MySQLModificationRequest, error) {
+	obj, exists, err := s.indexer.GetByKey(s.namespace + "/" + name)
 	if err != nil {
 		return nil, err
 	}

@@ -70,18 +70,19 @@ func (c *Controller) ensureStatefulSet(mysql *api.MySQL) (kutil.VerbType, error)
 }
 
 func (c *Controller) checkStatefulSet(mysql *api.MySQL) error {
-	// SatatefulSet for MySQL database
-	statefulSet, err := c.Client.AppsV1().StatefulSets(mysql.Namespace).Get(mysql.OffshootName(), metav1.GetOptions{})
+	// StatefulSet for MySQL database
+	stsList, err := c.Client.AppsV1().StatefulSets(mysql.Namespace).List(metav1.ListOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
 			return nil
 		}
 		return err
 	}
-
-	if statefulSet.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL ||
-		statefulSet.Labels[api.LabelDatabaseName] != mysql.Name {
-		return fmt.Errorf(`intended statefulSet "%v/%v" already exists`, mysql.Namespace, mysql.OffshootName())
+	for _, sts := range stsList.Items {
+		if metav1.IsControlledBy(&sts, mysql) && (sts.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL ||
+			sts.Labels[api.LabelDatabaseName] != mysql.Name) {
+			return fmt.Errorf(`intended statefulSet "%v/%v" already exists`, sts.Namespace, sts.Name)
+		}
 	}
 
 	return nil

@@ -21,6 +21,7 @@ syntax = 'proto2';
 
 package kubedb.dev.apimachinery.apis.dba.v1alpha1;
 
+import "k8s.io/api/core/v1/generated.proto";
 import "k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto";
 import "k8s.io/apimachinery/pkg/runtime/generated.proto";
 import "k8s.io/apimachinery/pkg/runtime/schema/generated.proto";
@@ -214,6 +215,9 @@ message MongoDBModificationRequestStatus {
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=mysqlmodificationrequests,singular=mysqlmodificationrequest,shortName=mymodreq,categories={datastore,kubedb,appscode}
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.phase"
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 message MySQLModificationRequest {
   optional k8s.io.apimachinery.pkg.apis.meta.v1.ObjectMeta metadata = 1;
 
@@ -247,15 +251,42 @@ message MySQLModificationRequestList {
   repeated MySQLModificationRequest items = 2;
 }
 
-// MySQLModificationRequestSpec is the spec for elasticsearch version
+// MySQLModificationRequestSpec is the spec for MySQLModificationRequest version
 message MySQLModificationRequestSpec {
+  // Specifies the database reference
+  optional k8s.io.api.core.v1.LocalObjectReference databaseRef = 1;
+
+  // Specifies the modification request type; ScaleUp, ScaleDown, Upgrade etc.
+  optional string type = 2;
+
+  // Specifies the field information that needed to be updated
+  optional UpdateSpec update = 3;
+
+  // Specifies the scaling info of database
+  optional ScaleSpec scale = 4;
+
+  // Specifies the current suffix of the StatefulSet
+  optional int32 curStsSuffix = 5;
 }
 
-// MySQLModificationRequestStatus is the status for elasticsearch version
+// MySQLModificationRequestStatus is the status for MySQLModificationRequest object
 message MySQLModificationRequestStatus {
+  // Specifies the current phase of the modification request
+  // +optional
+  optional string phase = 1;
+
+  // Specifies the reason behind the current status, if any
+  // +optional
+  optional string reason = 2;
+
   // Conditions applied to the request, such as approval or denial.
   // +optional
-  repeated MySQLModificationRequestCondition conditions = 1;
+  repeated MySQLModificationRequestCondition conditions = 3;
+
+  // observedGeneration is the most recent generation observed for this resource. It corresponds to the
+  // resource's generation, which is updated on mutation by the API Server.
+  // +optional
+  optional int64 observedGeneration = 4;
 }
 
 // +kubebuilder:object:root=true
@@ -486,5 +517,22 @@ message RedisModificationRequestStatus {
   // Conditions applied to the request, such as approval or denial.
   // +optional
   repeated RedisModificationRequestCondition conditions = 1;
+}
+
+// ScaleSpec contains the scaling information of the Elasticsearch
+message ScaleSpec {
+  // Number of master nodes
+  optional int32 master = 1;
+
+  // Number of data nodes
+  optional int32 data = 2;
+
+  // Number of client nodes
+  optional int32 client = 3;
+}
+
+message UpdateSpec {
+  // Specifies the ElasticsearchVersion object name
+  optional string targetVersion = 1;
 }
 
