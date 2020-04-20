@@ -173,6 +173,7 @@ func recursivelyVersionCompare(versionA []int64, versionB []int64) int {
 func validateGroupServerVersion(version string) error {
 	recomandedVersion := []string{
 		"5.7.25",
+		"5.7.29",
 		"8.0.3",
 		"8.0.14",
 		"8.0.18",
