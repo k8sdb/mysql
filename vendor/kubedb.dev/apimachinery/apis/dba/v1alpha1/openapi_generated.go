@@ -379,6 +379,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/dba/v1alpha1.EtcdModificationRequestList":               schema_apimachinery_apis_dba_v1alpha1_EtcdModificationRequestList(ref),
 		"kubedb.dev/apimachinery/apis/dba/v1alpha1.EtcdModificationRequestSpec":               schema_apimachinery_apis_dba_v1alpha1_EtcdModificationRequestSpec(ref),
 		"kubedb.dev/apimachinery/apis/dba/v1alpha1.EtcdModificationRequestStatus":             schema_apimachinery_apis_dba_v1alpha1_EtcdModificationRequestStatus(ref),
+		"kubedb.dev/apimachinery/apis/dba/v1alpha1.HorizontalScale":                           schema_apimachinery_apis_dba_v1alpha1_HorizontalScale(ref),
 		"kubedb.dev/apimachinery/apis/dba/v1alpha1.MemcachedModificationRequest":              schema_apimachinery_apis_dba_v1alpha1_MemcachedModificationRequest(ref),
 		"kubedb.dev/apimachinery/apis/dba/v1alpha1.MemcachedModificationRequestCondition":     schema_apimachinery_apis_dba_v1alpha1_MemcachedModificationRequestCondition(ref),
 		"kubedb.dev/apimachinery/apis/dba/v1alpha1.MemcachedModificationRequestList":          schema_apimachinery_apis_dba_v1alpha1_MemcachedModificationRequestList(ref),
@@ -421,6 +422,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/dba/v1alpha1.RedisModificationRequestStatus":            schema_apimachinery_apis_dba_v1alpha1_RedisModificationRequestStatus(ref),
 		"kubedb.dev/apimachinery/apis/dba/v1alpha1.ScaleSpec":                                 schema_apimachinery_apis_dba_v1alpha1_ScaleSpec(ref),
 		"kubedb.dev/apimachinery/apis/dba/v1alpha1.UpdateSpec":                                schema_apimachinery_apis_dba_v1alpha1_UpdateSpec(ref),
+		"kubedb.dev/apimachinery/apis/dba/v1alpha1.VerticalScale":                             schema_apimachinery_apis_dba_v1alpha1_VerticalScale(ref),
 	}
 }
 
@@ -17824,6 +17826,25 @@ func schema_apimachinery_apis_dba_v1alpha1_EtcdModificationRequestStatus(ref com
 	}
 }
 
+func schema_apimachinery_apis_dba_v1alpha1_HorizontalScale(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"member": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Number of nodes/members of the group",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func schema_apimachinery_apis_dba_v1alpha1_MemcachedModificationRequest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -19254,26 +19275,24 @@ func schema_apimachinery_apis_dba_v1alpha1_ScaleSpec(ref common.ReferenceCallbac
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
-				Description: "ScaleSpec contains the scaling information of the Elasticsearch",
+				Description: "ScaleSpec contains the scaling information of the MySQL",
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
-					"master": {
+					"horizontal": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Number of master nodes",
-							Type:        []string{"integer"},
-							Format:      "int32",
+							Description: "Horizontal specifies the horizontal scaling.",
+							Ref:         ref("kubedb.dev/apimachinery/apis/dba/v1alpha1.HorizontalScale"),
 						},
 					},
-					"data": {
+					"vertical": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Number of data nodes",
-							Type:        []string{"integer"},
-							Format:      "int32",
+							Description: "Vertical specifies the vertical scaling.",
+							Ref:         ref("kubedb.dev/apimachinery/apis/dba/v1alpha1.VerticalScale"),
 						},
 					},
-					"client": {
+					"memberWeight": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Number of client nodes",
+							Description: "specifies the weight of the current member/Node",
 							Type:        []string{"integer"},
 							Format:      "int32",
 						},
@@ -19281,6 +19300,8 @@ func schema_apimachinery_apis_dba_v1alpha1_ScaleSpec(ref common.ReferenceCallbac
 				},
 			},
 		},
+		Dependencies: []string{
+			"kubedb.dev/apimachinery/apis/dba/v1alpha1.HorizontalScale", "kubedb.dev/apimachinery/apis/dba/v1alpha1.VerticalScale"},
 	}
 }
 
@@ -19300,5 +19321,32 @@ func schema_apimachinery_apis_dba_v1alpha1_UpdateSpec(ref common.ReferenceCallba
 				},
 			},
 		},
+	}
+}
+
+func schema_apimachinery_apis_dba_v1alpha1_VerticalScale(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"containers": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Containers represents the containers specification for scaling the requested resources.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Container"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.Container"},
 	}
 }

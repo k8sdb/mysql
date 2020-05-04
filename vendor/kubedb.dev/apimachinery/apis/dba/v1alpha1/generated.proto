@@ -121,6 +121,11 @@ message EtcdModificationRequestStatus {
   repeated EtcdModificationRequestCondition conditions = 1;
 }
 
+message HorizontalScale {
+  // Number of nodes/members of the group
+  optional int32 member = 1;
+}
+
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=memcachedmodificationrequests,singular=memcachedmodificationrequest,shortName=mcmodreq,categories={datastore,kubedb,appscode}
 message MemcachedModificationRequest {
@@ -519,20 +524,25 @@ message RedisModificationRequestStatus {
   repeated RedisModificationRequestCondition conditions = 1;
 }
 
-// ScaleSpec contains the scaling information of the Elasticsearch
+// ScaleSpec contains the scaling information of the MySQL
 message ScaleSpec {
-  // Number of master nodes
-  optional int32 master = 1;
+  // Horizontal specifies the horizontal scaling.
+  optional HorizontalScale horizontal = 1;
 
-  // Number of data nodes
-  optional int32 data = 2;
+  // Vertical specifies the vertical scaling.
+  optional VerticalScale vertical = 2;
 
-  // Number of client nodes
-  optional int32 client = 3;
+  // specifies the weight of the current member/Node
+  optional int32 memberWeight = 3;
 }
 
 message UpdateSpec {
   // Specifies the ElasticsearchVersion object name
   optional string targetVersion = 1;
+}
+
+message VerticalScale {
+  // Containers represents the containers specification for scaling the requested resources.
+  repeated k8s.io.api.core.v1.Container containers = 1;
 }
 

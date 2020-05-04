@@ -28,6 +28,7 @@ const (
 	Successful             RequestConditionType = "Successful"
 	Failed                 RequestConditionType = "Failed"
 	UpgradeDatabaseVersion RequestConditionType = "UpgradeDatabaseVersion"
+	ScaleDatabase          RequestConditionType = "ScaleDatabase"
 )
 
 type ModificationRequestPhase string
@@ -50,10 +51,10 @@ const (
 type ModificationRequestType string
 
 const (
-	// used for ScaleUp operation
-	ModificationRequestTypeScaleUp ModificationRequestType = "ScaleUp"
-	// used for ScaleDown operation
-	ModificationRequestTypeScaleDown ModificationRequestType = "ScaleDown"
+	// used for HorizontalScaling operation
+	ModificationRequestTypeHorizontalScaling ModificationRequestType = "HorizontalScaling"
+	// used for VerticalScaling operation
+	ModificationRequestTypeVerticalScaling ModificationRequestType = "VerticalScaling"
 	// used for Upgrade operation
 	ModificationRequestTypeUpgrade ModificationRequestType = "Upgrade"
 	// used for Downgrade operation
