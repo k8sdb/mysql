@@ -192,7 +192,7 @@ func (c *Controller) pushFailureEvent(mysql *api.MySQL, reason string) {
 		reason,
 	)
 
-	my, err := util.UpdateMySQLStatus(c.ExtClient.KubedbV1alpha1(), mysql, func(in *api.MySQLStatus) *api.MySQLStatus {
+	my, err := util.UpdateMySQLStatus(c.ExtClient.KubedbV1alpha1(), mysql.ObjectMeta, func(in *api.MySQLStatus) *api.MySQLStatus {
 		in.Phase = api.DatabasePhaseFailed
 		in.Reason = reason
 		in.ObservedGeneration = mysql.Generation
