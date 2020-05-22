@@ -16,6 +16,7 @@ limitations under the License.
 package controller
 
 import (
+	"context"
 	"fmt"
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
@@ -80,7 +81,7 @@ func (c *Controller) createDatabaseSecret(mysql *api.MySQL) (*core.SecretVolumeS
 				KeyMySQLPassword: randPassword,
 			},
 		}
-		if _, err := c.Client.CoreV1().Secrets(mysql.Namespace).Create(secret); err != nil {
+		if _, err := c.Client.CoreV1().Secrets(mysql.Namespace).Create(context.TODO(), secret, metav1.CreateOptions{}); err != nil {
 			return nil, err
 		}
 	}
@@ -109,7 +110,7 @@ func (c *Controller) upgradeDatabaseSecret(mysql *api.MySQL) error {
 }
 
 func (c *Controller) checkSecret(secretName string, mysql *api.MySQL) (*core.Secret, error) {
-	secret, err := c.Client.CoreV1().Secrets(mysql.Namespace).Get(secretName, metav1.GetOptions{})
+	secret, err := c.Client.CoreV1().Secrets(mysql.Namespace).Get(context.TODO(), secretName, metav1.GetOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
 			return nil, nil

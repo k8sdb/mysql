@@ -17,6 +17,7 @@ package framework
 
 import (
 	"bytes"
+	"context"
 	"strings"
 
 	"github.com/appscode/go/crypto/rand"
@@ -68,12 +69,12 @@ func (f *Invocation) GetCustomConfig(configs []string) *core.ConfigMap {
 }
 
 func (f *Invocation) CreateConfigMap(obj *core.ConfigMap) error {
-	_, err := f.kubeClient.CoreV1().ConfigMaps(obj.Namespace).Create(obj)
+	_, err := f.kubeClient.CoreV1().ConfigMaps(obj.Namespace).Create(context.TODO(), obj, metav1.CreateOptions{})
 	return err
 }
 
 func (f *Framework) DeleteConfigMap(meta metav1.ObjectMeta) error {
-	err := f.kubeClient.CoreV1().ConfigMaps(meta.Namespace).Delete(meta.Name, deleteInForeground())
+	err := f.kubeClient.CoreV1().ConfigMaps(meta.Namespace).Delete(context.TODO(), meta.Name, *deleteInForeground())
 	if !kerr.IsNotFound(err) {
 		return err
 	}

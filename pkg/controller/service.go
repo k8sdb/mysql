@@ -16,6 +16,7 @@ limitations under the License.
 package controller
 
 import (
+	"context"
 	"fmt"
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
@@ -62,7 +63,7 @@ func (c *Controller) ensureService(mysql *api.MySQL) (kutil.VerbType, error) {
 }
 
 func (c *Controller) checkService(mysql *api.MySQL, serviceName string) error {
-	service, err := c.Client.CoreV1().Services(mysql.Namespace).Get(serviceName, metav1.GetOptions{})
+	service, err := c.Client.CoreV1().Services(mysql.Namespace).Get(context.TODO(), serviceName, metav1.GetOptions{})
 	if err != nil {
 		if kerr.IsNotFound(err) {
 			return nil
@@ -191,7 +192,7 @@ func (c *Controller) createMySQLGoverningService(mysql *api.MySQL) (string, erro
 	}
 	core_util.EnsureOwnerReference(&service.ObjectMeta, owner)
 
-	_, err := c.Client.CoreV1().Services(mysql.Namespace).Create(service)
+	_, err := c.Client.CoreV1().Services(mysql.Namespace).Create(context.TODO(), service, metav1.CreateOptions{})
 	if err != nil && !kerr.IsAlreadyExists(err) {
 		return "", err
 	}

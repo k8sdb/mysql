@@ -16,6 +16,7 @@ limitations under the License.
 package framework
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"time"
@@ -162,6 +163,7 @@ func (f *Framework) EventuallyGetPrimaryHostIndex(meta metav1.ObjectMeta, dbName
 
 func (f *Framework) RemoverPrimaryToFailover(meta metav1.ObjectMeta, primaryPodIndex int) error {
 	if _, err := f.kubeClient.CoreV1().Pods(meta.Namespace).Get(
+		context.TODO(),
 		fmt.Sprintf("%s-%d", meta.Name, primaryPodIndex),
 		metav1.GetOptions{},
 	); err != nil {
@@ -169,7 +171,7 @@ func (f *Framework) RemoverPrimaryToFailover(meta metav1.ObjectMeta, primaryPodI
 	}
 
 	return f.kubeClient.CoreV1().Pods(meta.Namespace).Delete(
+		context.TODO(),
 		fmt.Sprintf("%s-%d", meta.Name, primaryPodIndex),
-		&metav1.DeleteOptions{},
-	)
+		metav1.DeleteOptions{})
 }

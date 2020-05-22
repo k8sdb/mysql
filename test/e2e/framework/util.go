@@ -16,6 +16,7 @@ limitations under the License.
 package framework
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -49,7 +50,7 @@ func deleteInForeground() *metav1.DeleteOptions {
 
 func (f *Framework) CleanWorkloadLeftOvers() {
 	// delete statefulset
-	if err := f.kubeClient.AppsV1().StatefulSets(f.namespace).DeleteCollection(deleteInForeground(), metav1.ListOptions{
+	if err := f.kubeClient.AppsV1().StatefulSets(f.namespace).DeleteCollection(context.TODO(), *deleteInForeground(), metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(map[string]string{
 			api.LabelDatabaseKind: api.ResourceKindMySQL,
 		}).String(),
@@ -58,7 +59,7 @@ func (f *Framework) CleanWorkloadLeftOvers() {
 	}
 
 	// delete pvc
-	if err := f.kubeClient.CoreV1().PersistentVolumeClaims(f.namespace).DeleteCollection(deleteInForeground(), metav1.ListOptions{
+	if err := f.kubeClient.CoreV1().PersistentVolumeClaims(f.namespace).DeleteCollection(context.TODO(), *deleteInForeground(), metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(map[string]string{
 			api.LabelDatabaseKind: api.ResourceKindMySQL,
 		}).String(),
@@ -67,7 +68,7 @@ func (f *Framework) CleanWorkloadLeftOvers() {
 	}
 
 	// delete secret
-	if err := f.kubeClient.CoreV1().Secrets(f.namespace).DeleteCollection(deleteInForeground(), metav1.ListOptions{
+	if err := f.kubeClient.CoreV1().Secrets(f.namespace).DeleteCollection(context.TODO(), *deleteInForeground(), metav1.ListOptions{
 		LabelSelector: labels.SelectorFromSet(map[string]string{
 			api.LabelDatabaseKind: api.ResourceKindMySQL,
 		}).String(),
@@ -98,6 +99,7 @@ func (f *Framework) EventuallyWipedOut(meta metav1.ObjectMeta) GomegaAsyncAssert
 
 			// check if pvcs is wiped out
 			pvcList, err := f.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).List(
+				context.TODO(),
 				metav1.ListOptions{
 					LabelSelector: labelSelector.String(),
 				},
@@ -111,6 +113,7 @@ func (f *Framework) EventuallyWipedOut(meta metav1.ObjectMeta) GomegaAsyncAssert
 
 			// check if secrets are wiped out
 			secretList, err := f.kubeClient.CoreV1().Secrets(meta.Namespace).List(
+				context.TODO(),
 				metav1.ListOptions{
 					LabelSelector: labelSelector.String(),
 				},
@@ -171,7 +174,7 @@ func (f *Framework) PrintDebugHelpers(mysqlName string, replicas int) {
 	}
 
 	fmt.Println("\n===============[ Debug info for Stash sidecar/init-container/backup job/restore job ]===================")
-	if pods, err := f.kubeClient.CoreV1().Pods(f.Namespace()).List(metav1.ListOptions{}); err == nil {
+	if pods, err := f.kubeClient.CoreV1().Pods(f.Namespace()).List(context.TODO(), metav1.ListOptions{}); err == nil {
 		for _, pod := range pods.Items {
 			debugTarget, containerArgs := isDebugTarget(append(pod.Spec.InitContainers, pod.Spec.Containers...))
 			if debugTarget {

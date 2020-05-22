@@ -16,6 +16,7 @@ limitations under the License.
 package controller
 
 import (
+	"context"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 
 	"github.com/appscode/go/log"
@@ -69,7 +70,7 @@ func (c *Controller) waitUntilRBACStuffDeleted(mysql *api.MySQL) error {
 func (c *Controller) waitUntilStatefulSetsDeleted(db *api.MySQL) error {
 	log.Infof("waiting for statefulsets for MySQL %v/%v to be deleted\n", db.Namespace, db.Name)
 	return wait.PollImmediate(kutil.RetryInterval, kutil.GCTimeout, func() (bool, error) {
-		if sts, err := c.Client.AppsV1().StatefulSets(db.Namespace).List(metav1.ListOptions{LabelSelector: labels.SelectorFromSet(db.OffshootSelectors()).String()}); err != nil && kerr.IsNotFound(err) || len(sts.Items) == 0 {
+		if sts, err := c.Client.AppsV1().StatefulSets(db.Namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: labels.SelectorFromSet(db.OffshootSelectors()).String()}); err != nil && kerr.IsNotFound(err) || len(sts.Items) == 0 {
 			return true, nil
 		}
 		return false, nil
@@ -79,7 +80,7 @@ func (c *Controller) waitUntilStatefulSetsDeleted(db *api.MySQL) error {
 func (c *Controller) waitUntilDeploymentsDeleted(db *api.MySQL) error {
 	log.Infof("waiting for deployments for MySQL %v/%v to be deleted\n", db.Namespace, db.Name)
 	return wait.PollImmediate(kutil.RetryInterval, kutil.GCTimeout, func() (bool, error) {
-		if deploys, err := c.Client.AppsV1().Deployments(db.Namespace).List(metav1.ListOptions{LabelSelector: labels.SelectorFromSet(db.OffshootSelectors()).String()}); err != nil && kerr.IsNotFound(err) || len(deploys.Items) == 0 {
+		if deploys, err := c.Client.AppsV1().Deployments(db.Namespace).List(context.TODO(), metav1.ListOptions{LabelSelector: labels.SelectorFromSet(db.OffshootSelectors()).String()}); err != nil && kerr.IsNotFound(err) || len(deploys.Items) == 0 {
 			return true, nil
 		}
 		return false, nil
@@ -96,7 +97,7 @@ func (c *Controller) wipeOutDatabase(meta metav1.ObjectMeta, secrets []string, o
 
 	//Dont delete unused secrets that are not owned by kubeDB
 	for _, unusedSecret := range unusedSecrets.List() {
-		secret, err := c.Client.CoreV1().Secrets(meta.Namespace).Get(unusedSecret, metav1.GetOptions{})
+		secret, err := c.Client.CoreV1().Secrets(meta.Namespace).Get(context.TODO(), unusedSecret, metav1.GetOptions{})
 		//Maybe user has delete this secret
 		if kerr.IsNotFound(err) {
 			unusedSecrets.Delete(secret.Name)
@@ -159,7 +160,8 @@ func (c *Controller) haltDatabase(db *api.MySQL) error {
 		PolicyV1beta1().
 		PodDisruptionBudgets(db.Namespace).
 		DeleteCollection(
-			&metav1.DeleteOptions{PropagationPolicy: &policy},
+			context.TODO(),
+			metav1.DeleteOptions{PropagationPolicy: &policy},
 			metav1.ListOptions{LabelSelector: labelSelector},
 		); err != nil {
 		return err
@@ -171,7 +173,8 @@ func (c *Controller) haltDatabase(db *api.MySQL) error {
 		AppsV1().
 		StatefulSets(db.Namespace).
 		DeleteCollection(
-			&metav1.DeleteOptions{PropagationPolicy: &policy},
+			context.TODO(),
+			metav1.DeleteOptions{PropagationPolicy: &policy},
 			metav1.ListOptions{LabelSelector: labelSelector},
 		); err != nil {
 		return err
@@ -183,7 +186,8 @@ func (c *Controller) haltDatabase(db *api.MySQL) error {
 		AppsV1().
 		Deployments(db.Namespace).
 		DeleteCollection(
-			&metav1.DeleteOptions{PropagationPolicy: &policy},
+			context.TODO(),
+			metav1.DeleteOptions{PropagationPolicy: &policy},
 			metav1.ListOptions{LabelSelector: labelSelector},
 		); err != nil {
 		return err
@@ -195,7 +199,8 @@ func (c *Controller) haltDatabase(db *api.MySQL) error {
 		RbacV1().
 		RoleBindings(db.Namespace).
 		DeleteCollection(
-			&metav1.DeleteOptions{PropagationPolicy: &policy},
+			context.TODO(),
+			metav1.DeleteOptions{PropagationPolicy: &policy},
 			metav1.ListOptions{LabelSelector: labelSelector},
 		); err != nil {
 		return err
@@ -205,7 +210,8 @@ func (c *Controller) haltDatabase(db *api.MySQL) error {
 		RbacV1().
 		Roles(db.Namespace).
 		DeleteCollection(
-			&metav1.DeleteOptions{PropagationPolicy: &policy},
+			context.TODO(),
+			metav1.DeleteOptions{PropagationPolicy: &policy},
 			metav1.ListOptions{LabelSelector: labelSelector},
 		); err != nil {
 		return err
@@ -215,7 +221,8 @@ func (c *Controller) haltDatabase(db *api.MySQL) error {
 		CoreV1().
 		ServiceAccounts(db.Namespace).
 		DeleteCollection(
-			&metav1.DeleteOptions{PropagationPolicy: &policy},
+			context.TODO(),
+			metav1.DeleteOptions{PropagationPolicy: &policy},
 			metav1.ListOptions{LabelSelector: labelSelector},
 		); err != nil {
 		return err
@@ -227,7 +234,7 @@ func (c *Controller) haltDatabase(db *api.MySQL) error {
 	svcs, err := c.Client.
 		CoreV1().
 		Services(db.Namespace).
-		List(metav1.ListOptions{LabelSelector: labelSelector})
+		List(context.TODO(), metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil && !kerr.IsNotFound(err) {
 		return err
 	}
@@ -235,7 +242,7 @@ func (c *Controller) haltDatabase(db *api.MySQL) error {
 		if err := c.Client.
 			CoreV1().
 			Services(db.Namespace).
-			Delete(svc.Name, &metav1.DeleteOptions{PropagationPolicy: &policy}); err != nil {
+			Delete(context.TODO(), svc.Name, metav1.DeleteOptions{PropagationPolicy: &policy}); err != nil {
 			return err
 		}
 	}

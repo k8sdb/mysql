@@ -16,6 +16,7 @@ limitations under the License.
 package framework
 
 import (
+	"context"
 	"time"
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
@@ -36,6 +37,7 @@ func (f *Framework) EventuallyPVCCount(meta metav1.ObjectMeta) GomegaAsyncAssert
 	return Eventually(
 		func() int {
 			pvcList, err := f.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).List(
+				context.TODO(),
 				metav1.ListOptions{
 					LabelSelector: labelSelector.String(),
 				},
@@ -69,10 +71,10 @@ func (f *Invocation) GetPersistentVolumeClaim() *core.PersistentVolumeClaim {
 }
 
 func (f *Invocation) CreatePersistentVolumeClaim(pvc *core.PersistentVolumeClaim) error {
-	_, err := f.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(pvc)
+	_, err := f.kubeClient.CoreV1().PersistentVolumeClaims(pvc.Namespace).Create(context.TODO(), pvc, metav1.CreateOptions{})
 	return err
 }
 
 func (f *Invocation) DeletePersistentVolumeClaim(meta metav1.ObjectMeta) error {
-	return f.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).Delete(meta.Name, deleteInForeground())
+	return f.kubeClient.CoreV1().PersistentVolumeClaims(meta.Namespace).Delete(context.TODO(), meta.Name, *deleteInForeground())
 }

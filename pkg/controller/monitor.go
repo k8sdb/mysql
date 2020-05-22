@@ -16,6 +16,7 @@ limitations under the License.
 package controller
 
 import (
+	"context"
 	"fmt"
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
@@ -62,7 +63,7 @@ func (c *Controller) deleteMonitor(mysql *api.MySQL) error {
 }
 
 func (c *Controller) getOldAgent(mysql *api.MySQL) mona.Agent {
-	service, err := c.Client.CoreV1().Services(mysql.Namespace).Get(mysql.StatsService().ServiceName(), metav1.GetOptions{})
+	service, err := c.Client.CoreV1().Services(mysql.Namespace).Get(context.TODO(), mysql.StatsService().ServiceName(), metav1.GetOptions{})
 	if err != nil {
 		return nil
 	}
@@ -71,7 +72,7 @@ func (c *Controller) getOldAgent(mysql *api.MySQL) mona.Agent {
 }
 
 func (c *Controller) setNewAgent(mysql *api.MySQL) error {
-	service, err := c.Client.CoreV1().Services(mysql.Namespace).Get(mysql.StatsService().ServiceName(), metav1.GetOptions{})
+	service, err := c.Client.CoreV1().Services(mysql.Namespace).Get(context.TODO(), mysql.StatsService().ServiceName(), metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
