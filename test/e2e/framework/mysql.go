@@ -86,31 +86,31 @@ func (f *Invocation) MySQLGroup() *api.MySQL {
 }
 
 func (f *Framework) CreateMySQL(obj *api.MySQL) error {
-	_, err := f.dbClient.KubedbV1alpha1().MySQLs(obj.Namespace).Create(obj)
+	_, err := f.dbClient.KubedbV1alpha1().MySQLs(obj.Namespace).Create(context.TODO(), obj, metav1.CreateOptions{})
 	return err
 }
 
 func (f *Framework) GetMySQL(meta metav1.ObjectMeta) (*api.MySQL, error) {
-	return f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+	return f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 }
 
 func (f *Framework) PatchMySQL(meta metav1.ObjectMeta, transform func(*api.MySQL) *api.MySQL) (*api.MySQL, error) {
-	mysql, err := f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+	mysql, err := f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
-	mysql, _, err = util.PatchMySQL(f.dbClient.KubedbV1alpha1(), mysql, transform)
+	mysql, _, err = util.PatchMySQL(context.TODO(), f.dbClient.KubedbV1alpha1(), mysql, transform, metav1.PatchOptions{})
 	return mysql, err
 }
 
 func (f *Framework) DeleteMySQL(meta metav1.ObjectMeta) error {
-	return f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Delete(meta.Name, &metav1.DeleteOptions{})
+	return f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Delete(context.TODO(), meta.Name, metav1.DeleteOptions{})
 }
 
 func (f *Framework) EventuallyMySQL(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
-			_, err := f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+			_, err := f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 			if err != nil {
 				if kerr.IsNotFound(err) {
 					return false
@@ -127,7 +127,7 @@ func (f *Framework) EventuallyMySQL(meta metav1.ObjectMeta) GomegaAsyncAssertion
 func (f *Framework) EventuallyMySQLPhase(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() api.DatabasePhase {
-			db, err := f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+			db, err := f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			return db.Status.Phase
 		},
@@ -139,7 +139,7 @@ func (f *Framework) EventuallyMySQLPhase(meta metav1.ObjectMeta) GomegaAsyncAsse
 func (f *Framework) EventuallyMySQLRunning(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
-			mysql, err := f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Get(meta.Name, metav1.GetOptions{})
+			mysql, err := f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
 			return mysql.Status.Phase == api.DatabasePhaseRunning
 		},
@@ -149,20 +149,20 @@ func (f *Framework) EventuallyMySQLRunning(meta metav1.ObjectMeta) GomegaAsyncAs
 }
 
 func (f *Framework) CleanMySQL() {
-	mysqlList, err := f.dbClient.KubedbV1alpha1().MySQLs(f.namespace).List(metav1.ListOptions{})
+	mysqlList, err := f.dbClient.KubedbV1alpha1().MySQLs(f.namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return
 	}
 	for _, e := range mysqlList.Items {
-		if _, _, err := util.PatchMySQL(f.dbClient.KubedbV1alpha1(), &e, func(in *api.MySQL) *api.MySQL {
+		if _, _, err := util.PatchMySQL(context.TODO(), f.dbClient.KubedbV1alpha1(), &e, func(in *api.MySQL) *api.MySQL {
 			in.ObjectMeta.Finalizers = nil
 			in.Spec.TerminationPolicy = api.TerminationPolicyWipeOut
 			return in
-		}); err != nil {
+		}, metav1.PatchOptions{}); err != nil {
 			fmt.Printf("error Patching MySQL. error: %v", err)
 		}
 	}
-	if err := f.dbClient.KubedbV1alpha1().MySQLs(f.namespace).DeleteCollection(deleteInForeground(), metav1.ListOptions{}); err != nil {
+	if err := f.dbClient.KubedbV1alpha1().MySQLs(f.namespace).DeleteCollection(context.TODO(), meta_util.DeleteInForeground(), metav1.ListOptions{}); err != nil {
 		fmt.Printf("error in deletion of MySQL. Error: %v", err)
 	}
 }

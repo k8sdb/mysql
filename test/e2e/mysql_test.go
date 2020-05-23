@@ -16,6 +16,7 @@ limitations under the License.
 package e2e_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
@@ -31,6 +32,7 @@ import (
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	meta_util "kmodules.xyz/client-go/meta"
 	store "kmodules.xyz/objectstore-api/api/v1"
 	stashV1alpha1 "stash.appscode.dev/apimachinery/apis/stash/v1alpha1"
@@ -851,7 +853,7 @@ var _ = Describe("MySQL", func() {
 					testGeneralBehaviour()
 
 					By("Patching EnvVar")
-					_, _, err = util.PatchMySQL(f.ExtClient().KubedbV1alpha1(), mysql, func(in *api.MySQL) *api.MySQL {
+					_, _, err = util.PatchMySQL(context.TODO(), f.ExtClient().KubedbV1alpha1(), mysql, func(in *api.MySQL) *api.MySQL {
 						in.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 							{
 								Name:  MYSQL_DATABASE,
@@ -859,7 +861,7 @@ var _ = Describe("MySQL", func() {
 							},
 						}
 						return in
-					})
+					}, metav1.PatchOptions{})
 					Expect(err).NotTo(HaveOccurred())
 				})
 			})

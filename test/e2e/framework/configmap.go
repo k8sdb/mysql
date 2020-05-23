@@ -25,6 +25,7 @@ import (
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	meta_util "kmodules.xyz/client-go/meta"
 )
 
 func (f *Framework) InitScriptConfigMap() (*core.ConfigMap, error) {
@@ -74,7 +75,7 @@ func (f *Invocation) CreateConfigMap(obj *core.ConfigMap) error {
 }
 
 func (f *Framework) DeleteConfigMap(meta metav1.ObjectMeta) error {
-	err := f.kubeClient.CoreV1().ConfigMaps(meta.Namespace).Delete(context.TODO(), meta.Name, *deleteInForeground())
+	err := f.kubeClient.CoreV1().ConfigMaps(meta.Namespace).Delete(context.TODO(), meta.Name, meta_util.DeleteInForeground())
 	if !kerr.IsNotFound(err) {
 		return err
 	}

@@ -43,10 +43,10 @@ func (c *Controller) ensureDatabaseSecret(mysql *api.MySQL) error {
 			return err
 		}
 
-		ms, _, err := util.PatchMySQL(c.ExtClient.KubedbV1alpha1(), mysql, func(in *api.MySQL) *api.MySQL {
+		ms, _, err := util.PatchMySQL(context.TODO(), c.ExtClient.KubedbV1alpha1(), mysql, func(in *api.MySQL) *api.MySQL {
 			in.Spec.DatabaseSecret = secretVolumeSource
 			return in
-		})
+		}, metav1.PatchOptions{})
 		if err != nil {
 			return err
 		}
@@ -98,14 +98,14 @@ func (c *Controller) upgradeDatabaseSecret(mysql *api.MySQL) error {
 		Namespace: mysql.Namespace,
 	}
 
-	_, _, err := core_util.CreateOrPatchSecret(c.Client, meta, func(in *core.Secret) *core.Secret {
+	_, _, err := core_util.CreateOrPatchSecret(context.TODO(), c.Client, meta, func(in *core.Secret) *core.Secret {
 		if _, ok := in.Data[KeyMySQLUser]; !ok {
 			if val, ok2 := in.Data["user"]; ok2 {
 				in.StringData = map[string]string{KeyMySQLUser: string(val)}
 			}
 		}
 		return in
-	})
+	}, metav1.PatchOptions{})
 	return err
 }
 
