@@ -22,15 +22,15 @@ require (
 	k8s.io/apiserver v0.18.3
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/kube-aggregator v0.18.3
-	kmodules.xyz/client-go v0.0.0-20200522120609-c6430d66212f
+	kmodules.xyz/client-go v0.0.0-20200525195850-2fd180961371
 	kmodules.xyz/constants v0.0.0-20200506032633-a21e58ceec72
-	kmodules.xyz/custom-resources v0.0.0-20200521070540-2221c4957ef6
-	kmodules.xyz/monitoring-agent-api v0.0.0-20200521105700-6eb8ff8e7be9
+	kmodules.xyz/custom-resources v0.0.0-20200525025248-c2afe49bbec6
+	kmodules.xyz/monitoring-agent-api v0.0.0-20200525002655-2aa50cb10ce9
 	kmodules.xyz/objectstore-api v0.0.0-20200521103120-92080446e04d
 	kmodules.xyz/offshoot-api v0.0.0-20200521035628-e135bf07b226
 	kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0
-	kubedb.dev/apimachinery v0.14.0-alpha.1
-	stash.appscode.dev/apimachinery v0.9.0-rc.6.0.20200522135619-e81205a3590e
+	kubedb.dev/apimachinery v0.14.0-alpha.5
+	stash.appscode.dev/apimachinery v0.10.0-alpha.0
 )
 
 replace (

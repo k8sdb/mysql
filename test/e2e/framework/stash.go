@@ -21,22 +21,21 @@ import (
 	"time"
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	"kubedb.dev/apimachinery/pkg/controller"
 
 	. "github.com/onsi/gomega"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"kmodules.xyz/client-go/discovery"
 	meta_util "kmodules.xyz/client-go/meta"
-	appcat_api "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
-	"stash.appscode.dev/apimachinery/apis/stash/v1alpha1"
+	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+	"stash.appscode.dev/apimachinery/apis/stash"
 	stashV1alpha1 "stash.appscode.dev/apimachinery/apis/stash/v1alpha1"
-	"stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 	stashv1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 	v1beta1_util "stash.appscode.dev/apimachinery/client/clientset/versioned/typed/stash/v1beta1/util"
 )
 
 func (f *Framework) FoundStashCRDs() bool {
-	return controller.FoundStashCRDs(f.apiExtKubeClient)
+	return discovery.ExistsGroupKind(f.kubeClient.Discovery(), stash.GroupName, stashv1beta1.ResourceKindRestoreSession)
 }
 
 func (f *Invocation) BackupConfiguration(meta metav1.ObjectMeta, repo *stashV1alpha1.Repository) *stashv1beta1.BackupConfiguration {
@@ -50,7 +49,7 @@ func (f *Invocation) BackupConfiguration(meta metav1.ObjectMeta, repo *stashV1al
 				Name: repo.Name,
 			},
 			Schedule: "*/2 * * * *",
-			RetentionPolicy: v1alpha1.RetentionPolicy{
+			RetentionPolicy: stashV1alpha1.RetentionPolicy{
 				KeepLast: 5,
 				Name:     "keep-last-5",
 				Prune:    true,
@@ -61,8 +60,8 @@ func (f *Invocation) BackupConfiguration(meta metav1.ObjectMeta, repo *stashV1al
 				},
 				Target: &stashv1beta1.BackupTarget{
 					Ref: stashv1beta1.TargetRef{
-						APIVersion: appcat_api.SchemeGroupVersion.String(),
-						Kind:       appcat_api.ResourceKindApp,
+						APIVersion: appcat.SchemeGroupVersion.String(),
+						Kind:       appcat.ResourceKindApp,
 						Name:       meta.Name,
 					},
 				},
@@ -85,7 +84,7 @@ func (f *Framework) PauseBackupConfiguration(meta metav1.ObjectMeta) error {
 		context.TODO(),
 		f.stashClient.StashV1beta1(),
 		meta,
-		func(in *v1beta1.BackupConfiguration) *v1beta1.BackupConfiguration {
+		func(in *stashv1beta1.BackupConfiguration) *stashv1beta1.BackupConfiguration {
 			in.Spec.Paused = true
 			return in
 		},
@@ -153,8 +152,8 @@ func (f *Invocation) RestoreSession(meta metav1.ObjectMeta, repo *stashV1alpha1.
 			},
 			Target: &stashv1beta1.RestoreTarget{
 				Ref: stashv1beta1.TargetRef{
-					APIVersion: appcat_api.SchemeGroupVersion.String(),
-					Kind:       appcat_api.ResourceKindApp,
+					APIVersion: appcat.SchemeGroupVersion.String(),
+					Kind:       appcat.ResourceKindApp,
 					Name:       meta.Name,
 				},
 			},
@@ -176,7 +175,7 @@ func (f *Framework) EventuallyRestoreSessionPhase(meta metav1.ObjectMeta) Gomega
 	return Eventually(func() stashv1beta1.RestoreSessionPhase {
 		restoreSession, err := f.stashClient.StashV1beta1().RestoreSessions(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
-		if restoreSession.Status.Phase == v1beta1.RestoreSessionFailed {
+		if restoreSession.Status.Phase == stashv1beta1.RestoreSessionFailed {
 			fmt.Println("Restoresession failed. ", restoreSession.Status.Stats)
 		}
 		return restoreSession.Status.Phase
