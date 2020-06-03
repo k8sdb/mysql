@@ -344,7 +344,7 @@ endif
 .PHONY: install
 install:
 	@cd ../installer; \
-	helm install kubedb charts/kubedb \
+	helm install kubedb charts/kubedb --wait \
 		--namespace=kube-system \
 		--set operator.registry=$(REGISTRY) \
 		--set operator.repository=my-operator \
@@ -353,7 +353,6 @@ install:
 		--set enterprise.tag=$(ENTERPRISE_TAG) \
 		--set imagePullPolicy=Always \
 		$(IMAGE_PULL_SECRETS); \
-	kubectl wait --for=condition=Ready pods -n kube-system -l 'app.kubernetes.io/name=kubedb,app.kubernetes.io/instance=kubedb' --timeout=5m; \
 	kubectl wait --for=condition=Available apiservice -l 'app.kubernetes.io/name=kubedb,app.kubernetes.io/instance=kubedb' --timeout=5m; \
 	until kubectl get crds mysqlversions.catalog.kubedb.com -o=jsonpath='{.items[0].metadata.name}' &> /dev/null; do sleep 1; done; \
 	kubectl wait --for=condition=Established crds -l app.kubernetes.io/name=kubedb --timeout=5m; \
