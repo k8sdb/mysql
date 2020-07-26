@@ -5,7 +5,6 @@ go 1.12
 require (
 	github.com/appscode/go v0.0.0-20200323182826-54e98e09185a
 	github.com/codeskyblue/go-sh v0.0.0-20190412065543-76bd3d59ff27
-	github.com/coreos/go-semver v0.3.0
 	github.com/coreos/prometheus-operator v0.39.0
 	github.com/fatih/structs v1.1.0
 	github.com/go-sql-driver/mysql v1.5.0

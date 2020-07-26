@@ -38,69 +38,51 @@ import (
 )
 
 func (c *Controller) ensureStatefulSet(mysql *api.MySQL) (kutil.VerbType, error) {
-	if err := c.checkStatefulSet(mysql); err != nil {
-		return kutil.VerbUnchanged, err
-	}
-
-	// Create statefulSet for MySQL database
-	statefulSet, vt, err := c.createStatefulSet(mysql)
+	stsName, stsCur, err := c.findStatefulSet(mysql)
 	if err != nil {
 		return kutil.VerbUnchanged, err
 	}
 
-	// Check StatefulSet Pod status
-	if vt != kutil.VerbUnchanged {
-		if err := c.checkStatefulSetPodStatus(statefulSet); err != nil {
+	vt := kutil.VerbUnchanged
+	if stsCur == nil {
+		// Create statefulSet for MySQL database
+		var stsNew *apps.StatefulSet
+		stsNew, vt, err = c.createStatefulSet(mysql, stsName)
+		if err != nil {
 			return kutil.VerbUnchanged, err
 		}
-		c.recorder.Eventf(
-			mysql,
-			core.EventTypeNormal,
-			eventer.EventReasonSuccessful,
-			"Successfully %v StatefulSet",
-			vt,
-		)
+
+		// Check StatefulSet Pod status
+		if vt != kutil.VerbUnchanged {
+			if err := c.checkStatefulSetPodStatus(stsNew); err != nil {
+				return kutil.VerbUnchanged, err
+			}
+			c.recorder.Eventf(
+				mysql,
+				core.EventTypeNormal,
+				eventer.EventReasonSuccessful,
+				"Successfully %v StatefulSet",
+				vt,
+			)
+		}
 	}
 
 	// ensure pdb
-	if err := c.CreateStatefulSetPodDisruptionBudget(statefulSet); err != nil {
+	if err := c.CreateStatefulSetPodDisruptionBudget(stsCur); err != nil {
 		return kutil.VerbUnchanged, err
 	}
 
 	return vt, nil
 }
 
-func (c *Controller) checkStatefulSet(mysql *api.MySQL) error {
-	// StatefulSet for MySQL database
-	stsList, err := c.Client.AppsV1().StatefulSets(mysql.Namespace).List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		return err
-	}
-
-	for _, sts := range stsList.Items {
-		if metav1.IsControlledBy(&sts, mysql) && (sts.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL ||
-			sts.Labels[api.LabelDatabaseName] != mysql.Name) {
-			return fmt.Errorf(`intended statefulSet "%v/%v" already exists`, sts.Namespace, sts.Name)
-		}
-	}
-
-	return nil
-}
-
-func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kutil.VerbType, error) {
-	stsName, err := c.currentStatefulSetName(mysql)
-	if err != nil {
-		return nil, kutil.VerbUnchanged, err
-	}
-
+func (c *Controller) createStatefulSet(mysql *api.MySQL, stsName string) (*apps.StatefulSet, kutil.VerbType, error) {
 	statefulSetMeta := metav1.ObjectMeta{
 		Name:      stsName,
 		Namespace: mysql.Namespace,
 	}
-
 	owner := metav1.NewControllerRef(mysql, api.SchemeGroupVersion.WithKind(api.ResourceKindMySQL))
 
-	mysqlVersion, err := c.ExtClient.CatalogV1alpha1().MySQLVersions().Get(context.TODO(), string(mysql.Spec.Version), metav1.GetOptions{})
+	mysqlVersion, err := c.ExtClient.CatalogV1alpha1().MySQLVersions().Get(context.TODO(), mysql.Spec.Version, metav1.GetOptions{})
 	if err != nil {
 		return nil, kutil.VerbUnchanged, err
 	}
@@ -476,28 +458,28 @@ func upsertCustomConfig(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.S
 	return statefulSet
 }
 
-func (c *Controller) currentStatefulSetName(mysql *api.MySQL) (string, error) {
+func (c *Controller) findStatefulSet(mysql *api.MySQL) (string, *apps.StatefulSet, error) {
 	stsList, err := c.Client.AppsV1().StatefulSets(mysql.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	var name string
 	count := 0
-	for _, sts := range stsList.Items {
+	var cur *apps.StatefulSet
+	for i, sts := range stsList.Items {
 		if metav1.IsControlledBy(&sts, mysql) &&
 			sts.Labels[api.LabelDatabaseKind] == api.ResourceKindMySQL &&
 			sts.Labels[api.LabelDatabaseName] == mysql.Name {
 			count++
-			name = sts.Name
+			cur = &stsList.Items[i]
 		}
 	}
 
 	switch count {
 	case 0:
-		return mysql.OffshootName(), nil
+		return mysql.OffshootName(), nil, nil
 	case 1:
-		return name, nil
+		return cur.Name, cur, nil
 	}
-	return "", fmt.Errorf("more then one StatefulSet found for MySQL %s/%s", mysql.Namespace, mysql.Name)
+	return "", nil, fmt.Errorf("more then one StatefulSet found for MySQL %s/%s", mysql.Namespace, mysql.Name)
 }
