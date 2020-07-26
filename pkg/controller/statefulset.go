@@ -28,10 +28,8 @@ import (
 	"github.com/appscode/go/log"
 	"github.com/appscode/go/types"
 	"github.com/fatih/structs"
-	"github.com/pkg/errors"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
-	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kutil "kmodules.xyz/client-go"
 	app_util "kmodules.xyz/client-go/apps/v1"
@@ -76,9 +74,6 @@ func (c *Controller) checkStatefulSet(mysql *api.MySQL) error {
 	// StatefulSet for MySQL database
 	stsList, err := c.Client.AppsV1().StatefulSets(mysql.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		if kerr.IsNotFound(err) {
-			return nil
-		}
 		return err
 	}
 
@@ -93,7 +88,7 @@ func (c *Controller) checkStatefulSet(mysql *api.MySQL) error {
 }
 
 func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kutil.VerbType, error) {
-	stsName, err := c.getCurStsName(mysql)
+	stsName, err := c.currentStatefulSetName(mysql)
 	if err != nil {
 		return nil, kutil.VerbUnchanged, err
 	}
@@ -481,19 +476,17 @@ func upsertCustomConfig(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.S
 	return statefulSet
 }
 
-func (c *Controller) getCurStsName(mysql *api.MySQL) (string, error) {
+func (c *Controller) currentStatefulSetName(mysql *api.MySQL) (string, error) {
 	stsList, err := c.Client.AppsV1().StatefulSets(mysql.Namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
-		if kerr.IsNotFound(err) {
-			return mysql.OffshootName(), nil
-		}
 		return "", err
 	}
 
 	var name string
 	count := 0
 	for _, sts := range stsList.Items {
-		if metav1.IsControlledBy(&sts, mysql) && sts.Labels[api.LabelDatabaseKind] == api.ResourceKindMySQL &&
+		if metav1.IsControlledBy(&sts, mysql) &&
+			sts.Labels[api.LabelDatabaseKind] == api.ResourceKindMySQL &&
 			sts.Labels[api.LabelDatabaseName] == mysql.Name {
 			count++
 			name = sts.Name
@@ -505,7 +498,6 @@ func (c *Controller) getCurStsName(mysql *api.MySQL) (string, error) {
 		return mysql.OffshootName(), nil
 	case 1:
 		return name, nil
-	default:
-		return "", errors.New("more then one StatefulSet are found not supported")
 	}
+	return "", fmt.Errorf("more then one StatefulSet found for MySQL %s/%s", mysql.Namespace, mysql.Name)
 }
