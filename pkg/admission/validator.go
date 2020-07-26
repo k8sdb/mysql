@@ -193,9 +193,11 @@ func validateMySQLGroup(replicas int32, group api.MySQLGroupSpec) error {
 // ValidateMySQL checks if the object satisfies all the requirements.
 // It is not method of Interface, because it is referenced from controller package too.
 func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *api.MySQL, strictValidation bool) error {
-
 	if mysql.Spec.Version == "" {
 		return errors.New(`'spec.version' is missing`)
+	}
+	if _, err := extClient.CatalogV1alpha1().MySQLVersions().Get(context.TODO(), mysql.Spec.Version, metav1.GetOptions{}); err != nil {
+		return err
 	}
 
 	if mysql.Spec.Replicas == nil {
@@ -250,7 +252,7 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 
 		// Check if mysqlVersion is deprecated.
 		// If deprecated, return error
-		mysqlVersion, err := extClient.CatalogV1alpha1().MySQLVersions().Get(context.TODO(), string(mysql.Spec.Version), metav1.GetOptions{})
+		mysqlVersion, err := extClient.CatalogV1alpha1().MySQLVersions().Get(context.TODO(), mysql.Spec.Version, metav1.GetOptions{})
 		if err != nil {
 			return err
 		}
