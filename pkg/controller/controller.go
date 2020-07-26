@@ -30,6 +30,7 @@ import (
 
 	"github.com/appscode/go/log"
 	pcm "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
+	cm "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 	core "k8s.io/api/core/v1"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -77,17 +78,19 @@ func New(
 	appCatalogClient appcat_cs.Interface,
 	promClient pcm.MonitoringV1Interface,
 	opt amc.Config,
+	cmClientset cm.Interface,
 	recorder record.EventRecorder,
 ) *Controller {
 	return &Controller{
 		Controller: &amc.Controller{
-			ClientConfig:     clientConfig,
-			Client:           client,
-			ExtClient:        extClient,
-			StashClient:      stashClient,
-			CRDClient:        crdClient,
-			DynamicClient:    dc,
-			AppCatalogClient: appCatalogClient,
+			ClientConfig:      clientConfig,
+			Client:            client,
+			ExtClient:         extClient,
+			StashClient:       stashClient,
+			CRDClient:         crdClient,
+			DynamicClient:     dc,
+			AppCatalogClient:  appCatalogClient,
+			CertManagerClient: cmClientset,
 		},
 		Config:     opt,
 		promClient: promClient,
@@ -112,6 +115,7 @@ func (c *Controller) EnsureCustomResourceDefinitions() error {
 // Init initializes mysql, DormantDB amd Snapshot watcher
 func (c *Controller) Init() error {
 	c.initWatcher()
+	c.initSecretWatcher()
 	c.RSQueue = restoresession.NewController(c.Controller, c, c.Config, nil, c.recorder).AddEventHandlerFunc(c.selector)
 
 	return nil

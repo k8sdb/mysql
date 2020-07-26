@@ -1362,8 +1362,8 @@ kmodules.xyz/prober v0.0.0-20200521101241-adf06150535c h1:aV6O9NbDpnFVra/D8c7b7T
 kmodules.xyz/prober v0.0.0-20200521101241-adf06150535c/go.mod h1:XYWZkfQquD09Mn+O7piHS+SEPq9oFV1Wy2WZ9DA+oeA=
 kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0 h1:rEOWPdiRYShJdJxX0sf76JYWOMzPQH4v8ByT+DRCmVY=
 kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0/go.mod h1:9hUftUcjvzDSiO5LIbe2U8Naz4tyS9Ndf1LRzsytMzs=
-kubedb.dev/apimachinery v0.14.0-beta.1.0.20200726155316-6e741a28416a h1:JVr/AEkhcNw1mVDXXi8VZRVQXw/jS8jJ7hrV6ODouPc=
-kubedb.dev/apimachinery v0.14.0-beta.1.0.20200726155316-6e741a28416a/go.mod h1:4ap+iqd4V+a7LtqIElAEwzzz+76RJ3nQw7Jmq06jlXY=
+kubedb.dev/apimachinery v0.14.0-beta.1.0.20200726203932-93f0af4b3d70 h1:odOJF5lrxldhJhtSJobIdBkIzOTe/sUmWsQPLDwdMCM=
+kubedb.dev/apimachinery v0.14.0-beta.1.0.20200726203932-93f0af4b3d70/go.mod h1:4ap+iqd4V+a7LtqIElAEwzzz+76RJ3nQw7Jmq06jlXY=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
 modernc.org/golex v1.0.0/go.mod h1:b/QX9oBD/LhixY6NDh+IdGv17hgB+51fET1i2kPSmvk=
 modernc.org/mathutil v1.0.0/go.mod h1:wU0vUrJsVWBZ4P6e7xtFJEhFSNsfRLJ8H458uRjg03k=

@@ -27,6 +27,7 @@ import (
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/cache"
 	core_util "kmodules.xyz/client-go/core/v1"
 )
 
@@ -124,4 +125,13 @@ func (c *Controller) checkSecret(secretName string, mysql *api.MySQL) (*core.Sec
 		return nil, fmt.Errorf(`intended secret "%v/%v" already exists`, mysql.Namespace, secretName)
 	}
 	return secret, nil
+}
+
+func (c *Controller) mysqlForSecret(s *core.Secret) cache.ExplicitKey {
+	ctrl := metav1.GetControllerOf(s)
+	if ctrl == nil || ctrl.Kind != api.ResourceKindMySQL {
+		return ""
+	}
+	// Owner ref is set by the enterprise operator
+	return cache.ExplicitKey(s.Namespace + "/" + ctrl.Name)
 }

@@ -28,6 +28,7 @@ import (
 	"github.com/appscode/go/log"
 	"github.com/pkg/errors"
 	core "k8s.io/api/core/v1"
+	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -102,6 +103,30 @@ func (c *Controller) create(mysql *api.MySQL) error {
 
 	if err := c.ensureDatabaseSecret(mysql); err != nil {
 		return err
+	}
+
+	// wait for certificates
+	if mysql.Spec.TLS != nil {
+		ok, err := dynamic_util.ResourcesExists(
+			c.DynamicClient,
+			core.SchemeGroupVersion.WithResource("secrets"),
+			mysql.Namespace,
+			meta_util.NameWithSuffix(mysql.Name, api.MySQLServerCertSuffix),
+			meta_util.NameWithSuffix(mysql.Name, api.MySQLClientCertSuffix),
+			meta_util.NameWithSuffix(mysql.Name, api.MySQLExporterClientCertSuffix),
+		)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			log.Infoln(fmt.Sprintf("wait for all certificate secrets for mysql %s/%s", mysql.Namespace, mysql.Name))
+			// wait for exporter secret to configure exporter
+			_, err := c.Client.CoreV1().Secrets(mysql.Namespace).Get(context.TODO(), "exporter-cnf", metav1.GetOptions{})
+			if kerr.IsNotFound(err) {
+				return nil
+			}
+			return err
+		}
 	}
 
 	// ensure database StatefulSet
