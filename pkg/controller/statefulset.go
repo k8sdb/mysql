@@ -30,7 +30,6 @@ import (
 	"github.com/fatih/structs"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
-	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kutil "kmodules.xyz/client-go"
 	app_util "kmodules.xyz/client-go/apps/v1"
@@ -39,65 +38,51 @@ import (
 )
 
 func (c *Controller) ensureStatefulSet(mysql *api.MySQL) (kutil.VerbType, error) {
-	if err := c.checkStatefulSet(mysql); err != nil {
-		return kutil.VerbUnchanged, err
-	}
-
-	// Create statefulSet for MySQL database
-	statefulSet, vt, err := c.createStatefulSet(mysql)
+	stsName, stsCur, err := c.findStatefulSet(mysql)
 	if err != nil {
 		return kutil.VerbUnchanged, err
 	}
 
-	// Check StatefulSet Pod status
-	if vt != kutil.VerbUnchanged {
-		if err := c.checkStatefulSetPodStatus(statefulSet); err != nil {
+	vt := kutil.VerbUnchanged
+	if stsCur == nil {
+		// Create statefulSet for MySQL database
+		var stsNew *apps.StatefulSet
+		stsNew, vt, err = c.createStatefulSet(mysql, stsName)
+		if err != nil {
 			return kutil.VerbUnchanged, err
 		}
-		c.recorder.Eventf(
-			mysql,
-			core.EventTypeNormal,
-			eventer.EventReasonSuccessful,
-			"Successfully %v StatefulSet",
-			vt,
-		)
+
+		// Check StatefulSet Pod status
+		if vt != kutil.VerbUnchanged {
+			if err := c.checkStatefulSetPodStatus(stsNew); err != nil {
+				return kutil.VerbUnchanged, err
+			}
+			c.recorder.Eventf(
+				mysql,
+				core.EventTypeNormal,
+				eventer.EventReasonSuccessful,
+				"Successfully %v StatefulSet",
+				vt,
+			)
+		}
 	}
 
 	// ensure pdb
-	if err := c.CreateStatefulSetPodDisruptionBudget(statefulSet); err != nil {
+	if err := c.CreateStatefulSetPodDisruptionBudget(stsCur); err != nil {
 		return kutil.VerbUnchanged, err
 	}
 
 	return vt, nil
 }
 
-func (c *Controller) checkStatefulSet(mysql *api.MySQL) error {
-	// SatatefulSet for MySQL database
-	statefulSet, err := c.Client.AppsV1().StatefulSets(mysql.Namespace).Get(context.TODO(), mysql.OffshootName(), metav1.GetOptions{})
-	if err != nil {
-		if kerr.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-
-	if statefulSet.Labels[api.LabelDatabaseKind] != api.ResourceKindMySQL ||
-		statefulSet.Labels[api.LabelDatabaseName] != mysql.Name {
-		return fmt.Errorf(`intended statefulSet "%v/%v" already exists`, mysql.Namespace, mysql.OffshootName())
-	}
-
-	return nil
-}
-
-func (c *Controller) createStatefulSet(mysql *api.MySQL) (*apps.StatefulSet, kutil.VerbType, error) {
+func (c *Controller) createStatefulSet(mysql *api.MySQL, stsName string) (*apps.StatefulSet, kutil.VerbType, error) {
 	statefulSetMeta := metav1.ObjectMeta{
-		Name:      mysql.OffshootName(),
+		Name:      stsName,
 		Namespace: mysql.Namespace,
 	}
-
 	owner := metav1.NewControllerRef(mysql, api.SchemeGroupVersion.WithKind(api.ResourceKindMySQL))
 
-	mysqlVersion, err := c.ExtClient.CatalogV1alpha1().MySQLVersions().Get(context.TODO(), string(mysql.Spec.Version), metav1.GetOptions{})
+	mysqlVersion, err := c.ExtClient.CatalogV1alpha1().MySQLVersions().Get(context.TODO(), mysql.Spec.Version, metav1.GetOptions{})
 	if err != nil {
 		return nil, kutil.VerbUnchanged, err
 	}
@@ -250,7 +235,7 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 				})
 			}
 			// Set Admin Secret as MYSQL_ROOT_PASSWORD env variable
-			in = upsertEnv(in, mysql)
+			in = upsertEnv(in, mysql, stsName)
 			in = upsertDataVolume(in, mysql)
 			in = upsertCustomConfig(in, mysql)
 
@@ -334,7 +319,7 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.Sta
 	return statefulSet
 }
 
-func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet {
+func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL, stsName string) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularMySQL || container.Name == "exporter" {
 			envs := []core.EnvVar{
@@ -368,7 +353,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSe
 				envs = append(envs, []core.EnvVar{
 					{
 						Name:  "BASE_NAME",
-						Value: mysql.Name,
+						Value: stsName,
 					},
 					{
 						Name:  "GOV_SVC",
@@ -471,4 +456,30 @@ func upsertCustomConfig(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.S
 		}
 	}
 	return statefulSet
+}
+
+func (c *Controller) findStatefulSet(mysql *api.MySQL) (string, *apps.StatefulSet, error) {
+	stsList, err := c.Client.AppsV1().StatefulSets(mysql.Namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return "", nil, err
+	}
+
+	count := 0
+	var cur *apps.StatefulSet
+	for i, sts := range stsList.Items {
+		if metav1.IsControlledBy(&sts, mysql) &&
+			sts.Labels[api.LabelDatabaseKind] == api.ResourceKindMySQL &&
+			sts.Labels[api.LabelDatabaseName] == mysql.Name {
+			count++
+			cur = &stsList.Items[i]
+		}
+	}
+
+	switch count {
+	case 0:
+		return mysql.OffshootName(), nil, nil
+	case 1:
+		return cur.Name, cur, nil
+	}
+	return "", nil, fmt.Errorf("more then one StatefulSet found for MySQL %s/%s", mysql.Namespace, mysql.Name)
 }

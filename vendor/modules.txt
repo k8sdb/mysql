@@ -88,8 +88,6 @@ github.com/blang/semver
 github.com/codegangsta/inject
 # github.com/codeskyblue/go-sh v0.0.0-20190412065543-76bd3d59ff27
 github.com/codeskyblue/go-sh
-# github.com/coreos/go-semver v0.3.0
-github.com/coreos/go-semver/semver
 # github.com/coreos/go-systemd v0.0.0-20190321100706-95778dfbb74e
 github.com/coreos/go-systemd/daemon
 github.com/coreos/go-systemd/journal
