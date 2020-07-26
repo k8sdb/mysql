@@ -196,7 +196,9 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 	if mysql.Spec.Version == "" {
 		return errors.New(`'spec.version' is missing`)
 	}
-	if _, err := extClient.CatalogV1alpha1().MySQLVersions().Get(context.TODO(), mysql.Spec.Version, metav1.GetOptions{}); err != nil {
+
+	mysqlVersion, err := extClient.CatalogV1alpha1().MySQLVersions().Get(context.TODO(), mysql.Spec.Version, metav1.GetOptions{})
+	if err != nil {
 		return err
 	}
 
@@ -252,11 +254,6 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 
 		// Check if mysqlVersion is deprecated.
 		// If deprecated, return error
-		mysqlVersion, err := extClient.CatalogV1alpha1().MySQLVersions().Get(context.TODO(), mysql.Spec.Version, metav1.GetOptions{})
-		if err != nil {
-			return err
-		}
-
 		if mysqlVersion.Spec.Deprecated {
 			return fmt.Errorf("mysql %s/%s is using deprecated version %v. Skipped processing", mysql.Namespace, mysql.Name, mysqlVersion.Name)
 		}
