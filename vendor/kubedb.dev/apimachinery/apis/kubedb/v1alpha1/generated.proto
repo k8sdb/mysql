@@ -36,9 +36,9 @@ import "kmodules.xyz/offshoot-api/api/v1/generated.proto";
 option go_package = "v1alpha1";
 
 message CertificateSpec {
-  // Organization is the organization to be used on the Certificate
+  // Full X509 name specification (https://golang.org/pkg/crypto/x509/pkix/#Name).
   // +optional
-  repeated string organization = 1;
+  optional X509Subject subject = 1;
 
   // Certificate default Duration
   // +optional
@@ -60,6 +60,10 @@ message CertificateSpec {
   // Certificate.
   // +optional
   repeated string uriSANs = 6;
+
+  // EmailSANs is a list of email subjectAltNames to be set on the Certificate.
+  // +optional
+  repeated string emailSANs = 7;
 }
 
 message ConnectionPoolConfig {
@@ -737,6 +741,10 @@ message MongoDBSpec {
   // TerminationPolicy controls the delete operation for database
   // +optional
   optional string terminationPolicy = 20;
+
+  // StorageEngine can be wiredTiger (default) or inMemory
+  // See available StorageEngine: https://docs.mongodb.com/manual/core/storage-engines/
+  optional string storageEngine = 21;
 }
 
 message MongoDBStatus {
@@ -1339,6 +1347,10 @@ message RedisSpec {
   // Template.
   optional k8s.io.api.apps.v1.StatefulSetUpdateStrategy updateStrategy = 11;
 
+  // TLS contains tls configurations for client and server.
+  // +optional
+  optional TLSConfig tls = 15;
+
   // Indicates that the database is paused and controller will not sync any changes made to this spec.
   // +optional
   optional bool paused = 12;
@@ -1375,7 +1387,7 @@ message TLSConfig {
 
   // Certificate provides server certificate options used by PgBouncer pods.
   // These options are passed to a cert-manager Certificate object.
-  // xref: https://github.com/jetstack/cert-manager/blob/v0.12.0/pkg/apis/certmanager/v1alpha2/types_certificate.go#L71-L146
+  // xref: https://github.com/jetstack/cert-manager/blob/v0.16.0/pkg/apis/certmanager/v1beta1/types_certificate.go#L82-L162
   // +optional
   optional CertificateSpec certificate = 2;
 }
@@ -1384,5 +1396,40 @@ message TLSPolicy {
   optional MemberSecret member = 1;
 
   optional string operatorSecret = 2;
+}
+
+// X509Subject Full X509 name specification
+message X509Subject {
+  // Organizations to be used on the Certificate.
+  // +optional
+  repeated string organizations = 1;
+
+  // Countries to be used on the Certificate.
+  // +optional
+  repeated string countries = 2;
+
+  // Organizational Units to be used on the Certificate.
+  // +optional
+  repeated string organizationalUnits = 3;
+
+  // Cities to be used on the Certificate.
+  // +optional
+  repeated string localities = 4;
+
+  // State/Provinces to be used on the Certificate.
+  // +optional
+  repeated string provinces = 5;
+
+  // Street addresses to be used on the Certificate.
+  // +optional
+  repeated string streetAddresses = 6;
+
+  // Postal codes to be used on the Certificate.
+  // +optional
+  repeated string postalCodes = 7;
+
+  // Serial number to be used on the Certificate.
+  // +optional
+  optional string serialNumber = 8;
 }
 

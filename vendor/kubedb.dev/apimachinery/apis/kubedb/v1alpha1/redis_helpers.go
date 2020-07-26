@@ -35,7 +35,9 @@ import (
 	ofst "kmodules.xyz/offshoot-api/api/v1"
 )
 
-const RedisShardAffinityTemplateVar = "SHARD_INDEX"
+const (
+	RedisShardAffinityTemplateVar = "SHARD_INDEX"
+)
 
 func (_ Redis) CustomResourceDefinition() *apiextensions.CustomResourceDefinition {
 	return crds.MustCustomResourceDefinition(SchemeGroupVersion.WithResource(ResourcePluralRedis))

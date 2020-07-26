@@ -7295,7 +7295,7 @@ spec:
                 certificate:
                   description: 'Certificate provides server certificate options used
                     by PgBouncer pods. These options are passed to a cert-manager
-                    Certificate object. xref: https://github.com/jetstack/cert-manager/blob/v0.12.0/pkg/apis/certmanager/v1alpha2/types_certificate.go#L71-L146'
+                    Certificate object. xref: https://github.com/jetstack/cert-manager/blob/v0.16.0/pkg/apis/certmanager/v1beta1/types_certificate.go#L82-L162'
                   properties:
                     dnsNames:
                       description: DNSNames is a list of subject alt names to be used
@@ -7306,21 +7306,63 @@ spec:
                     duration:
                       description: Certificate default Duration
                       type: string
+                    emailSANs:
+                      description: EmailSANs is a list of email subjectAltNames to
+                        be set on the Certificate.
+                      items:
+                        type: string
+                      type: array
                     ipAddresses:
                       description: IPAddresses is a list of IP addresses to be used
                         on the Certificate
                       items:
                         type: string
                       type: array
-                    organization:
-                      description: Organization is the organization to be used on
-                        the Certificate
-                      items:
-                        type: string
-                      type: array
                     renewBefore:
                       description: Certificate renew before expiration duration
                       type: string
+                    subject:
+                      description: Full X509 name specification (https://golang.org/pkg/crypto/x509/pkix/#Name).
+                      properties:
+                        countries:
+                          description: Countries to be used on the Certificate.
+                          items:
+                            type: string
+                          type: array
+                        localities:
+                          description: Cities to be used on the Certificate.
+                          items:
+                            type: string
+                          type: array
+                        organizationalUnits:
+                          description: Organizational Units to be used on the Certificate.
+                          items:
+                            type: string
+                          type: array
+                        organizations:
+                          description: Organizations to be used on the Certificate.
+                          items:
+                            type: string
+                          type: array
+                        postalCodes:
+                          description: Postal codes to be used on the Certificate.
+                          items:
+                            type: string
+                          type: array
+                        provinces:
+                          description: State/Provinces to be used on the Certificate.
+                          items:
+                            type: string
+                          type: array
+                        serialNumber:
+                          description: Serial number to be used on the Certificate.
+                          type: string
+                        streetAddresses:
+                          description: Street addresses to be used on the Certificate.
+                          items:
+                            type: string
+                          type: array
+                      type: object
                     uriSANs:
                       description: URISANs is a list of URI Subject Alternative Names
                         to be set on this Certificate.

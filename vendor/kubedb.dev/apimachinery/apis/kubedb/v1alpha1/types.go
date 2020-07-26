@@ -102,15 +102,15 @@ type TLSConfig struct {
 
 	// Certificate provides server certificate options used by PgBouncer pods.
 	// These options are passed to a cert-manager Certificate object.
-	// xref: https://github.com/jetstack/cert-manager/blob/v0.12.0/pkg/apis/certmanager/v1alpha2/types_certificate.go#L71-L146
+	// xref: https://github.com/jetstack/cert-manager/blob/v0.16.0/pkg/apis/certmanager/v1beta1/types_certificate.go#L82-L162
 	// +optional
 	Certificate *CertificateSpec `json:"certificate,omitempty" protobuf:"bytes,2,opt,name=certificate"`
 }
 
 type CertificateSpec struct {
-	// Organization is the organization to be used on the Certificate
+	// Full X509 name specification (https://golang.org/pkg/crypto/x509/pkix/#Name).
 	// +optional
-	Organization []string `json:"organization,omitempty" protobuf:"bytes,1,rep,name=organization"`
+	Subject *X509Subject `json:"subject,omitempty" protobuf:"bytes,1,opt,name=subject"`
 
 	// Certificate default Duration
 	// +optional
@@ -132,4 +132,36 @@ type CertificateSpec struct {
 	// Certificate.
 	// +optional
 	URISANs []string `json:"uriSANs,omitempty" protobuf:"bytes,6,rep,name=uriSANs"`
+
+	// EmailSANs is a list of email subjectAltNames to be set on the Certificate.
+	// +optional
+	EmailSANs []string `json:"emailSANs,omitempty" protobuf:"bytes,7,rep,name=emailSANs"`
+}
+
+// X509Subject Full X509 name specification
+type X509Subject struct {
+	// Organizations to be used on the Certificate.
+	// +optional
+	Organizations []string `json:"organizations,omitempty" protobuf:"bytes,1,rep,name=organizations"`
+	// Countries to be used on the Certificate.
+	// +optional
+	Countries []string `json:"countries,omitempty" protobuf:"bytes,2,rep,name=countries"`
+	// Organizational Units to be used on the Certificate.
+	// +optional
+	OrganizationalUnits []string `json:"organizationalUnits,omitempty" protobuf:"bytes,3,rep,name=organizationalUnits"`
+	// Cities to be used on the Certificate.
+	// +optional
+	Localities []string `json:"localities,omitempty" protobuf:"bytes,4,rep,name=localities"`
+	// State/Provinces to be used on the Certificate.
+	// +optional
+	Provinces []string `json:"provinces,omitempty" protobuf:"bytes,5,rep,name=provinces"`
+	// Street addresses to be used on the Certificate.
+	// +optional
+	StreetAddresses []string `json:"streetAddresses,omitempty" protobuf:"bytes,6,rep,name=streetAddresses"`
+	// Postal codes to be used on the Certificate.
+	// +optional
+	PostalCodes []string `json:"postalCodes,omitempty" protobuf:"bytes,7,rep,name=postalCodes"`
+	// Serial number to be used on the Certificate.
+	// +optional
+	SerialNumber string `json:"serialNumber,omitempty" protobuf:"bytes,8,opt,name=serialNumber"`
 }
