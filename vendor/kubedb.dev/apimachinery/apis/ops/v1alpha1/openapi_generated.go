@@ -389,6 +389,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBOpsRequestStatus":            schema_apimachinery_apis_ops_v1alpha1_MongoDBOpsRequestStatus(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBShardNode":                   schema_apimachinery_apis_ops_v1alpha1_MongoDBShardNode(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBVerticalScalingSpec":         schema_apimachinery_apis_ops_v1alpha1_MongoDBVerticalScalingSpec(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBVolumeExpansionSpec":         schema_apimachinery_apis_ops_v1alpha1_MongoDBVolumeExpansionSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MongosNode":                         schema_apimachinery_apis_ops_v1alpha1_MongosNode(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLHorizontalScalingSpec":         schema_apimachinery_apis_ops_v1alpha1_MySQLHorizontalScalingSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MySQLOpsRequest":                    schema_apimachinery_apis_ops_v1alpha1_MySQLOpsRequest(ref),
@@ -412,10 +413,12 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ProxySQLOpsRequestList":             schema_apimachinery_apis_ops_v1alpha1_ProxySQLOpsRequestList(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ProxySQLOpsRequestSpec":             schema_apimachinery_apis_ops_v1alpha1_ProxySQLOpsRequestSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.ProxySQLOpsRequestStatus":           schema_apimachinery_apis_ops_v1alpha1_ProxySQLOpsRequestStatus(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisHorizontalScalingSpec":         schema_apimachinery_apis_ops_v1alpha1_RedisHorizontalScalingSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisOpsRequest":                    schema_apimachinery_apis_ops_v1alpha1_RedisOpsRequest(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisOpsRequestList":                schema_apimachinery_apis_ops_v1alpha1_RedisOpsRequestList(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisOpsRequestSpec":                schema_apimachinery_apis_ops_v1alpha1_RedisOpsRequestSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisOpsRequestStatus":              schema_apimachinery_apis_ops_v1alpha1_RedisOpsRequestStatus(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisVerticalScalingSpec":           schema_apimachinery_apis_ops_v1alpha1_RedisVerticalScalingSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.UpgradeSpec":                        schema_apimachinery_apis_ops_v1alpha1_UpgradeSpec(ref),
 	}
 }
@@ -18294,12 +18297,18 @@ func schema_apimachinery_apis_ops_v1alpha1_MongoDBOpsRequestSpec(ref common.Refe
 							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBVerticalScalingSpec"),
 						},
 					},
+					"volumeExpansion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specifies information necessary for volume expansion",
+							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBVolumeExpansionSpec"),
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBHorizontalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBVerticalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.UpgradeSpec"},
+			"k8s.io/api/core/v1.LocalObjectReference", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBHorizontalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBVerticalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBVolumeExpansionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.UpgradeSpec"},
 	}
 }
 
@@ -18406,6 +18415,36 @@ func schema_apimachinery_apis_ops_v1alpha1_MongoDBVerticalScalingSpec(ref common
 		},
 		Dependencies: []string{
 			"k8s.io/api/core/v1.ResourceRequirements"},
+	}
+}
+
+func schema_apimachinery_apis_ops_v1alpha1_MongoDBVolumeExpansionSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "MongoDBVolumeExpansionSpec is the spec for mongodb volume expansion",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"standalone": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
+						},
+					},
+					"configServer": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
+						},
+					},
+					"shard": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/api/resource.Quantity"},
 	}
 }
 
@@ -19327,6 +19366,32 @@ func schema_apimachinery_apis_ops_v1alpha1_ProxySQLOpsRequestStatus(ref common.R
 	}
 }
 
+func schema_apimachinery_apis_ops_v1alpha1_RedisHorizontalScalingSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"master": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Number of Masters in the cluster",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+					"replicas": {
+						SchemaProps: spec.SchemaProps{
+							Description: "specifies the number of replica for the master",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func schema_apimachinery_apis_ops_v1alpha1_RedisOpsRequest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -19426,7 +19491,7 @@ func schema_apimachinery_apis_ops_v1alpha1_RedisOpsRequestSpec(ref common.Refere
 				Properties: map[string]spec.Schema{
 					"databaseRef": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Specifies the Elasticsearch reference",
+							Description: "Specifies the Redis reference",
 							Ref:         ref("k8s.io/api/core/v1.LocalObjectReference"),
 						},
 					},
@@ -19443,12 +19508,24 @@ func schema_apimachinery_apis_ops_v1alpha1_RedisOpsRequestSpec(ref common.Refere
 							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.UpgradeSpec"),
 						},
 					},
+					"horizontalScaling": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specifies information necessary for horizontal scaling.",
+							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisHorizontalScalingSpec"),
+						},
+					},
+					"verticalScaling": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specifies information necessary for vertical scaling",
+							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisVerticalScalingSpec"),
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference", "kubedb.dev/apimachinery/apis/ops/v1alpha1.UpgradeSpec"},
+			"k8s.io/api/core/v1.LocalObjectReference", "kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisHorizontalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.RedisVerticalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.UpgradeSpec"},
 	}
 }
 
@@ -19490,6 +19567,31 @@ func schema_apimachinery_apis_ops_v1alpha1_RedisOpsRequestStatus(ref common.Refe
 		},
 		Dependencies: []string{
 			"kmodules.xyz/client-go/api/v1.Condition"},
+	}
+}
+
+func schema_apimachinery_apis_ops_v1alpha1_RedisVerticalScalingSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Description: "RedisVerticalScalingSpec is the spec for Redis vertical scaling",
+				Type:        []string{"object"},
+				Properties: map[string]spec.Schema{
+					"redis": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
+					"exporter": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.ResourceRequirements"},
 	}
 }
 

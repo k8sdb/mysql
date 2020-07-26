@@ -12,15 +12,15 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.8.1
-	github.com/pkg/errors v0.8.1
-	github.com/spf13/cobra v0.0.5
+	github.com/pkg/errors v0.9.1
+	github.com/spf13/cobra v1.0.0
 	github.com/spf13/pflag v1.0.5
-	k8s.io/api v0.18.3
-	k8s.io/apiextensions-apiserver v0.18.3
-	k8s.io/apimachinery v0.18.3
-	k8s.io/apiserver v0.18.3
+	k8s.io/api v0.18.5
+	k8s.io/apiextensions-apiserver v0.18.5
+	k8s.io/apimachinery v0.18.5
+	k8s.io/apiserver v0.18.5
 	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/kube-aggregator v0.18.3
+	k8s.io/kube-aggregator v0.18.5
 	kmodules.xyz/client-go v0.0.0-20200723053948-317b6023eb5d
 	kmodules.xyz/constants v0.0.0-20200506032633-a21e58ceec72
 	kmodules.xyz/custom-resources v0.0.0-20200604135349-9e9f5c4fdba9
@@ -28,7 +28,7 @@ require (
 	kmodules.xyz/objectstore-api v0.0.0-20200521103120-92080446e04d
 	kmodules.xyz/offshoot-api v0.0.0-20200521035628-e135bf07b226
 	kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0
-	kubedb.dev/apimachinery v0.14.0-beta.1
+	kubedb.dev/apimachinery v0.14.0-beta.1.0.20200726155316-6e741a28416a
 	stash.appscode.dev/apimachinery v0.10.0-beta.1
 )
 

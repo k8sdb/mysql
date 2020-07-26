@@ -99,6 +99,10 @@ type RedisSpec struct {
 	// Template.
 	UpdateStrategy apps.StatefulSetUpdateStrategy `json:"updateStrategy,omitempty" protobuf:"bytes,11,opt,name=updateStrategy"`
 
+	// TLS contains tls configurations for client and server.
+	// +optional
+	TLS *TLSConfig `json:"tls,omitempty" protobuf:"bytes,15,opt,name=tls"`
+
 	// Indicates that the database is paused and controller will not sync any changes made to this spec.
 	// +optional
 	Paused bool `json:"paused,omitempty" protobuf:"varint,12,opt,name=paused"`

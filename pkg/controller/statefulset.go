@@ -157,7 +157,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL, stsName string) (*apps.
 				// replicationModeDetector is used to continuous select primary pod
 				// and add label as primary
 				replicationModeDetector := core.Container{
-					Name:            "replication-mode-detector",
+					Name:            api.MySQLContainerReplicationModeDetectorName,
 					Image:           mysqlVersion.Spec.ReplicationModeDetector.Image,
 					ImagePullPolicy: core.PullIfNotPresent,
 					Args:            append([]string{"run"}, c.LoggerOptions.ToFlags()...),
@@ -220,7 +220,7 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 
 			if mysql.GetMonitoringVendor() == mona.VendorPrometheus {
 				in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
-					Name: "exporter",
+					Name: api.ContainerExporterName,
 					Command: []string{
 						"/bin/sh",
 					},
@@ -332,7 +332,7 @@ func upsertDataVolume(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.Sta
 
 func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL, stsName string) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularMySQL || container.Name == "exporter" || container.Name == "replication-mode-detector" {
+		if container.Name == api.ResourceSingularMySQL || container.Name == api.ContainerExporterName || container.Name == api.MySQLContainerReplicationModeDetectorName {
 			envs := []core.EnvVar{
 				{
 					Name: "MYSQL_ROOT_PASSWORD",
