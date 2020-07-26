@@ -78,7 +78,7 @@ func (c *Controller) ensureRole(db *api.MySQL, name string, pspName string) erro
 
 			podRule := rbac.PolicyRule{
 				APIGroups: []string{""},
-				Resources: []string{"pods", "pods/portforward"},
+				Resources: []string{"pods"},
 				Verbs:     []string{"*"},
 			}
 			in.Rules = append(in.Rules, podRule)
