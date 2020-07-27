@@ -365,7 +365,7 @@ install:
 		--set catalog.pgbouncer=false \
 		--set catalog.postgres=false \
 		--set catalog.proxysql=false \
-		--set catalog.redis=false; \
+		--set catalog.redis=false
 
 .PHONY: uninstall
 uninstall:
