@@ -32,9 +32,9 @@ import (
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kutil "kmodules.xyz/client-go"
+	kmapi "kmodules.xyz/client-go/api/v1"
 	app_util "kmodules.xyz/client-go/apps/v1"
 	core_util "kmodules.xyz/client-go/core/v1"
-	meta_util "kmodules.xyz/client-go/meta"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
 
@@ -578,7 +578,7 @@ func upsertTLSVolume(sts *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet 
 					{
 						Secret: &core.SecretProjection{
 							LocalObjectReference: core.LocalObjectReference{
-								Name: meta_util.NameWithSuffix(mysql.GetName(), api.MySQLServerCertSuffix),
+								Name: MustSecretName(mysql, api.MySQLServerCert),
 							},
 							Items: []core.KeyToPath{
 								{
@@ -599,7 +599,7 @@ func upsertTLSVolume(sts *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet 
 					{
 						Secret: &core.SecretProjection{
 							LocalObjectReference: core.LocalObjectReference{
-								Name: meta_util.NameWithSuffix(mysql.GetName(), api.MySQLClientCertSuffix),
+								Name: MustSecretName(mysql, api.MySQLArchiverCert),
 							},
 							Items: []core.KeyToPath{
 								{
@@ -626,7 +626,7 @@ func upsertTLSVolume(sts *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet 
 					{
 						Secret: &core.SecretProjection{
 							LocalObjectReference: core.LocalObjectReference{
-								Name: meta_util.NameWithSuffix(mysql.GetName(), api.MySQLExporterClientCertSuffix),
+								Name: MustSecretName(mysql, api.MySQLMetricsExporterCert),
 							},
 							Items: []core.KeyToPath{
 								{
@@ -669,4 +669,17 @@ func upsertTLSVolume(sts *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet 
 	)
 
 	return sts
+}
+
+func MustSecretName(db *api.MySQL, alias api.MySQLCertificateAlias) string {
+	if db == nil {
+		panic("missing MySQL database")
+	} else if db.Spec.TLS == nil {
+		panic(fmt.Errorf("MySQL %s/%s is missing tls sepc", db.Namespace, db.Name))
+	}
+	name, ok := kmapi.GetCertificateSecretName(db.Spec.TLS.Certificates, string(alias))
+	if !ok {
+		panic(fmt.Errorf("MySQL %s/%s is missing secret name for %s certificate", db.Namespace, db.Name, alias))
+	}
+	return name
 }

@@ -23,6 +23,7 @@ import (
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	kmapi "kmodules.xyz/client-go/api/v1"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 	ofst "kmodules.xyz/offshoot-api/api/v1"
 )
@@ -67,6 +68,7 @@ type ElasticsearchSpec struct {
 	EnableSSL bool `json:"enableSSL,omitempty" protobuf:"varint,4,opt,name=enableSSL"`
 
 	// Secret with SSL certificates
+	// Deprecated: Use spec.tls instead
 	CertificateSecret *core.SecretVolumeSource `json:"certificateSecret,omitempty" protobuf:"bytes,5,opt,name=certificateSecret"`
 
 	// disable security of authPlugin (ie, xpack or searchguard). It disables authentication security of user.
@@ -92,43 +94,52 @@ type ElasticsearchSpec struct {
 
 	// Monitor is used monitor database instance
 	// +optional
-	Monitor *mona.AgentSpec `json:"monitor,omitempty" protobuf:"bytes,13,opt,name=monitor"`
+	Monitor *mona.AgentSpec `json:"monitor,omitempty" protobuf:"bytes,12,opt,name=monitor"`
 
 	// ConfigSource is an optional field to provide custom configuration file for database.
 	// If specified, this file will be used as configuration file otherwise default configuration file will be used.
-	ConfigSource *core.VolumeSource `json:"configSource,omitempty" protobuf:"bytes,14,opt,name=configSource"`
+	ConfigSource *core.VolumeSource `json:"configSource,omitempty" protobuf:"bytes,13,opt,name=configSource"`
 
 	// PodTemplate is an optional configuration for pods used to expose database
 	// +optional
-	PodTemplate ofst.PodTemplateSpec `json:"podTemplate,omitempty" protobuf:"bytes,15,opt,name=podTemplate"`
+	PodTemplate ofst.PodTemplateSpec `json:"podTemplate,omitempty" protobuf:"bytes,14,opt,name=podTemplate"`
 
 	// ServiceTemplate is an optional configuration for service used to expose database
 	// +optional
-	ServiceTemplate ofst.ServiceTemplateSpec `json:"serviceTemplate,omitempty" protobuf:"bytes,16,opt,name=serviceTemplate"`
+	ServiceTemplate ofst.ServiceTemplateSpec `json:"serviceTemplate,omitempty" protobuf:"bytes,15,opt,name=serviceTemplate"`
 
 	// An eviction is allowed if at most "maxUnavailable" pods selected by
 	// "selector" are unavailable after the eviction, i.e. even in absence of
 	// the evicted pod. For example, one can prevent all voluntary evictions
 	// by specifying 0. This is a mutually exclusive setting with "minAvailable".
 	// +optional
-	MaxUnavailable *intstr.IntOrString `json:"maxUnavailable,omitempty" protobuf:"bytes,17,opt,name=maxUnavailable"`
+	MaxUnavailable *intstr.IntOrString `json:"maxUnavailable,omitempty" protobuf:"bytes,16,opt,name=maxUnavailable"`
 
 	// updateStrategy indicates the StatefulSetUpdateStrategy that will be
 	// employed to update Pods in the StatefulSet when a revision is made to
 	// Template.
-	UpdateStrategy apps.StatefulSetUpdateStrategy `json:"updateStrategy,omitempty" protobuf:"bytes,18,opt,name=updateStrategy"`
+	// Deprecated: UpdateStrategy is default to "OnDelete"
+	UpdateStrategy apps.StatefulSetUpdateStrategy `json:"updateStrategy,omitempty" protobuf:"bytes,17,opt,name=updateStrategy"`
+
+	// TLS contains tls configurations
+	// +optional
+	TLS *kmapi.TLSConfig `json:"tls,omitempty" protobuf:"bytes,18,opt,name=tls"`
+
+	// InternalUsers contains internal user configurations
+	// +optional
+	InternalUsers []ElasticsearchUser `json:"internalUsers,omitempty" protobuf:"bytes,19,rep,name=internalUsers"`
 
 	// Indicates that the database is paused and controller will not sync any changes made to this spec.
 	// +optional
-	Paused bool `json:"paused,omitempty" protobuf:"varint,19,opt,name=paused"`
+	Paused bool `json:"paused,omitempty" protobuf:"varint,20,opt,name=paused"`
 
 	// Indicates that the database is halted and all offshoot Kubernetes resources except PVCs are deleted.
 	// +optional
-	Halted bool `json:"halted,omitempty" protobuf:"varint,20,opt,name=halted"`
+	Halted bool `json:"halted,omitempty" protobuf:"varint,21,opt,name=halted"`
 
 	// TerminationPolicy controls the delete operation for database
 	// +optional
-	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,21,opt,name=terminationPolicy,casttype=TerminationPolicy"`
+	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,22,opt,name=terminationPolicy,casttype=TerminationPolicy"`
 }
 
 type ElasticsearchClusterTopology struct {
@@ -151,6 +162,64 @@ type ElasticsearchNode struct {
 	// by specifying 0. This is a mutually exclusive setting with "minAvailable".
 	// +optional
 	MaxUnavailable *intstr.IntOrString `json:"maxUnavailable,omitempty" protobuf:"bytes,5,opt,name=maxUnavailable"`
+}
+
+// +kubebuilder:validation:Enum=root;transport;http;admin;archiver;metrics-exporter
+type ElasticsearchCertificateAlias string
+
+const (
+	ElasticsearchRootCert            ElasticsearchCertificateAlias = "root"
+	ElasticsearchTransportCert       ElasticsearchCertificateAlias = "transport"
+	ElasticsearchHTTPCert            ElasticsearchCertificateAlias = "http"
+	ElasticsearchAdminCert           ElasticsearchCertificateAlias = "admin"
+	ElasticsearchArchiverCert        ElasticsearchCertificateAlias = "archiver"
+	ElasticsearchMetricsExporterCert ElasticsearchCertificateAlias = "metrics-exporter"
+)
+
+const (
+	InternalElasticsearchUserAdmin           string = "admin"
+	InternalElasticsearchUserKibanaserver    string = "kibanaserver"
+	InternalElasticsearchUserKibanaro        string = "kibanaro"
+	InternalElasticsearchUserLogstash        string = "logstash"
+	InternalElasticsearchUserReadall         string = "readall"
+	InternalElasticsearchUserSnapshotrestore string = "snapshotrestore"
+)
+
+type ElasticsearchUser struct {
+	// Specifies the name of the user
+	Name string `json:"name" protobuf:"bytes,1,opt,name=name"`
+
+	// Specifies the reserved status.
+	// Resources that have this set to true can’t be changed using the REST API or Kibana.
+	// Default to "false".
+	// +optional
+	Reserved bool `json:"reserved,omitempty" protobuf:"bytes,2,opt,name=reserved"`
+
+	// Specifies the hidden status.
+	// Resources that have this set to true are not returned by the REST API
+	// and not visible in Kibana.
+	// Default to "false".
+	// +optional
+	Hidden bool `json:"hidden,omitempty" protobuf:"bytes,3,opt,name=hidden"`
+
+	// Specifies a list of backend roles assigned to this user.
+	// Backend roles can come from the internal user database,
+	// LDAP groups, JSON web token claims or SAML assertions.
+	// +optional
+	BackendRoles []string `json:"backendRoles,omitempty" protobuf:"bytes,4,opt,name=backendRoles"`
+
+	// Specifies a list of security plugin (i.e. opendistro, searchguard) roles assigned to this user.
+	// +optional
+	SecurityRoles []string `json:"securityRoles,omitempty" protobuf:"bytes,5,opt,name=securityRoles"`
+
+	// Specifies one or more custom attributes,
+	// which can be used in index names and DLS queries.
+	// +optional
+	Attributes map[string]string `json:"attributes,omitempty" protobuf:"bytes,6,opt,name=attributes"`
+
+	// Specifies the description of the user
+	// +optional
+	Description string `json:"description,omitempty" protobuf:"bytes,7,opt,name=description"`
 }
 
 type ElasticsearchStatus struct {

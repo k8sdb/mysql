@@ -119,9 +119,6 @@ const (
 	PgBouncerServingServerSuffix      = "serving-server-cert"
 	PgBouncerUpstreamServerCA         = "upstream-server-ca.crt"
 
-	MySQLClientCertSuffix                     = "client-cert"
-	MySQLExporterClientCertSuffix             = "exporter-cert"
-	MySQLServerCertSuffix                     = "server-cert"
 	MySQLContainerReplicationModeDetectorName = "replication-mode-detector"
 
 	ContainerExporterName = "exporter"

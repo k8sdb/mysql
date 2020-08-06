@@ -87,12 +87,22 @@ func (e Elasticsearch) ServiceName() string {
 }
 
 func (e *Elasticsearch) MasterServiceName() string {
-	return fmt.Sprintf("%v-master", e.ServiceName())
+	return meta_util.NameWithSuffix(e.ServiceName(), "master")
 }
 
 // Governing Service Name
 func (e Elasticsearch) GvrSvcName() string {
-	return e.OffshootName() + "-gvr"
+	return meta_util.NameWithSuffix(e.OffshootName(), "gvr")
+}
+
+// returns the secret name for certificates
+func (e *Elasticsearch) CertSecretName(alias ElasticsearchCertificateAlias) string {
+	return meta_util.NameWithSuffix(e.Name, fmt.Sprintf("%s-cert", string(alias)))
+}
+
+// returns the secret name for the  user credentials (ie. username, password)
+func (e *Elasticsearch) UserCredSecretName(userName string) string {
+	return meta_util.NameWithSuffix(e.Name, fmt.Sprintf("%s-cred", userName))
 }
 
 func (e *Elasticsearch) GetConnectionScheme() string {
