@@ -111,9 +111,9 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			c.DynamicClient,
 			core.SchemeGroupVersion.WithResource("secrets"),
 			mysql.Namespace,
-			MustSecretName(mysql, api.MySQLServerCert),
-			MustSecretName(mysql, api.MySQLArchiverCert),
-			MustSecretName(mysql, api.MySQLMetricsExporterCert),
+			mysql.MustCertSecretName(api.MySQLServerCert),
+			mysql.MustCertSecretName(api.MySQLArchiverCert),
+			mysql.MustCertSecretName(api.MySQLMetricsExporterCert),
 		)
 		if err != nil {
 			return err

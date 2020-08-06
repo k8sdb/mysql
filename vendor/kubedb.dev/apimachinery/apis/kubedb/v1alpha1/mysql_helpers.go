@@ -183,9 +183,9 @@ func (m *MySQL) SetDefaults() {
 	m.Spec.Monitor.SetDefaults()
 
 	if m.Spec.TLS != nil && m.Spec.TLS.IssuerRef != nil {
-		m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MySQLServerCert), m.CertSecretName(MySQLServerCert))
-		m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MySQLArchiverCert), m.CertSecretName(MySQLArchiverCert))
-		m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MySQLMetricsExporterCert), m.CertSecretName(MySQLMetricsExporterCert))
+		m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MySQLServerCert), m.CertificateName(MySQLServerCert))
+		m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MySQLArchiverCert), m.CertificateName(MySQLArchiverCert))
+		m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MySQLMetricsExporterCert), m.CertificateName(MySQLMetricsExporterCert))
 	}
 }
 
@@ -219,19 +219,33 @@ mysql -h localhost -nsLNE -e "select member_state from performance_schema.replic
 	}
 }
 
-func (e *MySQLSpec) GetSecrets() []string {
-	if e == nil {
+func (m *MySQLSpec) GetSecrets() []string {
+	if m == nil {
 		return nil
 	}
 
 	var secrets []string
-	if e.DatabaseSecret != nil {
-		secrets = append(secrets, e.DatabaseSecret.SecretName)
+	if m.DatabaseSecret != nil {
+		secrets = append(secrets, m.DatabaseSecret.SecretName)
 	}
 	return secrets
 }
 
-// returns the secret name for certificates
-func (e *MySQL) CertSecretName(alias MySQLCertificateAlias) string {
-	return meta_util.NameWithSuffix(e.Name, fmt.Sprintf("%s-cert", string(alias)))
+// CertificateName returns the default certificate name and/or certificate secret name for a certificate alias
+func (m *MySQL) CertificateName(alias MySQLCertificateAlias) string {
+	return meta_util.NameWithSuffix(m.Name, fmt.Sprintf("%s-cert", string(alias)))
+}
+
+// MustCertSecretName returns the secret name for a certificate alias
+func (m *MySQL) MustCertSecretName(alias MySQLCertificateAlias) string {
+	if m == nil {
+		panic("missing MySQL database")
+	} else if m.Spec.TLS == nil {
+		panic(fmt.Errorf("MySQL %s/%s is missing tls sepc", m.Namespace, m.Name))
+	}
+	name, ok := kmapi.GetCertificateSecretName(m.Spec.TLS.Certificates, string(alias))
+	if !ok {
+		panic(fmt.Errorf("MySQL %s/%s is missing secret name for %s certificate", m.Namespace, m.Name, alias))
+	}
+	return name
 }
