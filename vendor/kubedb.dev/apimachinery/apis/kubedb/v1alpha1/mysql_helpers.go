@@ -182,11 +182,16 @@ func (m *MySQL) SetDefaults() {
 
 	m.Spec.Monitor.SetDefaults()
 
-	if m.Spec.TLS != nil && m.Spec.TLS.IssuerRef != nil {
-		m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MySQLServerCert), m.CertificateName(MySQLServerCert))
-		m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MySQLArchiverCert), m.CertificateName(MySQLArchiverCert))
-		m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MySQLMetricsExporterCert), m.CertificateName(MySQLMetricsExporterCert))
+	m.setDefaultTLSConfig()
+}
+
+func (m *MySQL) setDefaultTLSConfig() {
+	if m.Spec.TLS == nil || m.Spec.TLS.IssuerRef == nil {
+		return
 	}
+	m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MySQLServerCert), m.CertificateName(MySQLServerCert))
+	m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MySQLArchiverCert), m.CertificateName(MySQLArchiverCert))
+	m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MySQLMetricsExporterCert), m.CertificateName(MySQLMetricsExporterCert))
 }
 
 // setDefaultProbes sets defaults only when probe fields are nil.
@@ -241,7 +246,7 @@ func (m *MySQL) MustCertSecretName(alias MySQLCertificateAlias) string {
 	if m == nil {
 		panic("missing MySQL database")
 	} else if m.Spec.TLS == nil {
-		panic(fmt.Errorf("MySQL %s/%s is missing tls sepc", m.Namespace, m.Name))
+		panic(fmt.Errorf("MySQL %s/%s is missing tls spec", m.Namespace, m.Name))
 	}
 	name, ok := kmapi.GetCertificateSecretName(m.Spec.TLS.Certificates, string(alias))
 	if !ok {

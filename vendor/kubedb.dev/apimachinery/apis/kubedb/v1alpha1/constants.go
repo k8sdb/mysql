@@ -55,22 +55,20 @@ const (
 	ElasticsearchMetricsPort     = 9600
 	ElasticsearchMetricsPortName = "metrics"
 
-	MongoDBShardPort                  = 27017
-	MongoDBConfigdbPort               = 27017
-	MongoDBMongosPort                 = 27017
-	MongoDBKeyFileSecretSuffix        = "key"
-	MongoDBExternalClientSecretSuffix = "client-cert"
-	MongoDBExporterClientSecretSuffix = "exporter-cert"
-	MongoDBServerSecretSuffix         = "server-cert"
-	MongoDBPEMSecretSuffix            = "pem"
-	MongoDBClientCertOrganization     = DatabaseNamePrefix + ":client"
-	MongoDBCertificateCN              = "root"
+	MongoDBShardPort              = 27017
+	MongoDBConfigdbPort           = 27017
+	MongoDBMongosPort             = 27017
+	MongoDBKeyFileSecretSuffix    = "key"
+	MongoDBPEMSecretSuffix        = "pem"
+	MongoDBClientCertOrganization = DatabaseNamePrefix + ":client"
+	MongoDBCertificateCN          = "root"
 
-	MySQLUserKey         = "username"
-	MySQLPasswordKey     = "password"
-	MySQLNodePort        = 3306
-	MySQLGroupComPort    = 33060
-	MySQLMaxGroupMembers = 9
+	MySQLMetricsExporterConfigSecretSuffix = "metrics-exporter-config"
+	MySQLUserKey                           = "username"
+	MySQLPasswordKey                       = "password"
+	MySQLNodePort                          = 3306
+	MySQLGroupComPort                      = 33060
+	MySQLMaxGroupMembers                   = 9
 	// The recommended MySQL server version for group replication (GR)
 	MySQLGRRecommendedVersion       = "5.7.25"
 	MySQLDefaultGroupSize           = 3
@@ -106,18 +104,12 @@ const (
 	RedisNodePort   = 6379
 	RedisGossipPort = 16379
 
-	RedisKeyFileSecretSuffix        = "key"
-	RedisExternalClientSecretSuffix = "client-cert"
-	RedisExporterClientSecretSuffix = "exporter-cert"
-	RedisServerSecretSuffix         = "server-cert"
-	RedisPEMSecretSuffix            = "pem"
-	RedisClientCertOrganization     = DatabaseNamePrefix + ":client"
-	RedisCertificateCN              = "root"
+	RedisKeyFileSecretSuffix    = "key"
+	RedisPEMSecretSuffix        = "pem"
+	RedisClientCertOrganization = DatabaseNamePrefix + ":client"
+	RedisCertificateCN          = "root"
 
-	PgBouncerServingClientSuffix      = "serving-client-cert"
-	PgBouncerExporterClientCertSuffix = "exporter-cert"
-	PgBouncerServingServerSuffix      = "serving-server-cert"
-	PgBouncerUpstreamServerCA         = "upstream-server-ca.crt"
+	PgBouncerUpstreamServerCA = "upstream-server-ca.crt"
 
 	MySQLContainerReplicationModeDetectorName = "replication-mode-detector"
 

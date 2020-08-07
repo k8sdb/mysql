@@ -106,7 +106,7 @@ func (e *Elasticsearch) MustCertSecretName(alias ElasticsearchCertificateAlias) 
 	if e == nil {
 		panic("missing Elasticsearch database")
 	} else if e.Spec.TLS == nil {
-		panic(fmt.Errorf("Elasticsearch %s/%s is missing tls sepc", e.Namespace, e.Name))
+		panic(fmt.Errorf("Elasticsearch %s/%s is missing tls spec", e.Namespace, e.Name))
 	}
 	name, ok := kmapi.GetCertificateSecretName(e.Spec.TLS.Certificates, string(alias))
 	if !ok {
@@ -118,6 +118,11 @@ func (e *Elasticsearch) MustCertSecretName(alias ElasticsearchCertificateAlias) 
 // returns the secret name for the  user credentials (ie. username, password)
 func (e *Elasticsearch) UserCredSecretName(userName string) string {
 	return meta_util.NameWithSuffix(e.Name, fmt.Sprintf("%s-cred", userName))
+}
+
+// returns the secret name for the default elasticsearch configuration
+func (e *Elasticsearch) ConfigSecretName() string {
+	return meta_util.NameWithSuffix(e.Name, "config")
 }
 
 func (e *Elasticsearch) GetConnectionScheme() string {

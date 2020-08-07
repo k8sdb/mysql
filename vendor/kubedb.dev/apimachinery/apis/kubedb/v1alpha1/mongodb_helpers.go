@@ -30,6 +30,7 @@ import (
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/apiextensions"
 	core_util "kmodules.xyz/client-go/core/v1"
 	v1 "kmodules.xyz/client-go/core/v1"
@@ -405,6 +406,17 @@ func (m *MongoDB) SetDefaults(mgVersion *v1alpha1.MongoDBVersion, topology *core
 		// set default affinity (PodAntiAffinity)
 		m.setDefaultAffinity(m.Spec.PodTemplate, m.OffshootSelectors(), topology)
 	}
+
+	m.setDefaultTLSConfig()
+}
+
+func (m *MongoDB) setDefaultTLSConfig() {
+	if m.Spec.TLS == nil || m.Spec.TLS.IssuerRef == nil {
+		return
+	}
+	m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MongoDBServerCert), m.CertificateName(MongoDBServerCert))
+	m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MongoDBArchiverCert), m.CertificateName(MongoDBArchiverCert))
+	m.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(m.Spec.TLS.Certificates, string(MongoDBMetricsExporterCert), m.CertificateName(MongoDBMetricsExporterCert))
 }
 
 // setDefaultProbes sets defaults only when probe fields are nil.
@@ -560,4 +572,23 @@ func (m *MongoDB) KeyFileRequired() bool {
 	return m.Spec.ClusterAuthMode == ClusterAuthModeKeyFile ||
 		m.Spec.ClusterAuthMode == ClusterAuthModeSendKeyFile ||
 		m.Spec.ClusterAuthMode == ClusterAuthModeSendX509
+}
+
+// CertificateName returns the default certificate name and/or certificate secret name for a certificate alias
+func (m *MongoDB) CertificateName(alias MongoDBCertificateAlias) string {
+	return meta_util.NameWithSuffix(m.Name, fmt.Sprintf("%s-cert", string(alias)))
+}
+
+// MustCertSecretName returns the secret name for a certificate alias
+func (m *MongoDB) MustCertSecretName(alias MongoDBCertificateAlias) string {
+	if m == nil {
+		panic("missing MongoDB database")
+	} else if m.Spec.TLS == nil {
+		panic(fmt.Errorf("MongoDB %s/%s is missing tls spec", m.Namespace, m.Name))
+	}
+	name, ok := kmapi.GetCertificateSecretName(m.Spec.TLS.Certificates, string(alias))
+	if !ok {
+		panic(fmt.Errorf("MongoDB %s/%s is missing secret name for %s certificate", m.Namespace, m.Name, alias))
+	}
+	return name
 }

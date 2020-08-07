@@ -34,6 +34,7 @@ import (
 	kutil "kmodules.xyz/client-go"
 	app_util "kmodules.xyz/client-go/apps/v1"
 	core_util "kmodules.xyz/client-go/core/v1"
+	meta_util "kmodules.xyz/client-go/meta"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
 
@@ -647,7 +648,7 @@ func upsertTLSVolume(sts *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet 
 					{
 						Secret: &core.SecretProjection{
 							LocalObjectReference: core.LocalObjectReference{
-								Name: "exporter-cnf",
+								Name: meta_util.NameWithSuffix(mysql.Name, api.MySQLMetricsExporterConfigSecretSuffix),
 							},
 							Items: []core.KeyToPath{
 								{

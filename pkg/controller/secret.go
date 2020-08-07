@@ -29,7 +29,6 @@ import (
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/klog"
 	core_util "kmodules.xyz/client-go/core/v1"
 )
 
@@ -130,13 +129,15 @@ func (c *Controller) checkSecret(secretName string, mysql *api.MySQL) (*core.Sec
 }
 
 func (c *Controller) mysqlForSecret(s *core.Secret) cache.ExplicitKey {
-	ctrl, err := core_util.GetControllerWithGroupKind(s, kubedb.GroupName, api.ResourceKindMySQL)
+	ctrl := metav1.GetControllerOf(s)
+	ok, err := core_util.IsOwnerOfGroupKind(ctrl, kubedb.GroupName, api.ResourceKindMySQL)
 	if err != nil {
-		klog.Errorln(err)
+		panic(err)
 	}
-	if ctrl == nil {
+	if !ok {
 		return ""
 	}
+
 	// Owner ref is set by the enterprise operator
 	return cache.ExplicitKey(s.Namespace + "/" + ctrl.Name)
 }
