@@ -300,6 +300,24 @@ func IsOwnedBy(dependent metav1.Object, owner metav1.Object) (owned bool, contro
 	return false, false
 }
 
+func GetControllerWithGroupKind(controllee metav1.Object, group, kind string) (*metav1.OwnerReference, error) {
+	ctrl := metav1.GetControllerOf(controllee)
+	if ctrl == nil {
+		return nil, nil
+	}
+	gv, err := schema.ParseGroupVersion(ctrl.APIVersion)
+	if err != nil {
+		return nil, err
+	}
+	if gv.Group != group {
+		return nil, nil
+	}
+	if ctrl.Kind != kind {
+		return nil, nil
+	}
+	return ctrl, nil
+}
+
 func UpsertToleration(tolerations []core.Toleration, upsert core.Toleration) []core.Toleration {
 	for i, toleration := range tolerations {
 		if toleration.Key == upsert.Key {
