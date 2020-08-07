@@ -65,6 +65,7 @@ func (c *Controller) ensureStatefulSet(mysql *api.MySQL) (kutil.VerbType, error)
 				vt,
 			)
 		}
+		stsCur = stsNew
 	}
 
 	// ensure pdb
