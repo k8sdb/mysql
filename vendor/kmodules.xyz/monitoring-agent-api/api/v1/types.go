@@ -93,36 +93,29 @@ type PrometheusSpec struct {
 	// Deprecated: use exporter.port
 	Port int32 `json:"port,omitempty" protobuf:"varint,1,opt,name=port"`
 
-	// Namespace of Prometheus. Service monitors will be created in this namespace.
-	// Deprecated: use prometheus.serviceMonitor.namespace
-	Namespace string `json:"namespace,omitempty" protobuf:"bytes,2,opt,name=namespace"`
-
 	// Labels are key value pairs that is used to select Prometheus instance via ServiceMonitor labels.
 	// +optional
 	// Deprecated: use prometheus.serviceMonitor.labels
-	Labels map[string]string `json:"labels,omitempty" protobuf:"bytes,3,rep,name=labels"`
-
-	// Interval at which metrics should be scraped
-	// +optional
-	// Deprecated: use prometheus.serviceMonitor.interval
-	Interval string `json:"interval,omitempty" protobuf:"bytes,4,opt,name=interval"`
-
-	ServiceMonitor *ServiceMonitorSpec `json:"serviceMonitor,omitempty" protobuf:"bytes,5,opt,name=serviceMonitor"`
-
-	Exporter *PrometheusExporterSpec `json:"exporter,omitempty" protobuf:"bytes,6,opt,name=exporter"`
-}
-
-type ServiceMonitorSpec struct {
-	// Namespace of Prometheus. Service monitors will be created in this namespace.
-	Namespace string `json:"namespace,omitempty" protobuf:"bytes,1,opt,name=namespace"`
-
-	// Labels are key value pairs that is used to select Prometheus instance via ServiceMonitor labels.
-	// +optional
 	Labels map[string]string `json:"labels,omitempty" protobuf:"bytes,2,rep,name=labels"`
 
 	// Interval at which metrics should be scraped
 	// +optional
+	// Deprecated: use prometheus.serviceMonitor.interval
 	Interval string `json:"interval,omitempty" protobuf:"bytes,3,opt,name=interval"`
+
+	ServiceMonitor *ServiceMonitorSpec `json:"serviceMonitor,omitempty" protobuf:"bytes,4,opt,name=serviceMonitor"`
+
+	Exporter *PrometheusExporterSpec `json:"exporter,omitempty" protobuf:"bytes,5,opt,name=exporter"`
+}
+
+type ServiceMonitorSpec struct {
+	// Labels are key value pairs that is used to select Prometheus instance via ServiceMonitor labels.
+	// +optional
+	Labels map[string]string `json:"labels,omitempty" protobuf:"bytes,1,rep,name=labels"`
+
+	// Interval at which metrics should be scraped
+	// +optional
+	Interval string `json:"interval,omitempty" protobuf:"bytes,2,opt,name=interval"`
 }
 
 type PrometheusExporterSpec struct {

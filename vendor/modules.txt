@@ -1061,12 +1061,13 @@ kmodules.xyz/custom-resources/client/informers/externalversions/appcatalog/v1alp
 kmodules.xyz/custom-resources/client/informers/externalversions/internalinterfaces
 kmodules.xyz/custom-resources/client/listers/appcatalog/v1alpha1
 kmodules.xyz/custom-resources/crds
-# kmodules.xyz/monitoring-agent-api v0.0.0-20200525002655-2aa50cb10ce9
+# kmodules.xyz/monitoring-agent-api v0.0.0-20200820052215-db1883a441d0
 kmodules.xyz/monitoring-agent-api/agents
 kmodules.xyz/monitoring-agent-api/agents/prometheus
 kmodules.xyz/monitoring-agent-api/agents/prometheusbuiltin
 kmodules.xyz/monitoring-agent-api/agents/prometheusoperator
 kmodules.xyz/monitoring-agent-api/api/v1
+kmodules.xyz/monitoring-agent-api/prometheus/v1
 # kmodules.xyz/objectstore-api v0.0.0-20200521103120-92080446e04d
 kmodules.xyz/objectstore-api/api/v1
 # kmodules.xyz/offshoot-api v0.0.0-20200521035628-e135bf07b226
@@ -1076,7 +1077,7 @@ kmodules.xyz/prober/api/v1
 # kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0
 kmodules.xyz/webhook-runtime/admission/v1beta1
 kmodules.xyz/webhook-runtime/registry/admissionreview/v1beta1
-# kubedb.dev/apimachinery v0.14.0-beta.1.0.20200726155316-6e741a28416a
+# kubedb.dev/apimachinery v0.14.0-beta.1.0.20200820054203-1505fb3624cb
 kubedb.dev/apimachinery/apis
 kubedb.dev/apimachinery/apis/catalog
 kubedb.dev/apimachinery/apis/catalog/v1alpha1

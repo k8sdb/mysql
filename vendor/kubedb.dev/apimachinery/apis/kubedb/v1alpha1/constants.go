@@ -119,13 +119,12 @@ const (
 	PgBouncerServingServerSuffix      = "serving-server-cert"
 	PgBouncerUpstreamServerCA         = "upstream-server-ca.crt"
 
-	MySQLClientCertSuffix         = "client-cert"
-	MySQLExporterClientCertSuffix = "exporter-cert"
-	MySQLServerCertSuffix         = "server-cert"
-
-	LocalHost   = "localhost"
-	LocalHostIP = "127.0.0.1"
-
+	MySQLClientCertSuffix                     = "client-cert"
+	MySQLExporterClientCertSuffix             = "exporter-cert"
+	MySQLServerCertSuffix                     = "server-cert"
 	MySQLContainerReplicationModeDetectorName = "replication-mode-detector"
-	ContainerExporterName                     = "exporter"
+
+	ContainerExporterName = "exporter"
+	LocalHost             = "localhost"
+	LocalHostIP           = "127.0.0.1"
 )

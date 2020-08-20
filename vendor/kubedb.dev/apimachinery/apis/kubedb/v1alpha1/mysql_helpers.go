@@ -120,7 +120,7 @@ func (m mysqlStatsService) ServiceName() string {
 }
 
 func (m mysqlStatsService) ServiceMonitorName() string {
-	return fmt.Sprintf("kubedb-%s-%s", m.Namespace, m.Name)
+	return m.OffshootName() + "-stats"
 }
 
 func (m mysqlStatsService) Path() string {
