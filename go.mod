@@ -24,7 +24,7 @@ require (
 	kmodules.xyz/client-go v0.0.0-20200818171030-24b2ce405feb
 	kmodules.xyz/constants v0.0.0-20200506032633-a21e58ceec72
 	kmodules.xyz/custom-resources v0.0.0-20200604135349-9e9f5c4fdba9
-	kmodules.xyz/monitoring-agent-api v0.0.0-20200525002655-2aa50cb10ce9
+	kmodules.xyz/monitoring-agent-api v0.0.0-20200828051750-42aa8e7852f3
 	kmodules.xyz/objectstore-api v0.0.0-20200521103120-92080446e04d
 	kmodules.xyz/offshoot-api v0.0.0-20200521035628-e135bf07b226
 	kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0
