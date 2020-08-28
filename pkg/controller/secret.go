@@ -32,9 +32,6 @@ import (
 
 const (
 	mysqlUser = "root"
-
-	KeyMySQLUser     = "username"
-	KeyMySQLPassword = "password"
 )
 
 func (c *Controller) ensureDatabaseSecret(mysql *api.MySQL) error {
@@ -78,8 +75,8 @@ func (c *Controller) createDatabaseSecret(mysql *api.MySQL) (*core.SecretVolumeS
 			},
 			Type: core.SecretTypeOpaque,
 			StringData: map[string]string{
-				KeyMySQLUser:     mysqlUser,
-				KeyMySQLPassword: randPassword,
+				core.BasicAuthUsernameKey: mysqlUser,
+				core.BasicAuthPasswordKey: randPassword,
 			},
 		}
 		if _, err := c.Client.CoreV1().Secrets(mysql.Namespace).Create(context.TODO(), secret, metav1.CreateOptions{}); err != nil {
@@ -100,9 +97,9 @@ func (c *Controller) upgradeDatabaseSecret(mysql *api.MySQL) error {
 	}
 
 	_, _, err := core_util.CreateOrPatchSecret(context.TODO(), c.Client, meta, func(in *core.Secret) *core.Secret {
-		if _, ok := in.Data[KeyMySQLUser]; !ok {
+		if _, ok := in.Data[core.BasicAuthUsernameKey]; !ok {
 			if val, ok2 := in.Data["user"]; ok2 {
-				in.StringData = map[string]string{KeyMySQLUser: string(val)}
+				in.StringData = map[string]string{core.BasicAuthUsernameKey: string(val)}
 			}
 		}
 		return in
