@@ -105,7 +105,11 @@ func (p pgbouncerStatsService) ServiceName() string {
 }
 
 func (p pgbouncerStatsService) ServiceMonitorName() string {
-	return fmt.Sprintf("kubedb-%s-%s", p.Namespace, p.Name)
+	return p.ServiceName()
+}
+
+func (p pgbouncerStatsService) ServiceMonitorAdditionalLabels() map[string]string {
+	return p.OffshootLabels()
 }
 
 func (p pgbouncerStatsService) Path() string {
