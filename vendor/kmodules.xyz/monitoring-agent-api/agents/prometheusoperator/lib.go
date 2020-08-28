@@ -1,5 +1,5 @@
 /*
-Copyright The Kmodules Authors.
+Copyright AppsCode Inc. and Contributors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import (
 
 	kutil "kmodules.xyz/client-go"
 	core_util "kmodules.xyz/client-go/core/v1"
+	"kmodules.xyz/client-go/discovery"
 	api "kmodules.xyz/monitoring-agent-api/api/v1"
 	prom_util "kmodules.xyz/monitoring-agent-api/prometheus/v1"
 
@@ -29,32 +30,30 @@ import (
 	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 )
 
-// PrometheusCoreosOperator creates `ServiceMonitor` so that CoreOS Prometheus operator can generate necessary config for Prometheus.
-type PrometheusCoreosOperator struct {
+// PrometheusOperator creates `ServiceMonitor` so that CoreOS Prometheus operator can generate necessary config for Prometheus.
+type PrometheusOperator struct {
 	at         api.AgentType
 	k8sClient  kubernetes.Interface
 	promClient prom.MonitoringV1Interface
 }
 
 func New(at api.AgentType, k8sClient kubernetes.Interface, promClient prom.MonitoringV1Interface) api.Agent {
-	return &PrometheusCoreosOperator{
+	return &PrometheusOperator{
 		at:         at,
 		k8sClient:  k8sClient,
 		promClient: promClient,
 	}
 }
 
-func (agent *PrometheusCoreosOperator) GetType() api.AgentType {
+func (agent *PrometheusOperator) GetType() api.AgentType {
 	return agent.at
 }
 
-func (agent *PrometheusCoreosOperator) CreateOrUpdate(sp api.StatsAccessor, new *api.AgentSpec) (kutil.VerbType, error) {
-	if !agent.isOperatorInstalled() {
+func (agent *PrometheusOperator) CreateOrUpdate(sp api.StatsAccessor, new *api.AgentSpec) (kutil.VerbType, error) {
+	if !discovery.ExistsGroupKind(agent.k8sClient.Discovery(), promapi.SchemeGroupVersion.Group, promapi.ServiceMonitorsKind) {
 		return kutil.VerbUnchanged, errors.New("cluster does not support CoreOS Prometheus operator")
 	}
 
@@ -79,8 +78,9 @@ func (agent *PrometheusCoreosOperator) CreateOrUpdate(sp api.StatsAccessor, new 
 	owner := metav1.NewControllerRef(svc, corev1.SchemeGroupVersion.WithKind("Service"))
 
 	_, vt, err := prom_util.CreateOrPatchServiceMonitor(context.TODO(), agent.promClient, smMeta, func(in *promapi.ServiceMonitor) *promapi.ServiceMonitor {
-		in.Labels = new.Prometheus.ServiceMonitor.Labels
-		core_util.UpsertMap(in.Labels, svc.Labels)
+		in.Labels = core_util.UpsertMap(sp.ServiceMonitorAdditionalLabels(), new.Prometheus.ServiceMonitor.Labels)
+		core_util.EnsureOwnerReference(&in.ObjectMeta, owner)
+
 		in.Spec.NamespaceSelector = promapi.NamespaceSelector{
 			MatchNames: []string{sp.GetNamespace()},
 		}
@@ -95,15 +95,14 @@ func (agent *PrometheusCoreosOperator) CreateOrUpdate(sp api.StatsAccessor, new 
 		in.Spec.Selector = metav1.LabelSelector{
 			MatchLabels: svc.Labels,
 		}
-		core_util.EnsureOwnerReference(&in.ObjectMeta, owner)
 		return in
 	}, metav1.PatchOptions{})
 
 	return vt, err
 }
 
-func (agent *PrometheusCoreosOperator) Delete(sp api.StatsAccessor) (kutil.VerbType, error) {
-	if !agent.isOperatorInstalled() {
+func (agent *PrometheusOperator) Delete(sp api.StatsAccessor) (kutil.VerbType, error) {
+	if !discovery.ExistsGroupKind(agent.k8sClient.Discovery(), promapi.SchemeGroupVersion.Group, promapi.ServiceMonitorsKind) {
 		return kutil.VerbUnchanged, errors.New("cluster does not support CoreOS Prometheus operator")
 	}
 
@@ -112,24 +111,4 @@ func (agent *PrometheusCoreosOperator) Delete(sp api.StatsAccessor) (kutil.VerbT
 		return kutil.VerbUnchanged, err
 	}
 	return kutil.VerbDeleted, nil
-}
-
-func (agent *PrometheusCoreosOperator) isOperatorInstalled() bool {
-	if resourceList, err := agent.k8sClient.Discovery().ServerPreferredResources(); discovery.IsGroupDiscoveryFailedError(err) || err == nil {
-		for _, resources := range resourceList {
-			gv, err := schema.ParseGroupVersion(resources.GroupVersion)
-			if err != nil {
-				return false
-			}
-			if gv.Group != promapi.SchemeGroupVersion.Group {
-				continue
-			}
-			for _, resource := range resources.APIResources {
-				if resource.Kind == promapi.PrometheusesKind || resource.Kind == promapi.ServiceMonitorsKind {
-					return true
-				}
-			}
-		}
-	}
-	return false
 }

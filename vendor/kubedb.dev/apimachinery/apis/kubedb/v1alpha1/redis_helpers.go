@@ -127,7 +127,11 @@ func (r redisStatsService) ServiceName() string {
 }
 
 func (r redisStatsService) ServiceMonitorName() string {
-	return fmt.Sprintf("kubedb-%s-%s", r.Namespace, r.Name)
+	return r.ServiceName()
+}
+
+func (p redisStatsService) ServiceMonitorAdditionalLabels() map[string]string {
+	return p.OffshootLabels()
 }
 
 func (r redisStatsService) Path() string {

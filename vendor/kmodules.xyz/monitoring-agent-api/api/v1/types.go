@@ -1,5 +1,5 @@
 /*
-Copyright The Kmodules Authors.
+Copyright AppsCode Inc. and Contributors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -163,6 +163,7 @@ type StatsAccessor interface {
 	GetNamespace() string
 	ServiceName() string
 	ServiceMonitorName() string
+	ServiceMonitorAdditionalLabels() map[string]string
 	Path() string
 	// Scheme is used to determine url scheme /metrics endpoint
 	Scheme() string
