@@ -29,6 +29,7 @@ import (
 	"kmodules.xyz/client-go/discovery"
 	meta_util "kmodules.xyz/client-go/meta"
 	appcat "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+	ofst "kmodules.xyz/offshoot-api/api/v1"
 	"stash.appscode.dev/apimachinery/apis/stash"
 	stashV1alpha1 "stash.appscode.dev/apimachinery/apis/stash/v1alpha1"
 	stashv1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
@@ -140,23 +141,30 @@ func (f *Invocation) RestoreSession(meta metav1.ObjectMeta, repo *stashV1alpha1.
 			},
 		},
 		Spec: stashv1beta1.RestoreSessionSpec{
-			Task: stashv1beta1.TaskRef{
-				Name: f.getStashPGRestoreTaskName(),
-			},
 			Repository: core.LocalObjectReference{
 				Name: repo.Name,
 			},
-			Rules: []stashv1beta1.Rule{
-				{
-					Snapshots: []string{"latest"},
+			RestoreTargetSpec: stashv1beta1.RestoreTargetSpec{
+				Task: stashv1beta1.TaskRef{
+					Name: f.getStashPGRestoreTaskName(),
 				},
-			},
-			Target: &stashv1beta1.RestoreTarget{
-				Ref: stashv1beta1.TargetRef{
-					APIVersion: appcat.SchemeGroupVersion.String(),
-					Kind:       appcat.ResourceKindApp,
-					Name:       meta.Name,
+
+				Target: &stashv1beta1.RestoreTarget{
+					Ref: stashv1beta1.TargetRef{
+						APIVersion: appcat.SchemeGroupVersion.String(),
+						Kind:       appcat.ResourceKindApp,
+						Name:       meta.Name,
+					},
+					Rules: []stashv1beta1.Rule{
+						{
+							Snapshots: []string{"latest"},
+						},
+					},
 				},
+				RuntimeSettings:       ofst.RuntimeSettings{},
+				TempDir:               stashv1beta1.EmptyDirSettings{},
+				InterimVolumeTemplate: nil,
+				Hooks:                 nil,
 			},
 		},
 	}
@@ -173,10 +181,10 @@ func (f *Framework) DeleteRestoreSession(meta metav1.ObjectMeta) error {
 }
 
 func (f *Framework) EventuallyRestoreSessionPhase(meta metav1.ObjectMeta) GomegaAsyncAssertion {
-	return Eventually(func() stashv1beta1.RestoreSessionPhase {
+	return Eventually(func() stashv1beta1.RestorePhase {
 		restoreSession, err := f.stashClient.StashV1beta1().RestoreSessions(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 		Expect(err).NotTo(HaveOccurred())
-		if restoreSession.Status.Phase == stashv1beta1.RestoreSessionFailed {
+		if restoreSession.Status.Phase == stashv1beta1.RestoreFailed {
 			fmt.Println("Restoresession failed. ", restoreSession.Status.Stats)
 		}
 		return restoreSession.Status.Phase
