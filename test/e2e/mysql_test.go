@@ -415,7 +415,7 @@ var _ = Describe("MySQL", func() {
 
 					// eventually backupsession succeeded
 					By("Check for Succeeded restoreSession")
-					f.EventuallyRestoreSessionPhase(rs.ObjectMeta).Should(Equal(stashV1beta1.RestoreSessionSucceeded))
+					f.EventuallyRestoreSessionPhase(rs.ObjectMeta).Should(Equal(stashV1beta1.RestoreSucceeded))
 
 					By("Wait for Running mysql")
 					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())

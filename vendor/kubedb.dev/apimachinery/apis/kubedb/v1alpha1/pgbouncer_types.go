@@ -88,7 +88,7 @@ type PgBouncerCertificateAlias string
 
 const (
 	PgBouncerServerCert          PgBouncerCertificateAlias = "server"
-	PgBouncerArchiverCert        PgBouncerCertificateAlias = "archiver"
+	PgBouncerClientCert          PgBouncerCertificateAlias = "client"
 	PgBouncerMetricsExporterCert PgBouncerCertificateAlias = "metrics-exporter"
 )
 

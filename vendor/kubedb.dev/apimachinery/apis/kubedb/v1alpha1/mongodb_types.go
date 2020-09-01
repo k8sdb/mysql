@@ -130,12 +130,12 @@ type MongoDBSpec struct {
 	StorageEngine StorageEngine `json:"storageEngine,omitempty" protobuf:"bytes,21,opt,name=storageEngine,casttype=StorageEngine"`
 }
 
-// +kubebuilder:validation:Enum=server;archiver;metrics-exporter
+// +kubebuilder:validation:Enum=server;client;metrics-exporter
 type MongoDBCertificateAlias string
 
 const (
 	MongoDBServerCert          MongoDBCertificateAlias = "server"
-	MongoDBArchiverCert        MongoDBCertificateAlias = "archiver"
+	MongoDBClientCert          MongoDBCertificateAlias = "client"
 	MongoDBMetricsExporterCert MongoDBCertificateAlias = "metrics-exporter"
 )
 

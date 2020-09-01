@@ -128,7 +128,11 @@ func (r redisStatsService) ServiceName() string {
 }
 
 func (r redisStatsService) ServiceMonitorName() string {
-	return fmt.Sprintf("kubedb-%s-%s", r.Namespace, r.Name)
+	return r.ServiceName()
+}
+
+func (p redisStatsService) ServiceMonitorAdditionalLabels() map[string]string {
+	return p.OffshootLabels()
 }
 
 func (r redisStatsService) Path() string {
@@ -207,7 +211,7 @@ func (r *Redis) setDefaultTLSConfig() {
 		return
 	}
 	r.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(r.Spec.TLS.Certificates, string(RedisServerCert), r.CertificateName(RedisServerCert))
-	r.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(r.Spec.TLS.Certificates, string(RedisArchiverCert), r.CertificateName(RedisArchiverCert))
+	r.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(r.Spec.TLS.Certificates, string(RedisClientCert), r.CertificateName(RedisClientCert))
 	r.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(r.Spec.TLS.Certificates, string(RedisMetricsExporterCert), r.CertificateName(RedisMetricsExporterCert))
 }
 

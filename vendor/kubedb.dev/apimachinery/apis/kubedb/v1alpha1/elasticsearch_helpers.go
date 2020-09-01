@@ -18,13 +18,14 @@ package v1alpha1
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"kubedb.dev/apimachinery/apis"
 	"kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 	"kubedb.dev/apimachinery/apis/kubedb"
 	"kubedb.dev/apimachinery/crds"
 
-	apps "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
@@ -115,9 +116,24 @@ func (e *Elasticsearch) MustCertSecretName(alias ElasticsearchCertificateAlias) 
 	return name
 }
 
+// returns the volume name for certificate secret.
+// Values will be like: transport-certs, http-certs etc.
+func (e *Elasticsearch) CertSecretVolumeName(alias ElasticsearchCertificateAlias) string {
+	return string(alias) + "-certs"
+}
+
+// returns the mountPath for certificate secrets.
+// if configDir is "/usr/share/elasticsearch/config",
+// mountPath will be, "/usr/share/elasticsearch/config/certs/<alias>".
+func (e *Elasticsearch) CertSecretVolumeMountPath(configDir string, alias ElasticsearchCertificateAlias) string {
+	return filepath.Join(configDir, "certs", string(alias))
+}
+
 // returns the secret name for the  user credentials (ie. username, password)
+// If username contains underscore (_), it will be replaced by hyphen (‐) for
+// the Kubernetes naming convention.
 func (e *Elasticsearch) UserCredSecretName(userName string) string {
-	return meta_util.NameWithSuffix(e.Name, fmt.Sprintf("%s-cred", userName))
+	return meta_util.NameWithSuffix(e.Name, strings.ReplaceAll(fmt.Sprintf("%s-cred", userName), "_", "-"))
 }
 
 // returns the secret name for the default elasticsearch configuration
@@ -166,7 +182,11 @@ func (e elasticsearchStatsService) ServiceName() string {
 }
 
 func (e elasticsearchStatsService) ServiceMonitorName() string {
-	return fmt.Sprintf("kubedb-%s-%s", e.Namespace, e.Name)
+	return e.ServiceName()
+}
+
+func (e elasticsearchStatsService) ServiceMonitorAdditionalLabels() map[string]string {
+	return e.OffshootLabels()
 }
 
 func (e elasticsearchStatsService) Path() string {
@@ -206,9 +226,6 @@ func (e *Elasticsearch) SetDefaults(topology *core_util.Topology) {
 		e.Spec.StorageType = StorageTypeDurable
 	}
 
-	// set updateStrategy to "OnDelete"
-	e.Spec.UpdateStrategy = apps.StatefulSetUpdateStrategy{Type: apps.OnDeleteStatefulSetStrategyType}
-
 	if e.Spec.TerminationPolicy == "" {
 		e.Spec.TerminationPolicy = TerminationPolicyDelete
 	} else if e.Spec.TerminationPolicy == TerminationPolicyPause {
@@ -217,6 +234,24 @@ func (e *Elasticsearch) SetDefaults(topology *core_util.Topology) {
 
 	if e.Spec.PodTemplate.Spec.ServiceAccountName == "" {
 		e.Spec.PodTemplate.Spec.ServiceAccountName = e.OffshootName()
+	}
+
+	// Set default values for internal admin user
+	if e.Spec.InternalUsers != nil {
+		var userSpec ElasticsearchUserSpec
+
+		// load values
+		if value, exist := e.Spec.InternalUsers[string(ElasticsearchInternalUserAdmin)]; exist {
+			userSpec = value
+		}
+
+		// set defaults
+		userSpec.Reserved = true
+		userSpec.BackendRoles = []string{"admin"}
+
+		// overwrite values
+		e.Spec.InternalUsers[string(ElasticsearchInternalUserAdmin)] = userSpec
+
 	}
 
 	e.setDefaultAffinity(&e.Spec.PodTemplate, e.OffshootSelectors(), topology)

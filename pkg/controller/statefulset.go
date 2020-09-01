@@ -394,7 +394,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL, stsName string) 
 							LocalObjectReference: core.LocalObjectReference{
 								Name: mysql.Spec.DatabaseSecret.SecretName,
 							},
-							Key: KeyMySQLPassword,
+							Key: core.BasicAuthPasswordKey,
 						},
 					},
 				},
@@ -405,7 +405,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL, stsName string) 
 							LocalObjectReference: core.LocalObjectReference{
 								Name: mysql.Spec.DatabaseSecret.SecretName,
 							},
-							Key: KeyMySQLUser,
+							Key: core.BasicAuthUsernameKey,
 						},
 					},
 				},
@@ -600,7 +600,7 @@ func upsertTLSVolume(sts *apps.StatefulSet, mysql *api.MySQL) *apps.StatefulSet 
 					{
 						Secret: &core.SecretProjection{
 							LocalObjectReference: core.LocalObjectReference{
-								Name: mysql.MustCertSecretName(api.MySQLArchiverCert),
+								Name: mysql.MustCertSecretName(api.MySQLClientCert),
 							},
 							Items: []core.KeyToPath{
 								{

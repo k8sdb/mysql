@@ -138,7 +138,7 @@ type MySQLCertificateAlias string
 
 const (
 	MySQLServerCert          MySQLCertificateAlias = "server"
-	MySQLArchiverCert        MySQLCertificateAlias = "archiver"
+	MySQLClientCert          MySQLCertificateAlias = "client"
 	MySQLMetricsExporterCert MySQLCertificateAlias = "metrics-exporter"
 )
 

@@ -106,7 +106,11 @@ func (p pgbouncerStatsService) ServiceName() string {
 }
 
 func (p pgbouncerStatsService) ServiceMonitorName() string {
-	return fmt.Sprintf("kubedb-%s-%s", p.Namespace, p.Name)
+	return p.ServiceName()
+}
+
+func (p pgbouncerStatsService) ServiceMonitorAdditionalLabels() map[string]string {
+	return p.OffshootLabels()
 }
 
 func (p pgbouncerStatsService) Path() string {
@@ -153,7 +157,7 @@ func (p *PgBouncer) setDefaultTLSConfig() {
 	}
 
 	p.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(p.Spec.TLS.Certificates, string(PgBouncerServerCert), p.CertificateName(PgBouncerServerCert))
-	p.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(p.Spec.TLS.Certificates, string(PgBouncerArchiverCert), p.CertificateName(PgBouncerArchiverCert))
+	p.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(p.Spec.TLS.Certificates, string(PgBouncerClientCert), p.CertificateName(PgBouncerClientCert))
 	p.Spec.TLS.Certificates = kmapi.SetMissingSecretNameForCertificate(p.Spec.TLS.Certificates, string(PgBouncerMetricsExporterCert), p.CertificateName(PgBouncerMetricsExporterCert))
 }
 

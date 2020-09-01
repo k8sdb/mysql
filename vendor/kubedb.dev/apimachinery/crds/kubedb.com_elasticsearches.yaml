@@ -3886,8 +3886,12 @@ spec:
                   type: object
               type: object
             internalUsers:
-              description: InternalUsers contains internal user configurations
-              items:
+              additionalProperties:
+                description: Specifies the security plugin internal user structure.
+                  Both 'json' and 'yaml' tags are used in structure metadata. The
+                  `json` tags (camel case) are used while taking input from users.
+                  The `yaml` tags (snake case) are used by the operator to generate
+                  internal_users.yml file.
                 properties:
                   attributes:
                     additionalProperties:
@@ -3910,24 +3914,28 @@ spec:
                       this set to true are not returned by the REST API and not visible
                       in Kibana. Default to "false".
                     type: boolean
-                  name:
-                    description: Specifies the name of the user
-                    type: string
+                  opendistroSecurityRoles:
+                    description: Specifies a list of opendistro security plugin roles
+                      assigned to this user.
+                    items:
+                      type: string
+                    type: array
                   reserved:
                     description: Specifies the reserved status. Resources that have
                       this set to true can’t be changed using the REST API or Kibana.
                       Default to "false".
                     type: boolean
-                  securityRoles:
-                    description: Specifies a list of security plugin (i.e. opendistro,
-                      searchguard) roles assigned to this user.
+                  searchGuardRoles:
+                    description: Specifies a list of searchguard security plugin roles
+                      assigned to this user.
                     items:
                       type: string
                     type: array
-                required:
-                - name
                 type: object
-              type: array
+              description: "InternalUsers contains internal user configurations. Expected
+                Input format: internalUsers:   <username1>: \t\t...   <username2>:
+                \t\t..."
+              type: object
             maxUnavailable:
               anyOf:
               - type: integer
@@ -4364,10 +4372,6 @@ spec:
                         Prometheus instance via ServiceMonitor labels. Deprecated:
                         use prometheus.serviceMonitor.labels'
                       type: object
-                    namespace:
-                      description: 'Namespace of Prometheus. Service monitors will
-                        be created in this namespace. Deprecated: use prometheus.serviceMonitor.namespace'
-                      type: string
                     port:
                       description: 'Port number for the exporter side car. Deprecated:
                         use exporter.port'
@@ -4384,10 +4388,6 @@ spec:
                           description: Labels are key value pairs that is used to
                             select Prometheus instance via ServiceMonitor labels.
                           type: object
-                        namespace:
-                          description: Namespace of Prometheus. Service monitors will
-                            be created in this namespace.
-                          type: string
                       type: object
                   type: object
                 resources:
@@ -7128,6 +7128,50 @@ spec:
               description: Number of instances to deploy for a Elasticsearch database.
               format: int32
               type: integer
+            rolesMapping:
+              additionalProperties:
+                description: Specifies the role mapping structure. Both 'json' and
+                  'yaml' tags are used in structure metadata. The `json` tags (camel
+                  case) are used while taking input from users. The `yaml` tags (snake
+                  case) are used by the operator to generate roles_mapping.yml file.
+                properties:
+                  andBackendRoles:
+                    description: Specifies a list of backend roles (migrated from
+                      ES-version6) assigned to this role.
+                    items:
+                      type: string
+                    type: array
+                  backendRoles:
+                    description: Specifies a list of backend roles assigned to this
+                      role. Backend roles can come from the internal user database,
+                      LDAP groups, JSON web token claims or SAML assertions.
+                    items:
+                      type: string
+                    type: array
+                  hidden:
+                    description: Specifies the hidden status. Resources that have
+                      this set to true are not returned by the REST API and not visible
+                      in Kibana. Default to "false".
+                    type: boolean
+                  hosts:
+                    description: Specifies a list of hosts assigned to this role.
+                    items:
+                      type: string
+                    type: array
+                  reserved:
+                    description: Specifies the reserved status. Resources that have
+                      this set to true can’t be changed using the REST API or Kibana.
+                      Default to "false".
+                    type: boolean
+                  users:
+                    description: Specifies a list of users assigned to this role.
+                    items:
+                      type: string
+                    type: array
+                type: object
+              description: "RolesMapping contains roles mapping configurations. Expected
+                Input format: rolesMapping:   <role1>: \t\t...   <role2>: \t\t..."
+              type: object
             serviceTemplate:
               description: ServiceTemplate is an optional configuration for service
                 used to expose database
@@ -7528,8 +7572,6 @@ spec:
                   - kind
                   - name
                   type: object
-              required:
-              - issuerRef
               type: object
             topology:
               description: Elasticsearch topology for node specification
@@ -8066,26 +8108,6 @@ spec:
               - client
               - data
               - master
-              type: object
-            updateStrategy:
-              description: 'updateStrategy indicates the StatefulSetUpdateStrategy
-                that will be employed to update Pods in the StatefulSet when a revision
-                is made to Template. Deprecated: UpdateStrategy is default to "OnDelete"'
-              properties:
-                rollingUpdate:
-                  description: RollingUpdate is used to communicate parameters when
-                    Type is RollingUpdateStatefulSetStrategyType.
-                  properties:
-                    partition:
-                      description: Partition indicates the ordinal at which the StatefulSet
-                        should be partitioned. Default value is 0.
-                      format: int32
-                      type: integer
-                  type: object
-                type:
-                  description: Type indicates the type of the StatefulSetUpdateStrategy.
-                    Default is RollingUpdate.
-                  type: string
               type: object
             version:
               description: Version of Elasticsearch to be deployed.

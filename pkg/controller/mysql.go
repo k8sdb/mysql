@@ -111,7 +111,7 @@ func (c *Controller) create(mysql *api.MySQL) error {
 			core.SchemeGroupVersion.WithResource("secrets"),
 			mysql.Namespace,
 			mysql.MustCertSecretName(api.MySQLServerCert),
-			mysql.MustCertSecretName(api.MySQLArchiverCert),
+			mysql.MustCertSecretName(api.MySQLClientCert),
 			mysql.MustCertSecretName(api.MySQLMetricsExporterCert),
 			meta_util.NameWithSuffix(mysql.Name, api.MySQLMetricsExporterConfigSecretSuffix),
 		)

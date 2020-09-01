@@ -117,12 +117,12 @@ type RedisSpec struct {
 	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,15,opt,name=terminationPolicy,casttype=TerminationPolicy"`
 }
 
-// +kubebuilder:validation:Enum=server;archiver;metrics-exporter
+// +kubebuilder:validation:Enum=server;client;metrics-exporter
 type RedisCertificateAlias string
 
 const (
 	RedisServerCert          RedisCertificateAlias = "server"
-	RedisArchiverCert        RedisCertificateAlias = "archiver"
+	RedisClientCert          RedisCertificateAlias = "client"
 	RedisMetricsExporterCert RedisCertificateAlias = "metrics-exporter"
 )
 
