@@ -25,12 +25,16 @@ import (
 	"kubedb.dev/mysql/pkg/controller"
 
 	prom "github.com/coreos/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
+	cm "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
 	"github.com/spf13/pflag"
 	core "k8s.io/api/core/v1"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/informers"
+	coreinformers "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/kubernetes"
+	corelisters "k8s.io/client-go/listers/core/v1"
+	"k8s.io/client-go/tools/cache"
 	"kmodules.xyz/client-go/meta"
 	"kmodules.xyz/client-go/tools/cli"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
@@ -136,6 +140,20 @@ func (s *ExtraOptions) ApplyTo(cfg *controller.OperatorConfig) error {
 	cfg.KubeInformerFactory = informers.NewSharedInformerFactory(cfg.KubeClient, cfg.ResyncPeriod)
 	cfg.KubedbInformerFactory = kubedbinformers.NewSharedInformerFactory(cfg.DBClient, cfg.ResyncPeriod)
 	cfg.StashInformerFactory = stashInformers.NewSharedInformerFactory(cfg.StashClient, cfg.ResyncPeriod)
+
+	if cfg.CertManagerClient, err = cm.NewForConfig(cfg.ClientConfig); err != nil {
+		return err
+	}
+
+	cfg.SecretInformer = cfg.KubeInformerFactory.InformerFor(&core.Secret{}, func(client kubernetes.Interface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+		return coreinformers.NewSecretInformer(
+			client,
+			cfg.WatchNamespace,
+			resyncPeriod,
+			cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc},
+		)
+	})
+	cfg.SecretLister = corelisters.NewSecretLister(cfg.SecretInformer.GetIndexer())
 
 	return nil
 }

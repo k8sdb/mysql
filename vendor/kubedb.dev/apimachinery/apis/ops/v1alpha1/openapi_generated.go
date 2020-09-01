@@ -334,6 +334,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kmodules.xyz/client-go/api/v1.Condition":                                      schema_kmodulesxyz_client_go_api_v1_Condition(ref),
 		"kmodules.xyz/client-go/api/v1.TLSConfig":                                      schema_kmodulesxyz_client_go_api_v1_TLSConfig(ref),
 		"kmodules.xyz/client-go/api/v1.X509Subject":                                    schema_kmodulesxyz_client_go_api_v1_X509Subject(ref),
+		"kmodules.xyz/client-go/api/v1.stringSetMerger":                                schema_kmodulesxyz_client_go_api_v1_stringSetMerger(ref),
 		"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.AddKeyTransform":       schema_custom_resources_apis_appcatalog_v1alpha1_AddKeyTransform(ref),
 		"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.AddKeysFromTransform":  schema_custom_resources_apis_appcatalog_v1alpha1_AddKeysFromTransform(ref),
 		"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.AppBinding":            schema_custom_resources_apis_appcatalog_v1alpha1_AppBinding(ref),
@@ -385,6 +386,8 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MemcachedOpsRequestList":            schema_apimachinery_apis_ops_v1alpha1_MemcachedOpsRequestList(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MemcachedOpsRequestSpec":            schema_apimachinery_apis_ops_v1alpha1_MemcachedOpsRequestSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MemcachedOpsRequestStatus":          schema_apimachinery_apis_ops_v1alpha1_MemcachedOpsRequestStatus(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBCustomConfig":                schema_apimachinery_apis_ops_v1alpha1_MongoDBCustomConfig(ref),
+		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBCustomConfigSpec":            schema_apimachinery_apis_ops_v1alpha1_MongoDBCustomConfigSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBHorizontalScalingSpec":       schema_apimachinery_apis_ops_v1alpha1_MongoDBHorizontalScalingSpec(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBOpsRequest":                  schema_apimachinery_apis_ops_v1alpha1_MongoDBOpsRequest(ref),
 		"kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBOpsRequestList":              schema_apimachinery_apis_ops_v1alpha1_MongoDBOpsRequestList(ref),
@@ -15927,6 +15930,16 @@ func schema_kmodulesxyz_client_go_api_v1_X509Subject(ref common.ReferenceCallbac
 	}
 }
 
+func schema_kmodulesxyz_client_go_api_v1_stringSetMerger(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+			},
+		},
+	}
+}
+
 func schema_custom_resources_apis_appcatalog_v1alpha1_AddKeyTransform(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -16519,13 +16532,6 @@ func schema_kmodulesxyz_monitoring_agent_api_api_v1_PrometheusSpec(ref common.Re
 							Format:      "int32",
 						},
 					},
-					"namespace": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Namespace of Prometheus. Service monitors will be created in this namespace. Deprecated: use prometheus.serviceMonitor.namespace",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"labels": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Labels are key value pairs that is used to select Prometheus instance via ServiceMonitor labels. Deprecated: use prometheus.serviceMonitor.labels",
@@ -16572,13 +16578,6 @@ func schema_kmodulesxyz_monitoring_agent_api_api_v1_ServiceMonitorSpec(ref commo
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"namespace": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Namespace of Prometheus. Service monitors will be created in this namespace.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"labels": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Labels are key value pairs that is used to select Prometheus instance via ServiceMonitor labels.",
@@ -18397,6 +18396,78 @@ func schema_apimachinery_apis_ops_v1alpha1_MemcachedOpsRequestStatus(ref common.
 	}
 }
 
+func schema_apimachinery_apis_ops_v1alpha1_MongoDBCustomConfig(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"configMap": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/api/core/v1.LocalObjectReference"),
+						},
+					},
+					"data": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"k8s.io/api/core/v1.LocalObjectReference"},
+	}
+}
+
+func schema_apimachinery_apis_ops_v1alpha1_MongoDBCustomConfigSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"standalone": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBCustomConfig"),
+						},
+					},
+					"replicaSet": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBCustomConfig"),
+						},
+					},
+					"mongos": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBCustomConfig"),
+						},
+					},
+					"configServer": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBCustomConfig"),
+						},
+					},
+					"shard": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBCustomConfig"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBCustomConfig"},
+	}
+}
+
 func schema_apimachinery_apis_ops_v1alpha1_MongoDBHorizontalScalingSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -18567,12 +18638,18 @@ func schema_apimachinery_apis_ops_v1alpha1_MongoDBOpsRequestSpec(ref common.Refe
 							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBVolumeExpansionSpec"),
 						},
 					},
+					"customConfig": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Specifies information necessary for custom configuration of MongoDB",
+							Ref:         ref("kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBCustomConfigSpec"),
+						},
+					},
 				},
 				Required: []string{"databaseRef", "type"},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.LocalObjectReference", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBHorizontalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBVerticalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBVolumeExpansionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.UpgradeSpec"},
+			"k8s.io/api/core/v1.LocalObjectReference", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBCustomConfigSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBHorizontalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBVerticalScalingSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.MongoDBVolumeExpansionSpec", "kubedb.dev/apimachinery/apis/ops/v1alpha1.UpgradeSpec"},
 	}
 }
 
@@ -18654,6 +18731,11 @@ func schema_apimachinery_apis_ops_v1alpha1_MongoDBVerticalScalingSpec(ref common
 							Ref: ref("k8s.io/api/core/v1.ResourceRequirements"),
 						},
 					},
+					"replicaSet": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/api/core/v1.ResourceRequirements"),
+						},
+					},
 					"mongos": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("k8s.io/api/core/v1.ResourceRequirements"),
@@ -18690,6 +18772,11 @@ func schema_apimachinery_apis_ops_v1alpha1_MongoDBVolumeExpansionSpec(ref common
 				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"standalone": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
+						},
+					},
+					"replicaSet": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("k8s.io/apimachinery/pkg/api/resource.Quantity"),
 						},

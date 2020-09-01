@@ -334,6 +334,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"kmodules.xyz/client-go/api/v1.Condition":                                     schema_kmodulesxyz_client_go_api_v1_Condition(ref),
 		"kmodules.xyz/client-go/api/v1.TLSConfig":                                     schema_kmodulesxyz_client_go_api_v1_TLSConfig(ref),
 		"kmodules.xyz/client-go/api/v1.X509Subject":                                   schema_kmodulesxyz_client_go_api_v1_X509Subject(ref),
+		"kmodules.xyz/client-go/api/v1.stringSetMerger":                               schema_kmodulesxyz_client_go_api_v1_stringSetMerger(ref),
 		"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.AddKeyTransform":      schema_custom_resources_apis_appcatalog_v1alpha1_AddKeyTransform(ref),
 		"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.AddKeysFromTransform": schema_custom_resources_apis_appcatalog_v1alpha1_AddKeysFromTransform(ref),
 		"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1.AppBinding":           schema_custom_resources_apis_appcatalog_v1alpha1_AppBinding(ref),
@@ -15877,6 +15878,16 @@ func schema_kmodulesxyz_client_go_api_v1_X509Subject(ref common.ReferenceCallbac
 	}
 }
 
+func schema_kmodulesxyz_client_go_api_v1_stringSetMerger(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+			},
+		},
+	}
+}
+
 func schema_custom_resources_apis_appcatalog_v1alpha1_AddKeyTransform(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -16469,13 +16480,6 @@ func schema_kmodulesxyz_monitoring_agent_api_api_v1_PrometheusSpec(ref common.Re
 							Format:      "int32",
 						},
 					},
-					"namespace": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Namespace of Prometheus. Service monitors will be created in this namespace. Deprecated: use prometheus.serviceMonitor.namespace",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"labels": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Labels are key value pairs that is used to select Prometheus instance via ServiceMonitor labels. Deprecated: use prometheus.serviceMonitor.labels",
@@ -16522,13 +16526,6 @@ func schema_kmodulesxyz_monitoring_agent_api_api_v1_ServiceMonitorSpec(ref commo
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"namespace": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Namespace of Prometheus. Service monitors will be created in this namespace.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
 					"labels": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Labels are key value pairs that is used to select Prometheus instance via ServiceMonitor labels.",

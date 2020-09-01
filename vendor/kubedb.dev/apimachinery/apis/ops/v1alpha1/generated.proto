@@ -197,6 +197,24 @@ message MemcachedOpsRequestStatus {
   repeated kmodules.xyz.client_go.api.v1.Condition conditions = 3;
 }
 
+message MongoDBCustomConfig {
+  optional k8s.io.api.core.v1.LocalObjectReference configMap = 1;
+
+  map<string, string> data = 2;
+}
+
+message MongoDBCustomConfigSpec {
+  optional MongoDBCustomConfig standalone = 1;
+
+  optional MongoDBCustomConfig replicaSet = 5;
+
+  optional MongoDBCustomConfig mongos = 2;
+
+  optional MongoDBCustomConfig configServer = 3;
+
+  optional MongoDBCustomConfig shard = 4;
+}
+
 // HorizontalScaling is the spec for mongodb horizontal scaling
 message MongoDBHorizontalScalingSpec {
   optional MongoDBShardNode shard = 1;
@@ -249,6 +267,9 @@ message MongoDBOpsRequestSpec {
 
   // Specifies information necessary for volume expansion
   optional MongoDBVolumeExpansionSpec volumeExpansion = 6;
+
+  // Specifies information necessary for custom configuration of MongoDB
+  optional MongoDBCustomConfigSpec customConfig = 7;
 }
 
 // MongoDBOpsRequestStatus is the status for MongoDBOpsRequest
@@ -276,6 +297,8 @@ message MongoDBShardNode {
 message MongoDBVerticalScalingSpec {
   optional k8s.io.api.core.v1.ResourceRequirements standalone = 1;
 
+  optional k8s.io.api.core.v1.ResourceRequirements replicaSet = 6;
+
   optional k8s.io.api.core.v1.ResourceRequirements mongos = 2;
 
   optional k8s.io.api.core.v1.ResourceRequirements configServer = 3;
@@ -288,6 +311,8 @@ message MongoDBVerticalScalingSpec {
 // MongoDBVolumeExpansionSpec is the spec for mongodb volume expansion
 message MongoDBVolumeExpansionSpec {
   optional k8s.io.apimachinery.pkg.api.resource.Quantity standalone = 1;
+
+  optional k8s.io.apimachinery.pkg.api.resource.Quantity replicaSet = 4;
 
   optional k8s.io.apimachinery.pkg.api.resource.Quantity configServer = 2;
 

@@ -24,7 +24,6 @@ import (
 	"time"
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	"kubedb.dev/mysql/pkg/controller"
 
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
@@ -179,7 +178,7 @@ func (f *Framework) GetMySQLRootPassword(mysql *api.MySQL) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	password := string(secret.Data[controller.KeyMySQLPassword])
+	password := string(secret.Data[core.BasicAuthPasswordKey])
 	return password, nil
 }
 
