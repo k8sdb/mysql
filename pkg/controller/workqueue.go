@@ -111,11 +111,6 @@ func (c *Controller) initSecretWatcher() {
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
-			if secret, ok := obj.(*core.Secret); ok {
-				if key := c.mysqlForSecret(secret); key != "" {
-					queue.Enqueue(c.myQueue.GetQueue(), key)
-				}
-			}
 		},
 	})
 }
