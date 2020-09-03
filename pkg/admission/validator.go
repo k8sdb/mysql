@@ -271,10 +271,6 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 			mysql.Namespace, mysql.Name, mysql.Spec.Init.StashRestoreSession.Name)
 	}
 
-	if mysql.Spec.UpdateStrategy.Type == "" {
-		return fmt.Errorf(`'spec.updateStrategy.type' is missing`)
-	}
-
 	if mysql.Spec.TerminationPolicy == "" {
 		return fmt.Errorf(`'spec.terminationPolicy' is missing`)
 	}

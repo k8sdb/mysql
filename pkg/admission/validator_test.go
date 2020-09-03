@@ -28,7 +28,6 @@ import (
 
 	"github.com/appscode/go/types"
 	admission "k8s.io/api/admission/v1beta1"
-	apps "k8s.io/api/apps/v1"
 	authenticationV1 "k8s.io/api/authentication/v1"
 	core "k8s.io/api/core/v1"
 	storageV1beta1 "k8s.io/api/storage/v1beta1"
@@ -414,9 +413,6 @@ func sampleMySQL() api.MySQL {
 						},
 					},
 				},
-			},
-			UpdateStrategy: apps.StatefulSetUpdateStrategy{
-				Type: apps.RollingUpdateStatefulSetStrategyType,
 			},
 			TerminationPolicy: api.TerminationPolicyDoNotTerminate,
 		},

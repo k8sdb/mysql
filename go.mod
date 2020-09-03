@@ -29,9 +29,15 @@ require (
 	kmodules.xyz/objectstore-api v0.0.0-20200521103120-92080446e04d
 	kmodules.xyz/offshoot-api v0.0.0-20200521035628-e135bf07b226
 	kmodules.xyz/webhook-runtime v0.0.0-20200522123600-ca70a7e28ed0
-	kubedb.dev/apimachinery v0.14.0-beta.1.0.20200901075734-68ed81278fa8
+	kubedb.dev/apimachinery v0.14.0-beta.1.0.20200903071357-152cef57748c
 	stash.appscode.dev/apimachinery v0.10.0
 )
+
+replace google.golang.org/api => google.golang.org/api v0.14.0
+
+replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20191115194625-c23dd37a84c9
+
+replace cloud.google.com/go => cloud.google.com/go v0.49.0
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
 
@@ -60,6 +66,10 @@ replace github.com/Azure/go-autorest/autorest/validation => github.com/Azure/go-
 replace github.com/Azure/go-autorest/logger => github.com/Azure/go-autorest/logger v0.1.0
 
 replace github.com/Azure/go-autorest/tracing => github.com/Azure/go-autorest/tracing v0.5.0
+
+replace github.com/gogo/protobuf => github.com/gogo/protobuf v1.3.1
+
+replace github.com/golang/protobuf => github.com/golang/protobuf v1.3.2
 
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.5
 

@@ -317,7 +317,9 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 				in.Spec.Template.Spec.SecurityContext = mysql.Spec.PodTemplate.Spec.SecurityContext
 			}
 			in.Spec.Template.Spec.ServiceAccountName = mysql.Spec.PodTemplate.Spec.ServiceAccountName
-			in.Spec.UpdateStrategy = mysql.Spec.UpdateStrategy
+			in.Spec.UpdateStrategy = apps.StatefulSetUpdateStrategy{
+				Type: apps.OnDeleteStatefulSetStrategyType,
+			}
 			in = upsertUserEnv(in, mysql)
 
 			// configure tls
