@@ -94,6 +94,11 @@ func (c *Controller) createService(mysql *api.MySQL) (kutil.VerbType, error) {
 		in.Annotations = mysql.Spec.ServiceTemplate.Annotations
 
 		in.Spec.Selector = mysql.OffshootSelectors()
+		//add extra selector to select only primary pod for group replication
+		if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil && *mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
+			in.Spec.Selector[api.MySQLLabelRole] = api.MySQLPodPrimary
+		}
+
 		in.Spec.Ports = ofst.MergeServicePorts(
 			core_util.MergeServicePorts(in.Spec.Ports, []core.ServicePort{defaultDBPort}),
 			mysql.Spec.ServiceTemplate.Spec.Ports,
@@ -200,19 +205,19 @@ func (c *Controller) createMySQLGoverningService(mysql *api.MySQL) (string, erro
 	return service.Name, nil
 }
 
-func (c *Controller) ensureServiceForPrimaryPod(mysql *api.MySQL) (kutil.VerbType, error) {
+func (c *Controller) ensureServiceForSecondaryPod(mysql *api.MySQL) (kutil.VerbType, error) {
 	// Check if service name exists
-	svcName := fmt.Sprintf("%s-%s", mysql.ServiceName(), "primary")
+	svcName := fmt.Sprintf("%s-%s", mysql.ServiceName(), "replicas")
 	if err := c.checkService(mysql, svcName); err != nil {
 		return kutil.VerbUnchanged, err
 	}
 
 	// create Service for primary/master pod
-	vt, err := c.createServiceForPrimaryPod(mysql, svcName)
+	vt, err := c.createServiceForSecondaryPod(mysql, svcName)
 	return vt, err
 }
 
-func (c *Controller) createServiceForPrimaryPod(mysql *api.MySQL, svcName string) (kutil.VerbType, error) {
+func (c *Controller) createServiceForSecondaryPod(mysql *api.MySQL, svcName string) (kutil.VerbType, error) {
 	meta := metav1.ObjectMeta{
 		Name:      svcName,
 		Namespace: mysql.Namespace,
@@ -225,8 +230,8 @@ func (c *Controller) createServiceForPrimaryPod(mysql *api.MySQL, svcName string
 		in.Labels = mysql.OffshootLabels()
 		in.Annotations = mysql.Spec.ServiceTemplate.Annotations
 		in.Spec.Selector = mysql.OffshootSelectors()
-		//add extra selector to select only primary pod
-		in.Spec.Selector[labelRole] = primary
+		//add extra selector to select only secondary pod
+		in.Spec.Selector[api.MySQLLabelRole] = api.MySQLPodSecondary
 
 		in.Spec.Ports = ofst.MergeServicePorts(
 			core_util.MergeServicePorts(in.Spec.Ports, []core.ServicePort{defaultDBPort}),

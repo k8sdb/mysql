@@ -254,6 +254,25 @@ func (e *Elasticsearch) SetDefaults(topology *core_util.Topology) {
 
 	}
 
+	// set default elasticsearch node name prefix
+	if e.Spec.Topology != nil {
+
+		// Default to "ingest"
+		if e.Spec.Topology.Ingest.Prefix == "" {
+			e.Spec.Topology.Ingest.Prefix = ElasticsearchIngestNodePrefix
+		}
+
+		// Default to "data"
+		if e.Spec.Topology.Data.Prefix == "" {
+			e.Spec.Topology.Data.Prefix = ElasticsearchDataNodePrefix
+		}
+
+		// Default to "master"
+		if e.Spec.Topology.Master.Prefix == "" {
+			e.Spec.Topology.Master.Prefix = ElasticsearchMasterNodePrefix
+		}
+	}
+
 	e.setDefaultAffinity(&e.Spec.PodTemplate, e.OffshootSelectors(), topology)
 	e.setDefaultTLSConfig()
 	e.Spec.Monitor.SetDefaults()

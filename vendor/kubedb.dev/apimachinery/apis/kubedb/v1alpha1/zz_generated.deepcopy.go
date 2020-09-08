@@ -151,7 +151,7 @@ func (in *ElasticsearchClusterTopology) DeepCopyInto(out *ElasticsearchClusterTo
 	*out = *in
 	in.Master.DeepCopyInto(&out.Master)
 	in.Data.DeepCopyInto(&out.Data)
-	in.Client.DeepCopyInto(&out.Client)
+	in.Ingest.DeepCopyInto(&out.Ingest)
 	return
 }
 
