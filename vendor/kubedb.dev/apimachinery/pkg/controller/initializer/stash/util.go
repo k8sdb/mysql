@@ -151,7 +151,7 @@ func (c *Controller) identifyTarget(members []v1beta1.RestoreTargetSpec, namespa
 	// we should check the workload's owner reference to be sure.
 	for i, m := range members {
 		if m.Target != nil {
-			ok, err := targetOfGroupVersionKind(m.Target.Ref, apps.GroupName, apps.SchemeGroupVersion.Version, sapis.KindStatefulSet)
+			ok, err := targetOfGroupKind(m.Target.Ref, apps.GroupName, sapis.KindStatefulSet)
 			if err != nil {
 				return nil, err
 			}
@@ -253,14 +253,6 @@ func targetOfGroupKind(target v1beta1.TargetRef, group, kind string) (bool, erro
 		return false, err
 	}
 	return gv.Group == group && target.Kind == kind, nil
-}
-
-func targetOfGroupVersionKind(target v1beta1.TargetRef, group, version, kind string) (bool, error) {
-	gv, err := schema.ParseGroupVersion(target.APIVersion)
-	if err != nil {
-		return false, err
-	}
-	return gv.Group == group && gv.Version == version && target.Kind == kind, nil
 }
 
 func matchRef(r1, r2 core.TypedLocalObjectReference) bool {
