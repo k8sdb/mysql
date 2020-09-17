@@ -20,12 +20,10 @@ import (
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 	cs "kubedb.dev/apimachinery/client/clientset/versioned"
 	amc "kubedb.dev/apimachinery/pkg/controller"
-	"kubedb.dev/apimachinery/pkg/controller/restoresession"
 	"kubedb.dev/apimachinery/pkg/eventer"
 
 	pcm "github.com/prometheus-operator/prometheus-operator/pkg/client/versioned/typed/monitoring/v1"
 	crd_cs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -74,20 +72,12 @@ func (c *OperatorConfig) New() (*Controller, error) {
 		c.KubeClient,
 		c.CRDClient,
 		c.DBClient,
-		c.StashClient,
 		c.DynamicClient,
 		c.AppCatalogClient,
 		c.PromClient,
 		c.Config,
 		recorder,
 	)
-
-	tweakListOptions := func(options *metav1.ListOptions) {
-		options.LabelSelector = ctrl.selector.String()
-	}
-
-	// Initialize stash restoresession Informer. Later EventHandler will be added to these informers.
-	ctrl.RSInformer = restoresession.NewController(ctrl.Controller, ctrl, ctrl.Config, tweakListOptions, recorder).InitInformer()
 
 	if err := ctrl.EnsureCustomResourceDefinitions(); err != nil {
 		return nil, err

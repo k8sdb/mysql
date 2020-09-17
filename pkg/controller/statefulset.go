@@ -300,8 +300,8 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 			in = upsertDataVolume(in, mysql)
 			in = upsertCustomConfig(in, mysql)
 
-			if mysql.Spec.Init != nil && mysql.Spec.Init.ScriptSource != nil {
-				in = upsertInitScript(in, mysql.Spec.Init.ScriptSource.VolumeSource)
+			if mysql.Spec.Init != nil && mysql.Spec.Init.Script != nil {
+				in = upsertInitScript(in, mysql.Spec.Init.Script.VolumeSource)
 			}
 
 			in.Spec.Template.Spec.NodeSelector = mysql.Spec.PodTemplate.Spec.NodeSelector
