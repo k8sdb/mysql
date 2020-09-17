@@ -285,7 +285,7 @@ var _ = Describe("MySQL", func() {
 					Expect(f.CreateConfigMap(initScriptConfigmap)).ShouldNot(HaveOccurred())
 
 					mysql.Spec.Init = &api.InitSpec{
-						ScriptSource: &api.ScriptSourceSpec{
+						Script: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								ConfigMap: &core.ConfigMapVolumeSource{
 									LocalObjectReference: core.LocalObjectReference{
@@ -398,8 +398,10 @@ var _ = Describe("MySQL", func() {
 					rs = f.RestoreSession(mysql.ObjectMeta, repo)
 					mysql.Spec.DatabaseSecret = oldMySQL.Spec.DatabaseSecret
 					mysql.Spec.Init = &api.InitSpec{
-						StashRestoreSession: &core.LocalObjectReference{
-							Name: rs.Name,
+						Initializer: &core.TypedLocalObjectReference{
+							APIGroup: types.StringP(rs.APIVersion),
+							Kind:     rs.Kind,
+							Name:     rs.Name,
 						},
 					}
 
@@ -544,7 +546,7 @@ var _ = Describe("MySQL", func() {
 					Expect(f.CreateConfigMap(initScriptConfigmap)).ShouldNot(HaveOccurred())
 
 					mysql.Spec.Init = &api.InitSpec{
-						ScriptSource: &api.ScriptSourceSpec{
+						Script: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								ConfigMap: &core.ConfigMapVolumeSource{
 									LocalObjectReference: core.LocalObjectReference{
@@ -606,7 +608,7 @@ var _ = Describe("MySQL", func() {
 					Expect(f.CreateConfigMap(initScriptConfigmap)).ShouldNot(HaveOccurred())
 
 					mysql.Spec.Init = &api.InitSpec{
-						ScriptSource: &api.ScriptSourceSpec{
+						Script: &api.ScriptSourceSpec{
 							VolumeSource: core.VolumeSource{
 								ConfigMap: &core.ConfigMapVolumeSource{
 									LocalObjectReference: core.LocalObjectReference{

@@ -154,7 +154,7 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	}
 
 	if _, err := meta_util.GetString(mysql.Annotations, api.AnnotationInitialized); err == kutil.ErrNotFound &&
-		mysql.Spec.Init != nil && mysql.Spec.Init.StashRestoreSession != nil {
+		mysql.Spec.Init != nil && mysql.Spec.Init.Initializer != nil {
 
 		if mysql.Status.Phase == api.DatabasePhaseInitializing {
 			return nil
@@ -171,8 +171,8 @@ func (c *Controller) create(mysql *api.MySQL) error {
 		mysql.Status = my.Status
 
 		init := mysql.Spec.Init
-		if init.StashRestoreSession != nil {
-			log.Debugf("MySQL %v/%v is waiting for restoreSession to be succeeded", mysql.Namespace, mysql.Name)
+		if init.Initializer != nil {
+			log.Debugf("MySQL %v/%v is waiting for the initializer to complete it's initialization", mysql.Namespace, mysql.Name)
 			return nil
 		}
 	}
