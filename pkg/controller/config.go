@@ -30,7 +30,6 @@ import (
 	reg_util "kmodules.xyz/client-go/admissionregistration/v1beta1"
 	"kmodules.xyz/client-go/discovery"
 	appcat_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
-	scs "stash.appscode.dev/apimachinery/client/clientset/versioned"
 )
 
 const (
@@ -50,7 +49,6 @@ type OperatorConfig struct {
 	CRDClient        crd_cs.Interface
 	DBClient         cs.Interface
 	DynamicClient    dynamic.Interface
-	StashClient      scs.Interface
 	AppCatalogClient appcat_cs.Interface
 	PromClient       pcm.MonitoringV1Interface
 	Recorder         record.EventRecorder
