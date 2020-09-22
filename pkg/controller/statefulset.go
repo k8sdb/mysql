@@ -58,7 +58,7 @@ func (c *Controller) ensureStatefulSet(mysql *api.MySQL) (kutil.VerbType, error)
 			if err := c.checkStatefulSetPodStatus(stsNew); err != nil {
 				return kutil.VerbUnchanged, err
 			}
-			c.recorder.Eventf(
+			c.Recorder.Eventf(
 				mysql,
 				core.EventTypeNormal,
 				eventer.EventReasonSuccessful,
