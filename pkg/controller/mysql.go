@@ -72,14 +72,14 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	}
 
 	// ensure database Service
-	vt1, err := c.ensureService(mysql)
+	vt1, err := c.ensurePrimaryService(mysql)
 	if err != nil {
 		return err
 	}
 
 	// create Service only for master/primary pod
-	if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil && *mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
-		vt, err := c.ensureServiceForPrimaryPod(mysql)
+	if mysql.UsesGroupReplication() {
+		vt, err := c.ensureSecondaryService(mysql)
 		if err != nil {
 			return err
 		}
@@ -88,14 +88,14 @@ func (c *Controller) create(mysql *api.MySQL) error {
 				mysql,
 				core.EventTypeNormal,
 				eventer.EventReasonSuccessful,
-				"Successfully created primary service",
+				"Successfully created service for secondary replicas",
 			)
 		} else if vt == kutil.VerbPatched {
 			c.Recorder.Event(
 				mysql,
 				core.EventTypeNormal,
 				eventer.EventReasonSuccessful,
-				"Successfully patched primary service",
+				"Successfully patched service for secondary replicas",
 			)
 		}
 	}

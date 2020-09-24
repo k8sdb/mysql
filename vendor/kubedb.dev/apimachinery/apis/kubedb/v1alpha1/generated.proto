@@ -133,7 +133,7 @@ message ElasticsearchClusterTopology {
 
   optional ElasticsearchNode data = 2;
 
-  optional ElasticsearchNode client = 3;
+  optional ElasticsearchNode ingest = 3;
 }
 
 message ElasticsearchList {

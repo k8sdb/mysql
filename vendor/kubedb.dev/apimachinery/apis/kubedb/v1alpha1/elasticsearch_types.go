@@ -154,7 +154,7 @@ type ElasticsearchSpec struct {
 type ElasticsearchClusterTopology struct {
 	Master ElasticsearchNode `json:"master" protobuf:"bytes,1,opt,name=master"`
 	Data   ElasticsearchNode `json:"data" protobuf:"bytes,2,opt,name=data"`
-	Client ElasticsearchNode `json:"client" protobuf:"bytes,3,opt,name=client"`
+	Ingest ElasticsearchNode `json:"ingest" protobuf:"bytes,3,opt,name=ingest"`
 }
 
 type ElasticsearchNode struct {
