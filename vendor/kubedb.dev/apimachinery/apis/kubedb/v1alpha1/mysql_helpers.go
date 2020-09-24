@@ -79,6 +79,10 @@ func (m MySQL) ServiceName() string {
 	return m.OffshootName()
 }
 
+func (m MySQL) SecondaryServiceName() string {
+	return meta_util.NameWithPrefix(m.ServiceName(), "replicas")
+}
+
 func (m MySQL) GoverningServiceName() string {
 	return m.OffshootName() + "-gvr"
 }
@@ -152,6 +156,10 @@ func (m *MySQL) GetMonitoringVendor() string {
 	return ""
 }
 
+func (m *MySQL) UsesGroupReplication() bool {
+	return m.Spec.Topology != nil && m.Spec.Topology.Mode != nil && *m.Spec.Topology.Mode == MySQLClusterModeGroup
+}
+
 func (m *MySQL) SetDefaults() {
 	if m == nil {
 		return
@@ -165,7 +173,7 @@ func (m *MySQL) SetDefaults() {
 		m.Spec.TerminationPolicy = TerminationPolicyHalt
 	}
 
-	if m.Spec.Topology != nil && m.Spec.Topology.Mode != nil && *m.Spec.Topology.Mode == MySQLClusterModeGroup {
+	if m.UsesGroupReplication() {
 		if m.Spec.Replicas == nil {
 			m.Spec.Replicas = types.Int32P(MySQLDefaultGroupSize)
 		}

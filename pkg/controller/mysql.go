@@ -72,14 +72,14 @@ func (c *Controller) create(mysql *api.MySQL) error {
 	}
 
 	// ensure database Service
-	vt1, err := c.ensureService(mysql)
+	vt1, err := c.ensurePrimaryService(mysql)
 	if err != nil {
 		return err
 	}
 
 	// create Service only for master/primary pod
-	if mysql.Spec.Topology != nil && mysql.Spec.Topology.Mode != nil && *mysql.Spec.Topology.Mode == api.MySQLClusterModeGroup {
-		vt, err := c.ensureServiceForSecondaryPod(mysql)
+	if mysql.UsesGroupReplication() {
+		vt, err := c.ensureSecondaryService(mysql)
 		if err != nil {
 			return err
 		}
