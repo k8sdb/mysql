@@ -34,7 +34,7 @@ import (
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	meta_util "kmodules.xyz/client-go/meta"
+	kmapi "kmodules.xyz/client-go/api/v1"
 	store "kmodules.xyz/objectstore-api/api/v1"
 	stashV1alpha1 "stash.appscode.dev/apimachinery/apis/stash/v1alpha1"
 	stashV1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
@@ -592,9 +592,8 @@ var _ = Describe("MySQL", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(my.Spec.Init).NotTo(BeNil())
 
-					By("Checking MySQL crd does not have kubedb.com/initialized annotation")
-					_, err = meta_util.GetString(my.Annotations, api.AnnotationInitialized)
-					Expect(err).To(HaveOccurred())
+					By("Checking MySQL crd does not have Initialized condition")
+					Expect(kmapi.HasCondition(my.Status.Conditions, api.DatabaseInitialized)).To(BeFalse())
 				})
 			})
 
@@ -657,9 +656,8 @@ var _ = Describe("MySQL", func() {
 						Expect(err).NotTo(HaveOccurred())
 						Expect(my.Spec.Init).ShouldNot(BeNil())
 
-						By("Checking MySQL crd does not have kubedb.com/initialized annotation")
-						_, err = meta_util.GetString(my.Annotations, api.AnnotationInitialized)
-						Expect(err).To(HaveOccurred())
+						By("Checking MySQL crd does not have Initialized condition")
+						Expect(kmapi.HasCondition(my.Status.Conditions, api.DatabaseInitialized)).To(BeFalse())
 					}
 				})
 			})
