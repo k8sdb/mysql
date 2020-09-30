@@ -158,6 +158,7 @@ func (c *Controller) StartAndRunControllers(stopCh <-chan struct{}) {
 	// Initialize and start Stash controllers
 	go stash.NewController(c.Controller, &c.Config.Initializers.Stash, c.WatchNamespace).StartAfterStashInstalled(c.MaxNumRequeues, c.NumThreads, c.selector, stopCh)
 
+	// Start MySQL controller
 	c.RunControllers(stopCh)
 
 	<-stopCh
