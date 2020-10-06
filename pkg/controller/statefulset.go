@@ -31,6 +31,7 @@ import (
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	kutil "kmodules.xyz/client-go"
 	app_util "kmodules.xyz/client-go/apps/v1"
 	core_util "kmodules.xyz/client-go/core/v1"
@@ -522,7 +523,9 @@ func upsertCustomConfig(statefulSet *apps.StatefulSet, mysql *api.MySQL) *apps.S
 }
 
 func (c *Controller) findStatefulSet(mysql *api.MySQL) (string, *apps.StatefulSet, error) {
-	stsList, err := c.Client.AppsV1().StatefulSets(mysql.Namespace).List(context.TODO(), metav1.ListOptions{})
+	stsList, err := c.Client.AppsV1().StatefulSets(mysql.Namespace).List(context.TODO(), metav1.ListOptions{
+		LabelSelector: labels.SelectorFromSet(mysql.OffshootSelectors()).String(),
+	})
 	if err != nil {
 		return "", nil, err
 	}
@@ -530,9 +533,7 @@ func (c *Controller) findStatefulSet(mysql *api.MySQL) (string, *apps.StatefulSe
 	count := 0
 	var cur *apps.StatefulSet
 	for i, sts := range stsList.Items {
-		if metav1.IsControlledBy(&sts, mysql) &&
-			sts.Labels[api.LabelDatabaseKind] == api.ResourceKindMySQL &&
-			sts.Labels[api.LabelDatabaseName] == mysql.Name {
+		if metav1.IsControlledBy(&sts, mysql) {
 			count++
 			cur = &stsList.Items[i]
 		}
