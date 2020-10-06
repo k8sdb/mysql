@@ -46,7 +46,7 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Wait for Running mysql")
-		f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+		f.EventuallyMySQLReady(mysql.ObjectMeta).Should(BeTrue())
 
 		By("Wait for AppBinding to create")
 		f.EventuallyAppBinding(mysql.ObjectMeta).Should(BeTrue())

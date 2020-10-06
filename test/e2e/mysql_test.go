@@ -75,7 +75,7 @@ var _ = Describe("MySQL", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Wait for Running mysql")
-		f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+		f.EventuallyMySQLReady(mysql.ObjectMeta).Should(BeTrue())
 
 		By("Wait for AppBinding to create")
 		f.EventuallyAppBinding(mysql.ObjectMeta).Should(BeTrue())
@@ -117,7 +117,7 @@ var _ = Describe("MySQL", func() {
 		Expect(err).NotTo(HaveOccurred())
 
 		By("Wait for Running mysql")
-		f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+		f.EventuallyMySQLReady(mysql.ObjectMeta).Should(BeTrue())
 
 		By("Checking Row Count of Table")
 		f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
@@ -342,8 +342,8 @@ var _ = Describe("MySQL", func() {
 					err = f.CreateMySQL(mysql)
 					Expect(err).NotTo(HaveOccurred())
 
-					By("Wait for Initializing mysql")
-					f.EventuallyMySQLPhase(mysql.ObjectMeta).Should(Equal(api.DatabasePhaseInitializing))
+					By("Wait for restoring mysql")
+					f.EventuallyMySQLPhase(mysql.ObjectMeta).Should(Equal(api.DatabasePhaseDataRestoring))
 
 					By("Wait for AppBinding to create")
 					f.EventuallyAppBinding(mysql.ObjectMeta).Should(BeTrue())
@@ -398,11 +398,7 @@ var _ = Describe("MySQL", func() {
 					rs = f.RestoreSession(mysql.ObjectMeta, repo)
 					mysql.Spec.DatabaseSecret = oldMySQL.Spec.DatabaseSecret
 					mysql.Spec.Init = &api.InitSpec{
-						Initializer: &core.TypedLocalObjectReference{
-							APIGroup: types.StringP(rs.APIVersion),
-							Kind:     rs.Kind,
-							Name:     rs.Name,
-						},
+						WaitForInitialRestore: true,
 					}
 
 					// Create and wait for running MySQL
@@ -420,7 +416,7 @@ var _ = Describe("MySQL", func() {
 					f.EventuallyRestoreSessionPhase(rs.ObjectMeta).Should(Equal(stashV1beta1.RestoreSucceeded))
 
 					By("Wait for Running mysql")
-					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyMySQLReady(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Checking Row Count of Table")
 					f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
@@ -479,7 +475,7 @@ var _ = Describe("MySQL", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Wait for Running mysql")
-					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyMySQLReady(mysql.ObjectMeta).Should(BeTrue())
 
 					// Delete without caring if DB is resumed
 					By("Delete mysql")
@@ -495,7 +491,7 @@ var _ = Describe("MySQL", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Wait for Running mysql")
-					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyMySQLReady(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Checking Row Count of Table")
 					f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
@@ -529,7 +525,7 @@ var _ = Describe("MySQL", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Wait for Running mysql")
-					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyMySQLReady(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Checking Row Count of Table")
 					f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
@@ -583,7 +579,7 @@ var _ = Describe("MySQL", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Wait for Running mysql")
-					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyMySQLReady(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Checking Row Count of Table")
 					f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
@@ -592,8 +588,8 @@ var _ = Describe("MySQL", func() {
 					Expect(err).NotTo(HaveOccurred())
 					Expect(my.Spec.Init).NotTo(BeNil())
 
-					By("Checking MySQL crd does not have Initialized condition")
-					Expect(kmapi.HasCondition(my.Status.Conditions, api.DatabaseInitialized)).To(BeFalse())
+					By("Checking MySQL crd does not have DataRestored condition")
+					Expect(kmapi.HasCondition(my.Status.Conditions, api.DatabaseDataRestored)).To(BeFalse())
 				})
 			})
 
@@ -647,7 +643,7 @@ var _ = Describe("MySQL", func() {
 						Expect(err).NotTo(HaveOccurred())
 
 						By("Wait for Running mysql")
-						f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+						f.EventuallyMySQLReady(mysql.ObjectMeta).Should(BeTrue())
 
 						By("Checking Row Count of Table")
 						f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))
@@ -656,8 +652,8 @@ var _ = Describe("MySQL", func() {
 						Expect(err).NotTo(HaveOccurred())
 						Expect(my.Spec.Init).ShouldNot(BeNil())
 
-						By("Checking MySQL crd does not have Initialized condition")
-						Expect(kmapi.HasCondition(my.Status.Conditions, api.DatabaseInitialized)).To(BeFalse())
+						By("Checking MySQL crd does not have DataRestored condition")
+						Expect(kmapi.HasCondition(my.Status.Conditions, api.DatabaseDataRestored)).To(BeFalse())
 					}
 				})
 			})
@@ -682,7 +678,7 @@ var _ = Describe("MySQL", func() {
 					f.EventuallyMySQL(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Check for Running mysql")
-					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyMySQLReady(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Update mysql to set spec.terminationPolicy = Halt")
 					_, err := f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
@@ -717,7 +713,7 @@ var _ = Describe("MySQL", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Wait for Running mysql")
-					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyMySQLReady(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Deleting MySQL crd")
 					err = f.DeleteMySQL(mysql.ObjectMeta)
@@ -738,7 +734,7 @@ var _ = Describe("MySQL", func() {
 					Expect(err).NotTo(HaveOccurred())
 
 					By("Wait for Running mysql")
-					f.EventuallyMySQLRunning(mysql.ObjectMeta).Should(BeTrue())
+					f.EventuallyMySQLReady(mysql.ObjectMeta).Should(BeTrue())
 
 					By("Checking row count of table")
 					f.EventuallyCountRow(mysql.ObjectMeta, dbName, 0).Should(Equal(3))

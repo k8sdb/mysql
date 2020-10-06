@@ -138,12 +138,12 @@ func (f *Framework) EventuallyMySQLPhase(meta metav1.ObjectMeta) GomegaAsyncAsse
 	)
 }
 
-func (f *Framework) EventuallyMySQLRunning(meta metav1.ObjectMeta) GomegaAsyncAssertion {
+func (f *Framework) EventuallyMySQLReady(meta metav1.ObjectMeta) GomegaAsyncAssertion {
 	return Eventually(
 		func() bool {
 			mysql, err := f.dbClient.KubedbV1alpha1().MySQLs(meta.Namespace).Get(context.TODO(), meta.Name, metav1.GetOptions{})
 			Expect(err).NotTo(HaveOccurred())
-			return mysql.Status.Phase == api.DatabasePhaseRunning
+			return mysql.Status.Phase == api.DatabasePhaseReady
 		},
 		time.Minute*15,
 		time.Second*5,
