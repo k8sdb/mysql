@@ -25,6 +25,7 @@ import (
 
 	"github.com/appscode/go/types"
 	core "k8s.io/api/core/v1"
+	appslister "k8s.io/client-go/listers/apps/v1"
 	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/apiextensions"
 	meta_util "kmodules.xyz/client-go/meta"
@@ -55,8 +56,8 @@ func (m MySQL) OffshootLabels() map[string]string {
 	out[meta_util.VersionLabelKey] = string(m.Spec.Version)
 	out[meta_util.InstanceLabelKey] = m.Name
 	out[meta_util.ComponentLabelKey] = ComponentDatabase
-	out[meta_util.ManagedByLabelKey] = GenericKey
-	return meta_util.FilterKeys(GenericKey, out, m.Labels)
+	out[meta_util.ManagedByLabelKey] = kubedb.GroupName
+	return meta_util.FilterKeys(kubedb.GroupName, out, m.Labels)
 }
 
 func (m MySQL) ResourceShortCode() string {
@@ -144,7 +145,7 @@ func (m MySQL) StatsService() mona.StatsAccessor {
 }
 
 func (m MySQL) StatsServiceLabels() map[string]string {
-	lbl := meta_util.FilterKeys(GenericKey, m.OffshootSelectors(), m.Labels)
+	lbl := meta_util.FilterKeys(kubedb.GroupName, m.OffshootSelectors(), m.Labels)
 	lbl[LabelRole] = RoleStats
 	return lbl
 }
@@ -169,8 +170,6 @@ func (m *MySQL) SetDefaults() {
 	}
 	if m.Spec.TerminationPolicy == "" {
 		m.Spec.TerminationPolicy = TerminationPolicyDelete
-	} else if m.Spec.TerminationPolicy == TerminationPolicyPause {
-		m.Spec.TerminationPolicy = TerminationPolicyHalt
 	}
 
 	if m.UsesGroupReplication() {
@@ -261,4 +260,10 @@ func (m *MySQL) MustCertSecretName(alias MySQLCertificateAlias) string {
 		panic(fmt.Errorf("MySQL %s/%s is missing secret name for %s certificate", m.Namespace, m.Name, alias))
 	}
 	return name
+}
+
+func (m *MySQL) ReplicasAreReady(stsLister appslister.StatefulSetLister) (bool, string, error) {
+	// TODO: Implement database specific logic here
+	// return isReplicasReady, message, error
+	return false, "", nil
 }

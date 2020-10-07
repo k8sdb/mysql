@@ -23,6 +23,7 @@ import (
 	"os"
 	"time"
 
+	"kubedb.dev/apimachinery/apis/kubedb"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
 
 	"github.com/appscode/go/crypto/rand"
@@ -233,7 +234,7 @@ func (i *Invocation) SecretForDatabaseAuthentication(meta metav1.ObjectMeta, man
 	}
 	if mangedByKubeDB {
 		dbObjectMeta.Labels = map[string]string{
-			meta_util.ManagedByLabelKey: api.GenericKey,
+			meta_util.ManagedByLabelKey: kubedb.GroupName,
 		}
 	}
 	return &core.Secret{

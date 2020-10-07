@@ -38,6 +38,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	clientSetScheme "k8s.io/client-go/kubernetes/scheme"
+	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/meta"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
@@ -235,6 +236,27 @@ var cases = []struct {
 		false,
 		true,
 	},
+	{"Edit spec.Init before provisioning complete",
+		requestKind,
+		"foo",
+		"default",
+		admission.Update,
+		updateInit(sampleMySQL()),
+		sampleMySQL(),
+		true,
+		true,
+	},
+	{"Edit spec.Init after provisioning complete",
+		requestKind,
+		"foo",
+		"default",
+		admission.Update,
+		updateInit(completeProvisioning(sampleMySQL())),
+		sampleMySQL(),
+		true,
+		false,
+	},
+
 	{"Delete MySQL when Spec.TerminationPolicy=DoNotTerminate",
 		requestKind,
 		"foo",
@@ -405,14 +427,7 @@ func sampleMySQL() api.MySQL {
 				},
 			},
 			Init: &api.InitSpec{
-				Script: &api.ScriptSourceSpec{
-					VolumeSource: core.VolumeSource{
-						GitRepo: &core.GitRepoVolumeSource{
-							Repository: "https://github.com/kubedb/mysql-init-scripts.git",
-							Directory:  ".",
-						},
-					},
-				},
+				WaitForInitialRestore: true,
 			},
 			TerminationPolicy: api.TerminationPolicyDoNotTerminate,
 		},
@@ -441,8 +456,23 @@ func editNonExistingSecret(old api.MySQL) api.MySQL {
 
 func editStatus(old api.MySQL) api.MySQL {
 	old.Status = api.MySQLStatus{
-		Phase: api.DatabasePhaseCreating,
+		Phase: api.DatabasePhaseReady,
 	}
+	return old
+}
+
+func completeProvisioning(old api.MySQL) api.MySQL {
+	old.Status.Conditions = []kmapi.Condition{
+		{
+			Type:   api.DatabaseProvisioned,
+			Status: kmapi.ConditionTrue,
+		},
+	}
+	return old
+}
+
+func updateInit(old api.MySQL) api.MySQL {
+	old.Spec.Init.WaitForInitialRestore = false
 	return old
 }
 
