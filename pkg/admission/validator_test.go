@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	catalog "kubedb.dev/apimachinery/apis/catalog/v1alpha1"
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	extFake "kubedb.dev/apimachinery/client/clientset/versioned/fake"
 	"kubedb.dev/apimachinery/client/clientset/versioned/scheme"
 
@@ -119,7 +119,7 @@ func TestMySQLValidator_Admit(t *testing.T) {
 			req.OldObject.Raw = oldObjJS
 
 			if c.heatUp {
-				if _, err := validator.extClient.KubedbV1alpha1().MySQLs(c.namespace).Create(context.TODO(), &c.object, metaV1.CreateOptions{}); err != nil && !kerr.IsAlreadyExists(err) {
+				if _, err := validator.extClient.KubedbV1alpha2().MySQLs(c.namespace).Create(context.TODO(), &c.object, metaV1.CreateOptions{}); err != nil && !kerr.IsAlreadyExists(err) {
 					t.Errorf(err.Error())
 				}
 			}
