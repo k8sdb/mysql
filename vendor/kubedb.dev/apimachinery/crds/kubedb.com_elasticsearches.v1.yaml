@@ -43,38 +43,6 @@ spec:
             type: object
           spec:
             properties:
-              authPlugin:
-                enum:
-                - SearchGuard
-                - None
-                - X-Pack
-                - OpenDistro
-                type: string
-              certificateSecret:
-                properties:
-                  defaultMode:
-                    format: int32
-                    type: integer
-                  items:
-                    items:
-                      properties:
-                        key:
-                          type: string
-                        mode:
-                          format: int32
-                          type: integer
-                        path:
-                          type: string
-                      required:
-                      - key
-                      - path
-                      type: object
-                    type: array
-                  optional:
-                    type: boolean
-                  secretName:
-                    type: string
-                type: object
               configSource:
                 properties:
                   awsElasticBlockStore:
@@ -695,18 +663,6 @@ spec:
                 type: boolean
               init:
                 properties:
-                  initializer:
-                    properties:
-                      apiGroup:
-                        type: string
-                      kind:
-                        type: string
-                      name:
-                        type: string
-                    required:
-                    - kind
-                    - name
-                    type: object
                   postgresWAL:
                     properties:
                       azure:
@@ -1958,6 +1914,8 @@ spec:
                         - volumePath
                         type: object
                     type: object
+                  waitForInitialRestore:
+                    type: boolean
                 type: object
               internalUsers:
                 additionalProperties:
@@ -2289,8 +2247,6 @@ spec:
                         type: object
                     type: object
                 type: object
-              paused:
-                type: boolean
               podTemplate:
                 properties:
                   controller:
@@ -4076,19 +4032,42 @@ spec:
             type: object
           status:
             properties:
+              conditions:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    observedGeneration:
+                      format: int64
+                      type: integer
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
               observedGeneration:
                 format: int64
                 type: integer
               phase:
                 enum:
-                - Running
-                - Creating
-                - Initializing
-                - Paused
+                - Provisioning
+                - DataRestoring
+                - Ready
+                - Critical
+                - NotReady
                 - Halted
-                - Failed
-                type: string
-              reason:
                 type: string
             type: object
         type: object

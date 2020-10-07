@@ -16,37 +16,35 @@ limitations under the License.
 
 package v1alpha1
 
+import "kubedb.dev/apimachinery/apis/kubedb"
+
 const (
+	// Deprecated
 	DatabaseNamePrefix = "kubedb"
 
-	GenericKey = "kubedb.com"
+	KubeDBOrganization = "kubedb"
 
-	LabelDatabaseKind = GenericKey + "/kind"
-	LabelDatabaseName = GenericKey + "/name"
-	LabelRole         = GenericKey + "/role"
+	LabelDatabaseKind = kubedb.GroupName + "/kind"
+	LabelDatabaseName = kubedb.GroupName + "/name"
+	LabelRole         = kubedb.GroupName + "/role"
 
-	ComponentDatabase = "database"
-	RoleStats         = "stats"
-	DefaultStatsPath  = "/metrics"
+	ComponentDatabase     = "database"
+	RoleStats             = "stats"
+	DefaultStatsPath      = "/metrics"
+	DefaultPasswordLength = 16
 
-	PostgresKey      = ResourceSingularPostgres + "." + GenericKey
-	ElasticsearchKey = ResourceSingularElasticsearch + "." + GenericKey
-	MySQLKey         = ResourceSingularMySQL + "." + GenericKey
-	PerconaXtraDBKey = ResourceSingularPerconaXtraDB + "." + GenericKey
-	MongoDBKey       = ResourceSingularMongoDB + "." + GenericKey
-	RedisKey         = ResourceSingularRedis + "." + GenericKey
-	MemcachedKey     = ResourceSingularMemcached + "." + GenericKey
-	EtcdKey          = ResourceSingularEtcd + "." + GenericKey
-	ProxySQLKey      = ResourceSingularProxySQL + "." + GenericKey
-
-	AnnotationInitialized = GenericKey + "/initialized"
-	AnnotationJobType     = GenericKey + "/job-type"
+	PostgresKey      = ResourceSingularPostgres + "." + kubedb.GroupName
+	ElasticsearchKey = ResourceSingularElasticsearch + "." + kubedb.GroupName
+	MySQLKey         = ResourceSingularMySQL + "." + kubedb.GroupName
+	PerconaXtraDBKey = ResourceSingularPerconaXtraDB + "." + kubedb.GroupName
+	MongoDBKey       = ResourceSingularMongoDB + "." + kubedb.GroupName
+	RedisKey         = ResourceSingularRedis + "." + kubedb.GroupName
+	MemcachedKey     = ResourceSingularMemcached + "." + kubedb.GroupName
+	EtcdKey          = ResourceSingularEtcd + "." + kubedb.GroupName
+	ProxySQLKey      = ResourceSingularProxySQL + "." + kubedb.GroupName
 
 	PrometheusExporterPortNumber = 56790
 	PrometheusExporterPortName   = "prom-http"
-
-	JobTypeBackup  = "backup"
-	JobTypeRestore = "restore"
 
 	ElasticsearchRestPort                        = 9200
 	ElasticsearchRestPortName                    = "http"
@@ -100,6 +98,9 @@ const (
 	// for BaseServerID calculated as max MySQL server_id value - max Replication Group size.
 	// xref: https://dev.mysql.com/doc/refman/5.7/en/replication-options.html
 	MySQLMaxBaseServerID int64 = ((1 << 32) - 1) - 9
+	MySQLRootUserName          = "MYSQL_ROOT_USERNAME"
+	MySQLRootPassword          = "MYSQL_ROOT_PASSWORD"
+	MySQLName                  = "MYSQL_NAME"
 
 	PerconaXtraDBClusterRecommendedVersion    = "5.7"
 	PerconaXtraDBMaxClusterNameLength         = 32
@@ -138,4 +139,36 @@ const (
 	ContainerExporterName = "exporter"
 	LocalHost             = "localhost"
 	LocalHostIP           = "127.0.0.1"
+)
+
+// List of possible condition types for a KubeDB object
+const (
+	// used for Databases that have started provisioning
+	DatabaseProvisioningStarted = "ProvisioningStarted"
+	// used for Databases which completed provisioning
+	DatabaseProvisioned = "Provisioned"
+	// used for Databases that are currently being initialized using stash
+	DatabaseDataRestoreStarted = "DataRestoreStarted"
+	// used for Databases that have been initialized using stash
+	DatabaseDataRestored = "DataRestored"
+	// used for Databases whose pods are ready
+	DatabaseReplicaReady = "ReplicaReady"
+	// used for Databases that are currently accepting connection
+	DatabaseAcceptingConnection = "AcceptingConnection"
+	// used for Databases that report status OK (also implies that we can connect to it)
+	DatabaseReady = "Ready"
+	// used for Databases that are paused
+	DatabasePaused = "Paused"
+
+	// Condition reasons
+	DataRestoreStartedByExternalInitializer = "DataRestoreStartedByExternalInitializer"
+	DatabaseSuccessfullyRestored            = "SuccessfullyDataRestored"
+	FailedToRestoreData                     = "FailedToRestoreData"
+	AllReplicasAreReady                     = "AllReplicasReady"
+	SomeReplicasAreNotReady                 = "SomeReplicasNotReady"
+)
+
+// Resource kind related constants
+const (
+	ResourceKindStatefulSet = "StatefulSet"
 )
