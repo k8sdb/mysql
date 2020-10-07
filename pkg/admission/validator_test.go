@@ -480,7 +480,7 @@ func editSpecMonitor(old api.MySQL) api.MySQL {
 	old.Spec.Monitor = &mona.AgentSpec{
 		Agent: mona.AgentPrometheusBuiltin,
 		Prometheus: &mona.PrometheusSpec{
-			Exporter: &mona.PrometheusExporterSpec{
+			Exporter: mona.PrometheusExporterSpec{
 				Port: 1289,
 			},
 		},

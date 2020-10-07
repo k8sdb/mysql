@@ -254,7 +254,7 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 				},
 			}
 
-			if mysql.GetMonitoringVendor() == mona.VendorPrometheus {
+			if mysql.Spec.Monitor != nil && mysql.Spec.Monitor.Agent.Vendor() == mona.VendorPrometheus {
 				var argsStr string
 				var args []string
 
@@ -285,7 +285,7 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 					Image: mysqlVersion.Spec.Exporter.Image,
 					Ports: []core.ContainerPort{
 						{
-							Name:          api.PrometheusExporterPortName,
+							Name:          mona.PrometheusExporterPortName,
 							Protocol:      core.ProtocolTCP,
 							ContainerPort: mysql.Spec.Monitor.Prometheus.Exporter.Port,
 						},
