@@ -30,7 +30,7 @@ func (f *Framework) EventuallyCRD() GomegaAsyncAssertion {
 	return Eventually(
 		func() error {
 			// Check MySQL TPR
-			if _, err := f.dbClient.KubedbV1alpha1().MySQLs(core.NamespaceAll).List(context.TODO(), metav1.ListOptions{}); err != nil {
+			if _, err := f.dbClient.KubedbV1alpha2().MySQLs(core.NamespaceAll).List(context.TODO(), metav1.ListOptions{}); err != nil {
 				return errors.New("CRD MySQL is not ready")
 			}
 

@@ -22,8 +22,8 @@ import (
 	"os"
 	"strconv"
 
-	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha1"
-	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha1/util"
+	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
+	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha2/util"
 	"kubedb.dev/mysql/test/e2e/framework"
 	"kubedb.dev/mysql/test/e2e/matcher"
 
@@ -850,7 +850,7 @@ var _ = Describe("MySQL", func() {
 					testGeneralBehaviour()
 
 					By("Patching EnvVar")
-					_, _, err = util.PatchMySQL(context.TODO(), f.ExtClient().KubedbV1alpha1(), mysql, func(in *api.MySQL) *api.MySQL {
+					_, _, err = util.PatchMySQL(context.TODO(), f.ExtClient().KubedbV1alpha2(), mysql, func(in *api.MySQL) *api.MySQL {
 						in.Spec.PodTemplate.Spec.Env = []core.EnvVar{
 							{
 								Name:  MYSQL_DATABASE,
