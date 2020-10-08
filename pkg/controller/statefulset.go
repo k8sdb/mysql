@@ -179,7 +179,7 @@ func (c *Controller) createStatefulSet(mysql *api.MySQL, stsName string) (*apps.
 					Name:            api.MySQLContainerReplicationModeDetectorName,
 					Image:           mysqlVersion.Spec.ReplicationModeDetector.Image,
 					ImagePullPolicy: core.PullIfNotPresent,
-					Args:            append([]string{"run"}, c.LoggerOptions.ToFlags()...),
+					Args:            append([]string{"run", fmt.Sprintf("--db-name=%s", mysql.Name)}, c.LoggerOptions.ToFlags()...),
 				}
 
 				in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, replicationModeDetector)
