@@ -465,7 +465,7 @@ func completeProvisioning(old api.MySQL) api.MySQL {
 	old.Status.Conditions = []kmapi.Condition{
 		{
 			Type:   api.DatabaseProvisioned,
-			Status: kmapi.ConditionTrue,
+			Status: core.ConditionTrue,
 		},
 	}
 	return old
