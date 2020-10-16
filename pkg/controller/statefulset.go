@@ -441,6 +441,18 @@ func upsertEnv(statefulSet *apps.StatefulSet, mysql *api.MySQL, stsName string) 
 					},
 				}...)
 			}
+			if container.Name == api.MySQLContainerReplicationModeDetectorName {
+				envs = append(envs, []core.EnvVar{
+					{
+						Name: "POD_NAME",
+						ValueFrom: &core.EnvVarSource{
+							FieldRef: &core.ObjectFieldSelector{
+								FieldPath: "metadata.name",
+							},
+						},
+					},
+				}...)
+			}
 			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, envs...)
 		}
 	}
