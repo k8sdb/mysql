@@ -29,6 +29,7 @@ import (
 	"github.com/appscode/go/crypto/rand"
 	"github.com/appscode/go/log"
 	. "github.com/onsi/gomega"
+	"gomodules.xyz/password-generator"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -175,12 +176,12 @@ func (f *Framework) UpdateSecret(meta metav1.ObjectMeta, transformer func(core.S
 }
 
 func (f *Framework) GetMySQLRootPassword(mysql *api.MySQL) (string, error) {
-	secret, err := f.kubeClient.CoreV1().Secrets(mysql.Namespace).Get(context.TODO(), mysql.Spec.DatabaseSecret.SecretName, metav1.GetOptions{})
+	secret, err := f.kubeClient.CoreV1().Secrets(mysql.Namespace).Get(context.TODO(), mysql.Spec.AuthSecret.Name, metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}
-	password := string(secret.Data[core.BasicAuthPasswordKey])
-	return password, nil
+	pass := string(secret.Data[core.BasicAuthPasswordKey])
+	return pass, nil
 }
 
 func (f *Framework) GetSecret(meta metav1.ObjectMeta) (*core.Secret, error) {
@@ -220,14 +221,9 @@ func (f *Framework) CheckSecret(secret *core.Secret) error {
 	return err
 }
 
-func (i *Invocation) SecretForDatabaseAuthentication(meta metav1.ObjectMeta, mangedByKubeDB bool) *core.Secret {
+func (i *Invocation) GetAuthSecret(meta metav1.ObjectMeta, mangedByKubeDB bool) *core.Secret {
 	//mangedByKubeDB mimics a secret created and manged by kubedb and not user.
 	// It should get deleted during wipeout
-	randPassword := ""
-
-	// if the password starts with "-" it will cause error in bash scripts (in mongodb-tools)
-	for randPassword = rand.GeneratePassword(); randPassword[0] == '-'; {
-	}
 	var dbObjectMeta = metav1.ObjectMeta{
 		Name:      fmt.Sprintf("kubedb-%v-%v", meta.Name, CustomSecretSuffix),
 		Namespace: meta.Namespace,
@@ -242,7 +238,7 @@ func (i *Invocation) SecretForDatabaseAuthentication(meta metav1.ObjectMeta, man
 		Type:       core.SecretTypeOpaque,
 		StringData: map[string]string{
 			KeyMySQLUser:     mysqlUser,
-			KeyMySQLPassword: randPassword,
+			KeyMySQLPassword: password.Generate(api.DefaultPasswordLength),
 		},
 	}
 }
