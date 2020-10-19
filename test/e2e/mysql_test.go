@@ -213,9 +213,9 @@ var _ = Describe("MySQL", func() {
 				var customSecret *core.Secret
 
 				BeforeEach(func() {
-					customSecret = f.SecretForDatabaseAuthentication(mysql.ObjectMeta, false)
-					mysql.Spec.DatabaseSecret = &core.SecretVolumeSource{
-						SecretName: customSecret.Name,
+					customSecret = f.GetAuthSecret(mysql.ObjectMeta, false)
+					mysql.Spec.AuthSecret = &core.LocalObjectReference{
+						Name: customSecret.Name,
 					}
 					err := f.CreateSecret(customSecret)
 					Expect(err).NotTo(HaveOccurred())
@@ -396,7 +396,7 @@ var _ = Describe("MySQL", func() {
 					By("Create mysql from stash")
 					*mysql = *f.MySQL()
 					rs = f.RestoreSession(mysql.ObjectMeta, repo)
-					mysql.Spec.DatabaseSecret = oldMySQL.Spec.DatabaseSecret
+					mysql.Spec.AuthSecret = oldMySQL.Spec.AuthSecret
 					mysql.Spec.Init = &api.InitSpec{
 						WaitForInitialRestore: true,
 					}
@@ -872,7 +872,7 @@ var _ = Describe("MySQL", func() {
 			}
 
 			Context("from configMap", func() {
-				var userConfig *core.ConfigMap
+				var userConfig *core.Secret
 
 				BeforeEach(func() {
 					userConfig = f.GetCustomConfig(customConfigs)
@@ -880,7 +880,7 @@ var _ = Describe("MySQL", func() {
 
 				AfterEach(func() {
 					By("Deleting configMap: " + userConfig.Name)
-					err := f.DeleteConfigMap(userConfig.ObjectMeta)
+					err := f.DeleteSecret(userConfig.ObjectMeta)
 					Expect(err).NotTo(HaveOccurred())
 
 				})
@@ -891,15 +891,11 @@ var _ = Describe("MySQL", func() {
 					}
 
 					By("Creating configMap: " + userConfig.Name)
-					err := f.CreateConfigMap(userConfig)
+					err := f.CreateSecret(userConfig)
 					Expect(err).NotTo(HaveOccurred())
 
-					mysql.Spec.ConfigSource = &core.VolumeSource{
-						ConfigMap: &core.ConfigMapVolumeSource{
-							LocalObjectReference: core.LocalObjectReference{
-								Name: userConfig.Name,
-							},
-						},
+					mysql.Spec.ConfigSecret = &core.LocalObjectReference{
+						Name: userConfig.Name,
 					}
 
 					// Create MySQL

@@ -176,7 +176,7 @@ var cases = []struct {
 		false,
 		false,
 	},
-	{"Edit MySQL Spec.DatabaseSecret with Existing Secret",
+	{"Edit MySQL Spec.AuthSecret with Existing Secret",
 		requestKind,
 		"foo",
 		"default",
@@ -186,7 +186,7 @@ var cases = []struct {
 		false,
 		true,
 	},
-	{"Edit MySQL Spec.DatabaseSecret with non Existing Secret",
+	{"Edit MySQL Spec.AuthSecret with non Existing Secret",
 		requestKind,
 		"foo",
 		"default",
@@ -441,15 +441,15 @@ func getAwkwardMySQL() api.MySQL {
 }
 
 func editExistingSecret(old api.MySQL) api.MySQL {
-	old.Spec.DatabaseSecret = &core.SecretVolumeSource{
-		SecretName: "foo-auth",
+	old.Spec.AuthSecret = &core.LocalObjectReference{
+		Name: "foo-auth",
 	}
 	return old
 }
 
 func editNonExistingSecret(old api.MySQL) api.MySQL {
-	old.Spec.DatabaseSecret = &core.SecretVolumeSource{
-		SecretName: "foo-auth-fused",
+	old.Spec.AuthSecret = &core.LocalObjectReference{
+		Name: "foo-auth-fused",
 	}
 	return old
 }

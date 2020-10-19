@@ -57,14 +57,14 @@ func (f *Framework) InitScriptConfigMap() (*core.ConfigMap, error) {
 	}, nil
 }
 
-func (f *Invocation) GetCustomConfig(configs []string) *core.ConfigMap {
+func (f *Invocation) GetCustomConfig(configs []string) *core.Secret {
 	configs = append([]string{"[mysqld]"}, configs...)
-	return &core.ConfigMap{
+	return &core.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      f.app,
 			Namespace: f.namespace,
 		},
-		Data: map[string]string{
+		StringData: map[string]string{
 			"my-custom.cnf": strings.Join(configs, "\n"),
 		},
 	}
