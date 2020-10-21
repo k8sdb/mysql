@@ -39,25 +39,24 @@ import (
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
 
-func (c *Controller) ensureStatefulSet(mysql *api.MySQL) (kutil.VerbType, error) {
+func (c *Controller) ensureStatefulSet(mysql *api.MySQL) error {
 	stsName, stsCur, err := c.findStatefulSet(mysql)
 	if err != nil {
-		return kutil.VerbUnchanged, err
+		return err
 	}
 
-	vt := kutil.VerbUnchanged
 	if stsCur == nil {
 		// Create statefulSet for MySQL database
 		var stsNew *apps.StatefulSet
-		stsNew, vt, err = c.createStatefulSet(mysql, stsName)
+		stsNew, vt, err := c.createStatefulSet(mysql, stsName)
 		if err != nil {
-			return kutil.VerbUnchanged, err
+			return err
 		}
 
 		// Check StatefulSet Pod status
 		if vt != kutil.VerbUnchanged {
 			if err := c.checkStatefulSetPodStatus(stsNew); err != nil {
-				return kutil.VerbUnchanged, err
+				return err
 			}
 			c.Recorder.Eventf(
 				mysql,
@@ -67,15 +66,15 @@ func (c *Controller) ensureStatefulSet(mysql *api.MySQL) (kutil.VerbType, error)
 				vt,
 			)
 		}
-		stsCur = stsNew
+
+		// ensure pdb
+		if err := c.CreateStatefulSetPodDisruptionBudget(stsNew); err != nil {
+			return err
+		}
+		log.Info("Successfully created/patched PodDisruptionBudget")
 	}
 
-	// ensure pdb
-	if err := c.CreateStatefulSetPodDisruptionBudget(stsCur); err != nil {
-		return kutil.VerbUnchanged, err
-	}
-
-	return vt, nil
+	return nil
 }
 
 func (c *Controller) createStatefulSet(mysql *api.MySQL, stsName string) (*apps.StatefulSet, kutil.VerbType, error) {

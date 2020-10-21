@@ -38,13 +38,15 @@ const (
 
 func (c *Controller) ensureAuthSecret(mysql *api.MySQL) error {
 	if mysql.Spec.AuthSecret == nil {
-		authSecret, err := c.createAuthSecret(mysql)
+		authSecretName, err := c.createAuthSecret(mysql)
 		if err != nil {
 			return err
 		}
 
 		ms, _, err := util.PatchMySQL(context.TODO(), c.DBClient.KubedbV1alpha2(), mysql, func(in *api.MySQL) *api.MySQL {
-			in.Spec.AuthSecret = authSecret
+			in.Spec.AuthSecret = &core.LocalObjectReference{
+				Name: authSecretName,
+			}
 			return in
 		}, metav1.PatchOptions{})
 		if err != nil {
@@ -56,12 +58,12 @@ func (c *Controller) ensureAuthSecret(mysql *api.MySQL) error {
 	return c.upgradeAuthSecret(mysql)
 }
 
-func (c *Controller) createAuthSecret(mysql *api.MySQL) (*core.LocalObjectReference, error) {
+func (c *Controller) createAuthSecret(mysql *api.MySQL) (string, error) {
 	authSecretName := mysql.Name + "-auth"
 
 	sc, err := c.checkSecret(authSecretName, mysql)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if sc == nil {
 		secret := &core.Secret{
@@ -75,13 +77,10 @@ func (c *Controller) createAuthSecret(mysql *api.MySQL) (*core.LocalObjectRefere
 				core.BasicAuthPasswordKey: passgen.Generate(api.DefaultPasswordLength),
 			},
 		}
-		if _, err := c.Client.CoreV1().Secrets(mysql.Namespace).Create(context.TODO(), secret, metav1.CreateOptions{}); err != nil {
-			return nil, err
-		}
+		secret, err := c.Client.CoreV1().Secrets(mysql.Namespace).Create(context.TODO(), secret, metav1.CreateOptions{})
+		return secret.Name, err
 	}
-	return &core.LocalObjectReference{
-		Name: authSecretName,
-	}, nil
+	return sc.Name, nil
 }
 
 // This is done to fix 0.8.0 -> 0.9.0 upgrade due to

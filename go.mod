@@ -8,6 +8,7 @@ require (
 	github.com/fatih/structs v1.1.0
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/go-xorm/xorm v0.7.9
+	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/google/uuid v1.1.1
 	github.com/onsi/ginkgo v1.11.0
 	github.com/onsi/gomega v1.8.1
@@ -35,9 +36,7 @@ require (
 	kubedb.dev/apimachinery v0.14.0-beta.3.0.20201024022825-61b265325dc8
 	stash.appscode.dev/apimachinery v0.11.3
 )
-
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
-
 replace cloud.google.com/go => cloud.google.com/go v0.49.0
 
 replace git.apache.org/thrift.git => github.com/apache/thrift v0.13.0
