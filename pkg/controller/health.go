@@ -79,14 +79,6 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 								ObservedGeneration: db.Generation,
 								Message:            fmt.Sprintf("The MySQL: %s/%s is not accepting client requests, reason: %s", db.Namespace, db.Name, err.Error()),
 							})
-						in.Conditions = kmapi.SetCondition(in.Conditions,
-							kmapi.Condition{
-								Type:               api.DatabaseReady,
-								Status:             core.ConditionFalse,
-								Reason:             api.ReadinessCheckFailed,
-								ObservedGeneration: db.Generation,
-								Message:            fmt.Sprintf("The MySQL: %s/%s is not ready, reason: %s", db.Namespace, db.Name, err.Error()),
-							})
 						return in
 					},
 					metav1.UpdateOptions{},

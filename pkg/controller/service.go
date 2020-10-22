@@ -84,24 +84,21 @@ func (c *Controller) ensureMySQLGoverningService(db *api.MySQL) error {
 		in.Spec.Type = core.ServiceTypeClusterIP
 		in.Spec.ClusterIP = core.ClusterIPNone
 		in.Spec.Ports = []core.ServicePort{
-			{
-				Name: "db",
-				Port: api.MySQLNodePort,
-			},
+			defaultDBPort,
 		}
 		return in
 	}, metav1.PatchOptions{})
-	if err != nil {
-		return err
+	if err == nil && (vt == kutil.VerbCreated || vt == kutil.VerbPatched) {
+		c.Recorder.Eventf(
+			db,
+			core.EventTypeNormal,
+			eventer.EventReasonSuccessful,
+			"Successfully %s governing service",
+			vt,
+		)
 	}
-	c.Recorder.Eventf(
-		db,
-		core.EventTypeNormal,
-		eventer.EventReasonSuccessful,
-		"Successfully %s governing service",
-		vt,
-	)
-	return nil
+
+	return err
 }
 
 func (c *Controller) ensureService(db *api.MySQL) error {
@@ -207,11 +204,8 @@ func (c *Controller) ensurePrimaryService(db *api.MySQL) (kutil.VerbType, error)
 		}
 		return in
 	}, metav1.PatchOptions{})
-	if err != nil {
-		return kutil.VerbUnchanged, err
-	}
 
-	return vt, nil
+	return vt, err
 }
 
 func (c *Controller) ensureSecondaryService(db *api.MySQL) (kutil.VerbType, error) {
@@ -250,9 +244,6 @@ func (c *Controller) ensureSecondaryService(db *api.MySQL) (kutil.VerbType, erro
 		}
 		return in
 	}, metav1.PatchOptions{})
-	if err != nil {
-		return kutil.VerbUnchanged, err
-	}
 	return vt, err
 }
 
