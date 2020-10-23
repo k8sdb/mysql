@@ -36,7 +36,9 @@ require (
 	kubedb.dev/apimachinery v0.14.0-beta.3.0.20201024022825-61b265325dc8
 	stash.appscode.dev/apimachinery v0.11.3
 )
+
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
+
 replace cloud.google.com/go => cloud.google.com/go v0.49.0
 
 replace git.apache.org/thrift.git => github.com/apache/thrift v0.13.0

@@ -120,7 +120,7 @@ func (c *Controller) ensureService(db *api.MySQL) error {
 			db,
 			core.EventTypeNormal,
 			eventer.EventReasonSuccessful,
-			"Successfully created service for primary/standalone replica",
+			"Successfully created service for primary/standalone",
 		)
 	} else if vt == kutil.VerbPatched {
 		c.Recorder.Event(

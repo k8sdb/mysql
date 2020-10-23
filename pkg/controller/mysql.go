@@ -272,26 +272,26 @@ func (c *Controller) halt(db *api.MySQL) error {
 	return nil
 }
 
-func (c *Controller) terminate(mysql *api.MySQL) error {
-	owner := metav1.NewControllerRef(mysql, api.SchemeGroupVersion.WithKind(api.ResourceKindMySQL))
+func (c *Controller) terminate(db *api.MySQL) error {
+	owner := metav1.NewControllerRef(db, api.SchemeGroupVersion.WithKind(api.ResourceKindMySQL))
 
 	// If TerminationPolicy is "halt", keep PVCs and Secrets intact.
 	// TerminationPolicyHalt is deprecated and will be removed in future.
-	if mysql.Spec.TerminationPolicy == api.TerminationPolicyHalt {
-		if err := c.removeOwnerReferenceFromOffshoots(mysql); err != nil {
+	if db.Spec.TerminationPolicy == api.TerminationPolicyHalt {
+		if err := c.removeOwnerReferenceFromOffshoots(db); err != nil {
 			return err
 		}
 	} else {
 		// If TerminationPolicy is "wipeOut", delete everything (ie, PVCs,Secrets,Snapshots).
 		// If TerminationPolicy is "delete", delete PVCs and keep snapshots,secrets intact.
 		// In both these cases, don't create dormantdatabase
-		if err := c.setOwnerReferenceToOffshoots(mysql, owner); err != nil {
+		if err := c.setOwnerReferenceToOffshoots(db, owner); err != nil {
 			return err
 		}
 	}
 
-	if mysql.Spec.Monitor != nil {
-		if err := c.deleteMonitor(mysql); err != nil {
+	if db.Spec.Monitor != nil {
+		if err := c.deleteMonitor(db); err != nil {
 			log.Errorln(err)
 			return nil
 		}
@@ -299,13 +299,13 @@ func (c *Controller) terminate(mysql *api.MySQL) error {
 	return nil
 }
 
-func (c *Controller) setOwnerReferenceToOffshoots(mysql *api.MySQL, owner *metav1.OwnerReference) error {
-	selector := labels.SelectorFromSet(mysql.OffshootSelectors())
+func (c *Controller) setOwnerReferenceToOffshoots(db *api.MySQL, owner *metav1.OwnerReference) error {
+	selector := labels.SelectorFromSet(db.OffshootSelectors())
 
 	// If TerminationPolicy is "wipeOut", delete snapshots and secrets,
 	// else, keep it intact.
-	if mysql.Spec.TerminationPolicy == api.TerminationPolicyWipeOut {
-		if err := c.wipeOutDatabase(mysql.ObjectMeta, mysql.Spec.GetPersistentSecrets(), owner); err != nil {
+	if db.Spec.TerminationPolicy == api.TerminationPolicyWipeOut {
+		if err := c.wipeOutDatabase(db.ObjectMeta, db.Spec.GetPersistentSecrets(), owner); err != nil {
 			return errors.Wrap(err, "error in wiping out database.")
 		}
 	} else {
@@ -314,9 +314,9 @@ func (c *Controller) setOwnerReferenceToOffshoots(mysql *api.MySQL, owner *metav
 			context.TODO(),
 			c.DynamicClient,
 			core.SchemeGroupVersion.WithResource("secrets"),
-			mysql.Namespace,
-			mysql.Spec.GetPersistentSecrets(),
-			mysql); err != nil {
+			db.Namespace,
+			db.Spec.GetPersistentSecrets(),
+			db); err != nil {
 			return err
 		}
 	}
@@ -325,31 +325,31 @@ func (c *Controller) setOwnerReferenceToOffshoots(mysql *api.MySQL, owner *metav
 		context.TODO(),
 		c.DynamicClient,
 		core.SchemeGroupVersion.WithResource("persistentvolumeclaims"),
-		mysql.Namespace,
+		db.Namespace,
 		selector,
 		owner)
 }
 
-func (c *Controller) removeOwnerReferenceFromOffshoots(mysql *api.MySQL) error {
+func (c *Controller) removeOwnerReferenceFromOffshoots(db *api.MySQL) error {
 	// First, Get LabelSelector for Other Components
-	labelSelector := labels.SelectorFromSet(mysql.OffshootSelectors())
+	labelSelector := labels.SelectorFromSet(db.OffshootSelectors())
 
 	if err := dynamic_util.RemoveOwnerReferenceForSelector(
 		context.TODO(),
 		c.DynamicClient,
 		core.SchemeGroupVersion.WithResource("persistentvolumeclaims"),
-		mysql.Namespace,
+		db.Namespace,
 		labelSelector,
-		mysql); err != nil {
+		db); err != nil {
 		return err
 	}
 	if err := dynamic_util.RemoveOwnerReferenceForItems(
 		context.TODO(),
 		c.DynamicClient,
 		core.SchemeGroupVersion.WithResource("secrets"),
-		mysql.Namespace,
-		mysql.Spec.GetPersistentSecrets(),
-		mysql); err != nil {
+		db.Namespace,
+		db.Spec.GetPersistentSecrets(),
+		db); err != nil {
 		return err
 	}
 	return nil

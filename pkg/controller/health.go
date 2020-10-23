@@ -243,7 +243,11 @@ func (c *Controller) getMySQLClient(db *api.MySQL) (*xorm.Engine, error) {
 }
 
 func (c *Controller) getMySQLBasicAuth(db *api.MySQL) (string, string, error) {
-	secret, err := c.Client.CoreV1().Secrets(db.Namespace).Get(context.TODO(), db.Spec.AuthSecret.Name, metav1.GetOptions{})
+	var secretName string
+	if db.Spec.AuthSecret != nil {
+		secretName = db.GetAuthSecretName()
+	}
+	secret, err := c.Client.CoreV1().Secrets(db.Namespace).Get(context.TODO(), secretName, metav1.GetOptions{})
 	if err != nil {
 		return "", "", err
 	}
@@ -251,5 +255,5 @@ func (c *Controller) getMySQLBasicAuth(db *api.MySQL) (string, string, error) {
 }
 
 func getURL(db *api.MySQL) string {
-	return fmt.Sprintf("%s.%s.svc", db.ServiceName(), db.GetNamespace())
+	return fmt.Sprintf("%s.%s.svc", db.GoverningServiceName(), db.GetNamespace())
 }
