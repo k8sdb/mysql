@@ -1340,6 +1340,8 @@ gomodules.xyz/jsonpatch/v2 v2.1.0/go.mod h1:IhYNNY4jnS53ZnfE4PAmpKtDpTCj1JFXc+3m
 gomodules.xyz/password-generator v0.2.3/go.mod h1:TvwYYTx9+P1pPwKQKfZgB/wr2Id9MqAQ3B5auY7reNg=
 gomodules.xyz/password-generator v0.2.4 h1:wtCrCgF3ovoXyzcaRDVhx2D2We+6yfaRf/IQsSBsOSY=
 gomodules.xyz/password-generator v0.2.4/go.mod h1:TvwYYTx9+P1pPwKQKfZgB/wr2Id9MqAQ3B5auY7reNg=
+gomodules.xyz/password-generator v0.2.6 h1:+If/SrycIBvZYBnUZU2F9v1vKt8KlitMctJiAeqjybA=
+gomodules.xyz/password-generator v0.2.6/go.mod h1:TvwYYTx9+P1pPwKQKfZgB/wr2Id9MqAQ3B5auY7reNg=
 gomodules.xyz/sets v0.0.0-20200817084356-ae6e5e14ce3d h1:iikjtYw6tLPrD2dXkzDVMygYLaqzGRxQTDFZI23MXes=
 gomodules.xyz/sets v0.0.0-20200817084356-ae6e5e14ce3d/go.mod h1:jKgNp01/iDs+svOWXaPk5cKP3VXy0mWUoTF/ore+aMc=
 gomodules.xyz/stow v0.2.3/go.mod h1:S9/zV1kNAWAvqmdum0oByA4+aNdTdoK9hKb1bObf1BI=
