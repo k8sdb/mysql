@@ -38,7 +38,6 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes/fake"
 	clientSetScheme "k8s.io/client-go/kubernetes/scheme"
-	kmapi "kmodules.xyz/client-go/api/v1"
 	"kmodules.xyz/client-go/meta"
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
@@ -251,8 +250,8 @@ var cases = []struct {
 		"foo",
 		"default",
 		admission.Update,
-		updateInit(completeProvisioning(sampleMySQL())),
-		sampleMySQL(),
+		updateInit(completeInitialization(sampleMySQL())),
+		completeInitialization(sampleMySQL()),
 		true,
 		false,
 	},
@@ -461,13 +460,8 @@ func editStatus(old api.MySQL) api.MySQL {
 	return old
 }
 
-func completeProvisioning(old api.MySQL) api.MySQL {
-	old.Status.Conditions = []kmapi.Condition{
-		{
-			Type:   api.DatabaseProvisioned,
-			Status: core.ConditionTrue,
-		},
-	}
+func completeInitialization(old api.MySQL) api.MySQL {
+	old.Spec.Init.Initialized = true
 	return old
 }
 
