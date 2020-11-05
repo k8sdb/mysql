@@ -291,5 +291,5 @@ func (c *Controller) getMySQLBasicAuth(db *api.MySQL) (string, string, error) {
 }
 
 func getURL(db *api.MySQL) string {
-	return fmt.Sprintf("%s.%s.svc", db.GoverningServiceName(), db.GetNamespace())
+	return fmt.Sprintf("%s.%s.svc", db.ServiceName(), db.GetNamespace())
 }
