@@ -203,10 +203,10 @@ func (c *Controller) createStatefulSet(db *api.MySQL, stsName string) (*apps.Sta
 					}
 				}
 
-				providedArgs := strings.Join(args, " ")
 				container.Args = []string{
 					fmt.Sprintf("-service=%s", db.GoverningServiceName()),
-					fmt.Sprintf("-on-start=/on-start.sh %s", providedArgs),
+					"-on-start",
+					strings.Join(append([]string{"/on-start.sh"}, args...), " "),
 				}
 				if container.LivenessProbe != nil && structs.IsZero(*container.LivenessProbe) {
 					container.LivenessProbe = nil
@@ -254,38 +254,41 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 			}
 
 			if db.Spec.Monitor != nil && db.Spec.Monitor.Agent.Vendor() == mona.VendorPrometheus {
-				var args []string
-				args = db.Spec.Monitor.Prometheus.Exporter.Args
+				var commands []string
 				// pass config.my-cnf flag into exporter to configure TLS
 				if db.Spec.TLS != nil {
 					// ref: https://github.com/prometheus/mysqld_exporter#general-flags
 					// https://github.com/prometheus/mysqld_exporter#customizing-configuration-for-a-ssl-connection
-					exporterArgs := []string{
-						"-c",
-						`/bin/mysqld_exporter`,
-						fmt.Sprintf("--web.listen-address=:%v", db.Spec.Monitor.Prometheus.Exporter.Port),
+					cmd := strings.Join(append([]string{
+						"/bin/mysqld_exporter",
+						fmt.Sprintf("--web.listen-address=:%d", db.Spec.Monitor.Prometheus.Exporter.Port),
 						fmt.Sprintf("--web.telemetry-path=%v", db.StatsService().Path()),
 						"--config.my-cnf=/etc/mysql/certs/exporter.cnf",
-					}
-					args = append(exporterArgs, args...)
+					}, db.Spec.Monitor.Prometheus.Exporter.Args...), " ")
+					commands = []string{cmd}
 				} else {
 					// DATA_SOURCE_NAME=user:password@tcp(localhost:5555)/dbname
 					// ref: https://github.com/prometheus/mysqld_exporter#setting-the-mysql-servers-data-source-name
-					exporterArgs := []string{
-						"-c",
-						`export DATA_SOURCE_NAME="${MYSQL_ROOT_USERNAME:-}:${MYSQL_ROOT_PASSWORD:-}@(127.0.0.1:3306)/"
-					    /bin/mysqld_exporter`,
-						fmt.Sprintf("--web.listen-address=:%v", db.Spec.Monitor.Prometheus.Exporter.Port),
+					cmd := strings.Join(append([]string{
+						"/bin/mysqld_exporter",
+						fmt.Sprintf("--web.listen-address=:%d", db.Spec.Monitor.Prometheus.Exporter.Port),
 						fmt.Sprintf("--web.telemetry-path=%v", db.StatsService().Path()),
+					}, db.Spec.Monitor.Prometheus.Exporter.Args...), " ")
+					commands = []string{
+						`export DATA_SOURCE_NAME="${MYSQL_ROOT_USERNAME:-}:${MYSQL_ROOT_PASSWORD:-}@(127.0.0.1:3306)/"`,
+						cmd,
 					}
-					args = append(exporterArgs, args...)
 				}
+				script := strings.Join(commands, ";")
 				in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, core.Container{
 					Name: api.ContainerExporterName,
 					Command: []string{
 						"/bin/sh",
 					},
-					Args:  args,
+					Args: []string{
+						"-c",
+						script,
+					},
 					Image: mysqlVersion.Spec.Exporter.Image,
 					Ports: []core.ContainerPort{
 						{
