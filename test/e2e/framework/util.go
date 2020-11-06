@@ -24,9 +24,9 @@ import (
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 
-	"github.com/appscode/go/types"
 	shell "github.com/codeskyblue/go-sh"
 	. "github.com/onsi/gomega"
+	"gomodules.xyz/pointer"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -77,7 +77,7 @@ func (f *Framework) WaitUntilPodRunningBySelector(mysql *api.MySQL) error {
 		&metav1.LabelSelector{
 			MatchLabels: mysql.OffshootSelectors(),
 		},
-		int(types.Int32(mysql.Spec.Replicas)),
+		int(pointer.Int32(mysql.Spec.Replicas)),
 	)
 }
 

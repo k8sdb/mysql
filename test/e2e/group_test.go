@@ -22,10 +22,10 @@ import (
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/mysql/test/e2e/framework"
 
-	"github.com/appscode/go/log"
-	"github.com/appscode/go/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"gomodules.xyz/pointer"
+	"gomodules.xyz/x/log"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 )
 
@@ -222,7 +222,7 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 
 			By("Scaling up")
 			mysql, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
-				in.Spec.Replicas = types.Int32P(api.MySQLDefaultGroupSize + 1)
+				in.Spec.Replicas = pointer.Int32P(api.MySQLDefaultGroupSize + 1)
 
 				return in
 			})
@@ -268,7 +268,7 @@ var _ = Describe("MySQL Group Replication Tests", func() {
 
 			By("Scaling down")
 			mysql, err = f.PatchMySQL(mysql.ObjectMeta, func(in *api.MySQL) *api.MySQL {
-				in.Spec.Replicas = types.Int32P(api.MySQLDefaultGroupSize - 1)
+				in.Spec.Replicas = pointer.Int32P(api.MySQLDefaultGroupSize - 1)
 
 				return in
 			})

@@ -26,7 +26,7 @@ import (
 	extFake "kubedb.dev/apimachinery/client/clientset/versioned/fake"
 	"kubedb.dev/apimachinery/client/clientset/versioned/scheme"
 
-	"github.com/appscode/go/types"
+	"gomodules.xyz/pointer"
 	admission "k8s.io/api/admission/v1beta1"
 	authenticationV1 "k8s.io/api/authentication/v1"
 	core "k8s.io/api/core/v1"
@@ -415,10 +415,10 @@ func sampleMySQL() api.MySQL {
 		},
 		Spec: api.MySQLSpec{
 			Version:     "8.0",
-			Replicas:    types.Int32P(1),
+			Replicas:    pointer.Int32P(1),
 			StorageType: api.StorageTypeDurable,
 			Storage: &core.PersistentVolumeClaimSpec{
-				StorageClassName: types.StringP("standard"),
+				StorageClassName: pointer.StringP("standard"),
 				Resources: core.ResourceRequirements{
 					Requests: core.ResourceList{
 						core.ResourceStorage: resource.MustParse("100Mi"),
@@ -497,13 +497,13 @@ func haltDatabase(old api.MySQL) api.MySQL {
 
 func validGroup(old api.MySQL) api.MySQL {
 	old.Spec.Version = api.MySQLGRRecommendedVersion
-	old.Spec.Replicas = types.Int32P(api.MySQLDefaultGroupSize)
+	old.Spec.Replicas = pointer.Int32P(api.MySQLDefaultGroupSize)
 	clusterMode := api.MySQLClusterModeGroup
 	old.Spec.Topology = &api.MySQLClusterTopology{
 		Mode: &clusterMode,
 		Group: &api.MySQLGroupSpec{
 			Name:         "dc002fc3-c412-4d18-b1d4-66c1fbfbbc9b",
-			BaseServerID: types.Int64P(api.MySQLDefaultBaseServerID),
+			BaseServerID: pointer.Int64P(api.MySQLDefaultBaseServerID),
 		},
 	}
 
@@ -527,14 +527,14 @@ func groupWithInvalidClusterMode() api.MySQL {
 
 func groupWithSingleReplica() api.MySQL {
 	old := validGroup(sampleMySQL())
-	old.Spec.Replicas = types.Int32P(1)
+	old.Spec.Replicas = pointer.Int32P(1)
 
 	return old
 }
 
 func groupWithOverReplicas() api.MySQL {
 	old := validGroup(sampleMySQL())
-	old.Spec.Replicas = types.Int32P(api.MySQLMaxGroupMembers + 1)
+	old.Spec.Replicas = pointer.Int32P(api.MySQLMaxGroupMembers + 1)
 
 	return old
 }
@@ -569,14 +569,14 @@ func groupWithInvalidGroupName() api.MySQL {
 
 func groupWithBaseServerIDZero() api.MySQL {
 	old := validGroup(sampleMySQL())
-	old.Spec.Topology.Group.BaseServerID = types.Int64P(0)
+	old.Spec.Topology.Group.BaseServerID = pointer.Int64P(0)
 
 	return old
 }
 
 func groupWithBaseServerIDExceededMaxLimit() api.MySQL {
 	old := validGroup(sampleMySQL())
-	old.Spec.Topology.Group.BaseServerID = types.Int64P(api.MySQLMaxBaseServerID + 1)
+	old.Spec.Topology.Group.BaseServerID = pointer.Int64P(api.MySQLMaxBaseServerID + 1)
 
 	return old
 }
