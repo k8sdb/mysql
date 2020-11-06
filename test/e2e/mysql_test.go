@@ -27,10 +27,10 @@ import (
 	"kubedb.dev/mysql/test/e2e/framework"
 	"kubedb.dev/mysql/test/e2e/matcher"
 
-	"github.com/appscode/go/log"
-	"github.com/appscode/go/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"gomodules.xyz/pointer"
+	"gomodules.xyz/x/log"
 	core "k8s.io/api/core/v1"
 	kerr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -195,7 +195,7 @@ var _ = Describe("MySQL", func() {
 	JustAfterEach(func() {
 		if CurrentGinkgoTestDescription().Failed {
 			if mysql.Spec.Replicas == nil {
-				mysql.Spec.Replicas = types.Int32P(1)
+				mysql.Spec.Replicas = pointer.Int32P(1)
 			}
 			f.PrintDebugHelpers(mysql.Name, int(*mysql.Spec.Replicas))
 		}
@@ -261,7 +261,7 @@ var _ = Describe("MySQL", func() {
 			Context("PDB", func() {
 
 				It("should run eviction successfully", func() {
-					mysql.Spec.Replicas = types.Int32P(3)
+					mysql.Spec.Replicas = pointer.Int32P(3)
 					// Create MySQL
 					By("Create and run MySQL with three replicas")
 					createAndWaitForRunning()

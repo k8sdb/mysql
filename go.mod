@@ -3,7 +3,6 @@ module kubedb.dev/mysql
 go 1.12
 
 require (
-	github.com/appscode/go v0.0.0-20201006035845-a0302ac8e3d3
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/fatih/structs v1.1.0
 	github.com/go-sql-driver/mysql v1.5.0
@@ -19,7 +18,10 @@ require (
 	go.bytebuilders.dev/license-verifier v0.3.0
 	go.bytebuilders.dev/license-verifier/kubernetes v0.3.0
 	gomodules.xyz/password-generator v0.2.6
+	gomodules.xyz/pointer v0.0.0-20201105071923-daf60fa55209
+	gomodules.xyz/runtime v0.0.0-20201104200926-d838b09dda8b
 	gomodules.xyz/sets v0.0.0-20200930152147-4f4543544799
+	gomodules.xyz/x v0.0.0-20201105065653-91c568df6331
 	k8s.io/api v0.18.9
 	k8s.io/apiextensions-apiserver v0.18.9
 	k8s.io/apimachinery v0.18.9

@@ -23,8 +23,8 @@ import (
 
 	"kubedb.dev/mysql/pkg/cmds"
 
-	"github.com/appscode/go/runtime"
 	"github.com/spf13/cobra/doc"
+	"gomodules.xyz/runtime"
 )
 
 // ref: https://github.com/spf13/cobra/blob/master/doc/md_docs.md

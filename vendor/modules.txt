@@ -22,16 +22,6 @@ github.com/NYTimes/gziphandler
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
 github.com/PuerkitoBio/urlesc
-# github.com/appscode/go v0.0.0-20201006035845-a0302ac8e3d3
-github.com/appscode/go/context
-github.com/appscode/go/crypto/rand
-github.com/appscode/go/flags
-github.com/appscode/go/log
-github.com/appscode/go/log/golog
-github.com/appscode/go/runtime
-github.com/appscode/go/sets
-github.com/appscode/go/types
-github.com/appscode/go/version
 # github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e
 github.com/armon/circbuf
 # github.com/aws/aws-sdk-go v1.31.9
@@ -473,6 +463,8 @@ gomodules.xyz/jsonpatch/v2
 gomodules.xyz/password-generator
 # gomodules.xyz/pointer v0.0.0-20201105071923-daf60fa55209
 gomodules.xyz/pointer
+# gomodules.xyz/runtime v0.0.0-20201104200926-d838b09dda8b
+gomodules.xyz/runtime
 # gomodules.xyz/sets v0.0.0-20200930152147-4f4543544799
 gomodules.xyz/sets
 # gomodules.xyz/stow v0.2.4
@@ -486,8 +478,11 @@ gomodules.xyz/version
 gomodules.xyz/x/analytics
 gomodules.xyz/x/arrays
 gomodules.xyz/x/context
+gomodules.xyz/x/crypto/rand
+gomodules.xyz/x/flags
 gomodules.xyz/x/log
 gomodules.xyz/x/log/golog
+gomodules.xyz/x/version
 # google.golang.org/api v0.26.0 => google.golang.org/api v0.14.0
 google.golang.org/api/googleapi
 google.golang.org/api/googleapi/transport
