@@ -15,8 +15,8 @@ require (
 	github.com/prometheus-operator/prometheus-operator v0.42.0
 	github.com/spf13/cobra v1.1.1
 	github.com/spf13/pflag v1.0.5
-	go.bytebuilders.dev/license-verifier v0.5.0
-	go.bytebuilders.dev/license-verifier/kubernetes v0.5.0
+	go.bytebuilders.dev/license-verifier v0.5.1
+	go.bytebuilders.dev/license-verifier/kubernetes v0.5.1
 	gomodules.xyz/password-generator v0.2.6
 	gomodules.xyz/pointer v0.0.0-20201105071923-daf60fa55209
 	gomodules.xyz/runtime v0.0.0-20201104200926-d838b09dda8b
