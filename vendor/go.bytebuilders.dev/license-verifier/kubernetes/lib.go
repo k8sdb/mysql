@@ -57,7 +57,8 @@ const (
 	EventSourceLicenseVerifier           = "License Verifier"
 	EventReasonLicenseVerificationFailed = "License Verification Failed"
 
-	licensePath = "/appscode/license"
+	licensePath          = "/appscode/license"
+	licenseCheckInterval = 1 * time.Hour
 )
 
 type LicenseEnforcer struct {
@@ -80,7 +81,9 @@ func NewLicenseEnforcer(config *rest.Config, licenseFile string) *LicenseEnforce
 }
 
 func (le *LicenseEnforcer) createClients() (err error) {
-	le.k8sClient, err = kubernetes.NewForConfig(le.config)
+	if le.k8sClient == nil {
+		le.k8sClient, err = kubernetes.NewForConfig(le.config)
+	}
 	return err
 }
 
@@ -171,64 +174,65 @@ func (le *LicenseEnforcer) Install(c *mux.PathRecorderMux) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("x-content-type-options", "nosniff")
 
-		var license v1alpha1.License
-		license.TypeMeta = metav1.TypeMeta{
-			APIVersion: v1alpha1.SchemeGroupVersion.String(),
-			Kind:       meta.GetKind(license),
-		}
-
-		// Read cluster UID (UID of the "kube-system" namespace)
-		err = le.readClusterUID()
-		if err != nil {
-			license.Status = v1alpha1.LicenseUnknown
-			license.Reason = err.Error()
-			utilruntime.Must(json.NewEncoder(w).Encode(license))
-			return
-		}
-		// Read license from file
-		err = le.readLicenseFromFile()
-		if err != nil {
-			license.Status = v1alpha1.LicenseUnknown
-			license.Reason = err.Error()
-			utilruntime.Must(json.NewEncoder(w).Encode(license))
-			return
-		}
-		// Parse license
-
-		block, _ := pem.Decode(le.opts.License)
-		if block == nil {
-			// This probably is a JWT token, should be check for that when ready
-			license.Status = v1alpha1.LicenseUnknown
-			license.Reason = "failed to parse certificate PEM"
-			utilruntime.Must(json.NewEncoder(w).Encode(license))
-			return
-		}
-		cert, err := x509.ParseCertificate(block.Bytes)
-		if err != nil {
-			license.Status = v1alpha1.LicenseUnknown
-			license.Reason = "failed to parse certificate, reason:" + err.Error()
-			utilruntime.Must(json.NewEncoder(w).Encode(license))
-			return
-		}
-
-		license = v1alpha1.License{
-			Issuer:    "byte.builders",
-			Clusters:  cert.DNSNames,
-			NotBefore: &metav1.Time{Time: cert.NotBefore},
-			NotAfter:  &metav1.Time{Time: cert.NotAfter},
-			ID:        cert.SerialNumber.String(),
-			Products:  cert.Subject.Organization,
-		}
-		// ref: https://github.com/appscode/gitea/blob/master/models/stripe_license.go#L117-L126
-		if err = verifier.VerifyLicense(le.opts); err != nil {
-			license.Status = v1alpha1.LicenseExpired
-			license.Reason = err.Error()
-		} else {
-			license.Status = v1alpha1.LicenseActive
-		}
-
-		utilruntime.Must(json.NewEncoder(w).Encode(license))
+		utilruntime.Must(json.NewEncoder(w).Encode(le.LoadLicense()))
 	}))
+}
+
+func (le *LicenseEnforcer) LoadLicense() v1alpha1.License {
+	utilruntime.Must(le.createClients())
+
+	var license v1alpha1.License
+	license.TypeMeta = metav1.TypeMeta{
+		APIVersion: v1alpha1.SchemeGroupVersion.String(),
+		Kind:       meta.GetKind(license),
+	}
+
+	// Read cluster UID (UID of the "kube-system" namespace)
+	err := le.readClusterUID()
+	if err != nil {
+		license.Status = v1alpha1.LicenseUnknown
+		license.Reason = err.Error()
+		return license
+	}
+	// Read license from file
+	err = le.readLicenseFromFile()
+	if err != nil {
+		license.Status = v1alpha1.LicenseUnknown
+		license.Reason = err.Error()
+		return license
+	}
+	// Parse license
+
+	block, _ := pem.Decode(le.opts.License)
+	if block == nil {
+		// This probably is a JWT token, should be check for that when ready
+		license.Status = v1alpha1.LicenseUnknown
+		license.Reason = "failed to parse certificate PEM"
+		return license
+	}
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		license.Status = v1alpha1.LicenseUnknown
+		license.Reason = "failed to parse certificate, reason:" + err.Error()
+		return license
+	}
+
+	license = v1alpha1.License{
+		Issuer:    "byte.builders",
+		Clusters:  cert.DNSNames,
+		NotBefore: &metav1.Time{Time: cert.NotBefore},
+		NotAfter:  &metav1.Time{Time: cert.NotAfter},
+		ID:        cert.SerialNumber.String(),
+		Products:  cert.Subject.Organization,
+	}
+	// ref: https://github.com/appscode/gitea/blob/master/models/stripe_license.go#L117-L126
+	if err = verifier.VerifyLicense(le.opts); err != nil {
+		license.Status = v1alpha1.LicenseExpired
+		license.Reason = err.Error()
+	} else {
+		license.Status = v1alpha1.LicenseActive
+	}
+	return license
 }
 
 // VerifyLicensePeriodically periodically verifies whether the provided license is valid for the current cluster or not.
@@ -258,7 +262,7 @@ func VerifyLicensePeriodically(config *rest.Config, licenseFile string, stopCh <
 	}
 
 	// Periodically verify license with 1 hour interval
-	return wait.PollImmediateUntil(1*time.Hour, func() (done bool, err error) {
+	fn := func() (done bool, err error) {
 		klog.V(8).Infoln("Verifying license.......")
 		// Read license from file
 		err = le.readLicenseFromFile()
@@ -273,7 +277,21 @@ func VerifyLicensePeriodically(config *rest.Config, licenseFile string, stopCh <
 		klog.Infoln("Successfully verified license!")
 		// return false so that the loop never ends
 		return false, nil
-	}, stopCh)
+	}
+
+	if !info.EnforceLicenseImmediately() {
+		licenseMissing := licenseFile == ""
+		if _, err := os.Stat(licenseFile); os.IsNotExist(err) {
+			licenseMissing = true
+		}
+		if licenseMissing {
+			klog.Warningf("license file is missing. You have %v to acquire a valid license", licenseCheckInterval)
+
+			return wait.PollUntil(licenseCheckInterval, fn, stopCh)
+		}
+	}
+
+	return wait.PollImmediateUntil(licenseCheckInterval, fn, stopCh)
 }
 
 // CheckLicenseFile verifies whether the provided license is valid for the current cluster or not.
