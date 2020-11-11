@@ -63,7 +63,6 @@ func (e Elasticsearch) OffshootSelectors() map[string]string {
 func (e Elasticsearch) OffshootLabels() map[string]string {
 	out := e.OffshootSelectors()
 	out[meta_util.NameLabelKey] = ResourceSingularElasticsearch
-	out[meta_util.VersionLabelKey] = string(e.Spec.Version)
 	out[meta_util.InstanceLabelKey] = e.Name
 	out[meta_util.ComponentLabelKey] = ComponentDatabase
 	out[meta_util.ManagedByLabelKey] = kubedb.GroupName
@@ -90,7 +89,7 @@ func (e Elasticsearch) ServiceName() string {
 	return e.OffshootName()
 }
 
-func (e *Elasticsearch) MasterServiceName() string {
+func (e *Elasticsearch) MasterDiscoveryServiceName() string {
 	return meta_util.NameWithSuffix(e.ServiceName(), "master")
 }
 
