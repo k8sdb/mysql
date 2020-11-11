@@ -247,13 +247,16 @@ func (c *Controller) ensureStatsService(db *api.MySQL) (kutil.VerbType, error) {
 		in.Annotations = svcTemplate.Annotations
 
 		in.Spec.Selector = db.OffshootSelectors()
-		in.Spec.Ports = core_util.MergeServicePorts(in.Spec.Ports, []core.ServicePort{
-			{
-				Name:       mona.PrometheusExporterPortName,
-				Port:       db.Spec.Monitor.Prometheus.Exporter.Port,
-				TargetPort: intstr.FromString(mona.PrometheusExporterPortName),
-			},
-		})
+		in.Spec.Ports = ofst.PatchServicePorts(
+			core_util.MergeServicePorts(in.Spec.Ports, []core.ServicePort{
+				{
+					Name:       mona.PrometheusExporterPortName,
+					Port:       db.Spec.Monitor.Prometheus.Exporter.Port,
+					TargetPort: intstr.FromString(mona.PrometheusExporterPortName),
+				},
+			}),
+			svcTemplate.Spec.Ports,
+		)
 		if svcTemplate.Spec.ClusterIP != "" {
 			in.Spec.ClusterIP = svcTemplate.Spec.ClusterIP
 		}
