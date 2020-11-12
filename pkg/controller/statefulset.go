@@ -40,33 +40,28 @@ import (
 )
 
 func (c *Controller) ensureStatefulSet(db *api.MySQL) error {
-	stsName, stsCur, err := c.findStatefulSet(db)
+	stsName, _, err := c.findStatefulSet(db)
 	if err != nil {
 		return err
 	}
 
-	if stsCur == nil {
-		// Create statefulSet for MySQL database
-		var stsNew *apps.StatefulSet
-		stsNew, vt, err := c.createStatefulSet(db, stsName)
-		if err != nil {
+	// Create statefulSet for MySQL database
+	stsNew, vt, err := c.createOrPatchStatefulSet(db, stsName)
+	if err != nil {
+		return err
+	}
+	// Check StatefulSet Pod status
+	if vt != kutil.VerbUnchanged {
+		if err := c.checkStatefulSetPodStatus(stsNew); err != nil {
 			return err
 		}
-
-		// Check StatefulSet Pod status
-		if vt != kutil.VerbUnchanged {
-			if err := c.checkStatefulSetPodStatus(stsNew); err != nil {
-				return err
-			}
-			c.Recorder.Eventf(
-				db,
-				core.EventTypeNormal,
-				eventer.EventReasonSuccessful,
-				"Successfully %v StatefulSet",
-				vt,
-			)
-		}
-
+		c.Recorder.Eventf(
+			db,
+			core.EventTypeNormal,
+			eventer.EventReasonSuccessful,
+			"Successfully %v StatefulSet",
+			vt,
+		)
 		// ensure pdb
 		if err := c.CreateStatefulSetPodDisruptionBudget(stsNew); err != nil {
 			return err
@@ -77,7 +72,7 @@ func (c *Controller) ensureStatefulSet(db *api.MySQL) error {
 	return nil
 }
 
-func (c *Controller) createStatefulSet(db *api.MySQL, stsName string) (*apps.StatefulSet, kutil.VerbType, error) {
+func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*apps.StatefulSet, kutil.VerbType, error) {
 	statefulSetMeta := metav1.ObjectMeta{
 		Name:      stsName,
 		Namespace: db.Namespace,
@@ -329,10 +324,8 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 			}
 			in = upsertUserEnv(in, db)
 
-			// configure tls
-			if db.Spec.TLS != nil {
-				in = upsertTLSVolume(in, db)
-			}
+			// configure tls if configured in DB
+			in = upsertTLSVolume(in, db)
 
 			return in
 		}, metav1.PatchOptions{})
@@ -572,125 +565,136 @@ func (c *Controller) findStatefulSet(db *api.MySQL) (string, *apps.StatefulSet, 
 }
 
 func upsertTLSVolume(sts *apps.StatefulSet, db *api.MySQL) *apps.StatefulSet {
-	for i, container := range sts.Spec.Template.Spec.Containers {
-		if container.Name == api.ResourceSingularMySQL {
-			volumeMount := core.VolumeMount{
-				Name:      "tls-volume",
-				MountPath: "/etc/mysql/certs",
-			}
-			volumeMounts := container.VolumeMounts
-			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
-			sts.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
-		}
-
-		if container.Name == "exporter" {
-			volumeMount := core.VolumeMount{
-				Name:      "exporter-tls-volume",
-				MountPath: "/etc/mysql/certs",
-			}
-			volumeMounts := container.VolumeMounts
-			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
-			sts.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
-		}
-	}
-
-	volume := core.Volume{
-		Name: "tls-volume",
-		VolumeSource: core.VolumeSource{
-			Projected: &core.ProjectedVolumeSource{
-				Sources: []core.VolumeProjection{
-					{
-						Secret: &core.SecretProjection{
-							LocalObjectReference: core.LocalObjectReference{
-								Name: db.MustCertSecretName(api.MySQLServerCert),
-							},
-							Items: []core.KeyToPath{
-								{
-									Key:  "ca.crt",
-									Path: "ca.crt",
+	if db.Spec.TLS != nil {
+		volume := core.Volume{
+			Name: "tls-volume",
+			VolumeSource: core.VolumeSource{
+				Projected: &core.ProjectedVolumeSource{
+					Sources: []core.VolumeProjection{
+						{
+							Secret: &core.SecretProjection{
+								LocalObjectReference: core.LocalObjectReference{
+									Name: db.MustCertSecretName(api.MySQLServerCert),
 								},
-								{
-									Key:  "tls.crt",
-									Path: "server.crt",
-								},
-								{
-									Key:  "tls.key",
-									Path: "server.key",
+								Items: []core.KeyToPath{
+									{
+										Key:  "ca.crt",
+										Path: "ca.crt",
+									},
+									{
+										Key:  "tls.crt",
+										Path: "server.crt",
+									},
+									{
+										Key:  "tls.key",
+										Path: "server.key",
+									},
 								},
 							},
 						},
-					},
-					{
-						Secret: &core.SecretProjection{
-							LocalObjectReference: core.LocalObjectReference{
-								Name: db.MustCertSecretName(api.MySQLClientCert),
-							},
-							Items: []core.KeyToPath{
-								{
-									Key:  "tls.crt",
-									Path: "client.crt",
+						{
+							Secret: &core.SecretProjection{
+								LocalObjectReference: core.LocalObjectReference{
+									Name: db.MustCertSecretName(api.MySQLClientCert),
 								},
-								{
-									Key:  "tls.key",
-									Path: "client.key",
+								Items: []core.KeyToPath{
+									{
+										Key:  "tls.crt",
+										Path: "client.crt",
+									},
+									{
+										Key:  "tls.key",
+										Path: "client.key",
+									},
 								},
 							},
 						},
 					},
 				},
 			},
-		},
-	}
+		}
 
-	exporterTLSVolume := core.Volume{
-		Name: "exporter-tls-volume",
-		VolumeSource: core.VolumeSource{
-			Projected: &core.ProjectedVolumeSource{
-				Sources: []core.VolumeProjection{
-					{
-						Secret: &core.SecretProjection{
-							LocalObjectReference: core.LocalObjectReference{
-								Name: db.MustCertSecretName(api.MySQLMetricsExporterCert),
-							},
-							Items: []core.KeyToPath{
-								{
-									Key:  "ca.crt",
-									Path: "ca.crt",
+		exporterTLSVolume := core.Volume{
+			Name: "exporter-tls-volume",
+			VolumeSource: core.VolumeSource{
+				Projected: &core.ProjectedVolumeSource{
+					Sources: []core.VolumeProjection{
+						{
+							Secret: &core.SecretProjection{
+								LocalObjectReference: core.LocalObjectReference{
+									Name: db.MustCertSecretName(api.MySQLMetricsExporterCert),
 								},
-								{
-									Key:  "tls.crt",
-									Path: "exporter.crt",
-								},
-								{
-									Key:  "tls.key",
-									Path: "exporter.key",
+								Items: []core.KeyToPath{
+									{
+										Key:  "ca.crt",
+										Path: "ca.crt",
+									},
+									{
+										Key:  "tls.crt",
+										Path: "exporter.crt",
+									},
+									{
+										Key:  "tls.key",
+										Path: "exporter.key",
+									},
 								},
 							},
 						},
-					},
-					{
-						Secret: &core.SecretProjection{
-							LocalObjectReference: core.LocalObjectReference{
-								Name: meta_util.NameWithSuffix(db.Name, api.MySQLMetricsExporterConfigSecretSuffix),
-							},
-							Items: []core.KeyToPath{
-								{
-									Key:  "exporter.cnf",
-									Path: "exporter.cnf",
+						{
+							Secret: &core.SecretProjection{
+								LocalObjectReference: core.LocalObjectReference{
+									Name: meta_util.NameWithSuffix(db.Name, api.MySQLMetricsExporterConfigSecretSuffix),
+								},
+								Items: []core.KeyToPath{
+									{
+										Key:  "exporter.cnf",
+										Path: "exporter.cnf",
+									},
 								},
 							},
 						},
 					},
 				},
 			},
-		},
-	}
+		}
+		for i, container := range sts.Spec.Template.Spec.Containers {
+			if container.Name == api.ResourceSingularMySQL {
+				volumeMount := core.VolumeMount{
+					Name:      "tls-volume",
+					MountPath: "/etc/mysql/certs",
+				}
+				volumeMounts := container.VolumeMounts
+				volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
+				sts.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+			}
+			if container.Name == api.ContainerExporterName {
+				volumeMount := core.VolumeMount{
+					Name:      "exporter-tls-volume",
+					MountPath: "/etc/mysql/certs",
+				}
+				volumeMounts := container.VolumeMounts
+				volumeMounts = core_util.UpsertVolumeMount(volumeMounts, volumeMount)
+				sts.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+			}
+		}
+		sts.Spec.Template.Spec.Volumes = core_util.UpsertVolume(
+			sts.Spec.Template.Spec.Volumes,
+			volume,
+			exporterTLSVolume,
+		)
 
-	sts.Spec.Template.Spec.Volumes = core_util.UpsertVolume(
-		sts.Spec.Template.Spec.Volumes,
-		volume,
-		exporterTLSVolume,
-	)
+	} else {
+		for i, container := range sts.Spec.Template.Spec.Containers {
+			if container.Name == api.ResourceSingularMySQL {
+				sts.Spec.Template.Spec.Containers[i].VolumeMounts = core_util.EnsureVolumeMountDeleted(sts.Spec.Template.Spec.Containers[i].VolumeMounts, "tls-volume")
+			}
+			if container.Name == api.ContainerExporterName {
+				sts.Spec.Template.Spec.Containers[i].VolumeMounts = core_util.EnsureVolumeMountDeleted(sts.Spec.Template.Spec.Containers[i].VolumeMounts, "exporter-tls-volume")
+			}
+		}
+		sts.Spec.Template.Spec.Volumes = core_util.EnsureVolumeDeleted(sts.Spec.Template.Spec.Volumes, "tls-volume")
+		sts.Spec.Template.Spec.Volumes = core_util.EnsureVolumeDeleted(sts.Spec.Template.Spec.Volumes, "exporter-tls-volume")
+	}
 
 	return sts
 }
