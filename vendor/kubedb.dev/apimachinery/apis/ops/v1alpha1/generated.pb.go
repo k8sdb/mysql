@@ -7404,14 +7404,16 @@ func (m *MySQLTLSSpec) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	i--
-	if m.RequireSSL {
-		dAtA[i] = 1
-	} else {
-		dAtA[i] = 0
+	if m.RequireSSL != nil {
+		i--
+		if *m.RequireSSL {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
 	}
-	i--
-	dAtA[i] = 0x10
 	{
 		size, err := m.TLSSpec.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -11346,7 +11348,9 @@ func (m *MySQLTLSSpec) Size() (n int) {
 	_ = l
 	l = m.TLSSpec.Size()
 	n += 1 + l + sovGenerated(uint64(l))
-	n += 2
+	if m.RequireSSL != nil {
+		n += 2
+	}
 	return n
 }
 
@@ -13200,7 +13204,7 @@ func (this *MySQLTLSSpec) String() string {
 	}
 	s := strings.Join([]string{`&MySQLTLSSpec{`,
 		`TLSSpec:` + strings.Replace(strings.Replace(this.TLSSpec.String(), "TLSSpec", "TLSSpec", 1), `&`, ``, 1) + `,`,
-		`RequireSSL:` + fmt.Sprintf("%v", this.RequireSSL) + `,`,
+		`RequireSSL:` + valueToStringGenerated(this.RequireSSL) + `,`,
 		`}`,
 	}, "")
 	return s
@@ -23852,7 +23856,8 @@ func (m *MySQLTLSSpec) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-			m.RequireSSL = bool(v != 0)
+			b := bool(v != 0)
+			m.RequireSSL = &b
 		default:
 			iNdEx = preIndex
 			skippy, err := skipGenerated(dAtA[iNdEx:])

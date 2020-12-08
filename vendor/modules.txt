@@ -1112,6 +1112,7 @@ kubedb.dev/apimachinery/pkg/controller/initializer/stash
 kubedb.dev/apimachinery/pkg/controller/statefulset
 kubedb.dev/apimachinery/pkg/eventer
 kubedb.dev/apimachinery/pkg/phase
+kubedb.dev/apimachinery/pkg/util
 kubedb.dev/apimachinery/pkg/validator
 # sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.7
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client/pkg/client

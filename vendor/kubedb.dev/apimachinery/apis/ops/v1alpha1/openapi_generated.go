@@ -16928,7 +16928,7 @@ func schema_custom_resources_apis_appcatalog_v1alpha1_AddKeyTransform(ref common
 						},
 					},
 				},
-				Required: []string{"key"},
+				Required: []string{"key", "value", "stringValue"},
 			},
 		},
 	}
