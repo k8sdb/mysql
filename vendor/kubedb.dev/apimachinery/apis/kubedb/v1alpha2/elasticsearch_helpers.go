@@ -160,6 +160,31 @@ func (e *Elasticsearch) GetConnectionURL() string {
 	return fmt.Sprintf("%v://%s.%s:%d", e.GetConnectionScheme(), e.OffshootName(), e.Namespace, ElasticsearchRestPort)
 }
 
+func (e *Elasticsearch) CombinedStatefulSetName() string {
+	return e.OffshootName()
+}
+
+func (e *Elasticsearch) MasterStatefulSetName() string {
+	if e.Spec.Topology.Master.Prefix != "" {
+		return fmt.Sprintf("%s-%s", e.Spec.Topology.Master.Prefix, e.OffshootName())
+	}
+	return fmt.Sprintf("%s-%s", ElasticsearchMasterNodePrefix, e.OffshootName())
+}
+
+func (e *Elasticsearch) DataStatefulSetName() string {
+	if e.Spec.Topology.Data.Prefix != "" {
+		return fmt.Sprintf("%s-%s", e.Spec.Topology.Data.Prefix, e.OffshootName())
+	}
+	return fmt.Sprintf("%s-%s", ElasticsearchDataNodePrefix, e.OffshootName())
+}
+
+func (e *Elasticsearch) IngestStatefulSetName() string {
+	if e.Spec.Topology.Ingest.Prefix != "" {
+		return fmt.Sprintf("%s-%s", e.Spec.Topology.Ingest.Prefix, e.OffshootName())
+	}
+	return fmt.Sprintf("%s-%s", ElasticsearchIngestNodePrefix, e.OffshootName())
+}
+
 type elasticsearchApp struct {
 	*Elasticsearch
 }
@@ -257,25 +282,34 @@ func (e *Elasticsearch) SetDefaults(esVersion *v1alpha1.ElasticsearchVersion, to
 			e.Spec.Topology.Ingest.Prefix = ElasticsearchIngestNodePrefix
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		setDefaultResourceLimits(&e.Spec.Topology.Ingest.Resources, defaultResourceLimits, defaultResourceLimits)
 =======
 		setDefaultResourceLimits(&e.Spec.Topology.Ingest.Resources, defaultElasticsearchResourceLimits, defaultElasticsearchResourceRequests)
 >>>>>>> update statefulset
+=======
+		setDefaultResourceLimits(&e.Spec.Topology.Ingest.Resources, defaultElasticsearchResourceLimits, defaultElasticsearchResourceLimits)
+>>>>>>> revendor
 
 		// Default to "data"
 		if e.Spec.Topology.Data.Prefix == "" {
 			e.Spec.Topology.Data.Prefix = ElasticsearchDataNodePrefix
 		}
 <<<<<<< HEAD
+<<<<<<< HEAD
 		setDefaultResourceLimits(&e.Spec.Topology.Data.Resources, defaultResourceLimits, defaultResourceLimits)
 =======
 		setDefaultResourceLimits(&e.Spec.Topology.Data.Resources, defaultElasticsearchResourceLimits, defaultElasticsearchResourceRequests)
 >>>>>>> update statefulset
+=======
+		setDefaultResourceLimits(&e.Spec.Topology.Data.Resources, defaultElasticsearchResourceLimits, defaultElasticsearchResourceLimits)
+>>>>>>> revendor
 
 		// Default to "master"
 		if e.Spec.Topology.Master.Prefix == "" {
 			e.Spec.Topology.Master.Prefix = ElasticsearchMasterNodePrefix
 		}
+<<<<<<< HEAD
 <<<<<<< HEAD
 		setDefaultResourceLimits(&e.Spec.Topology.Master.Resources, defaultResourceLimits, defaultResourceLimits)
 	} else {
@@ -285,6 +319,11 @@ func (e *Elasticsearch) SetDefaults(esVersion *v1alpha1.ElasticsearchVersion, to
 	} else {
 		setDefaultResourceLimits(&e.Spec.PodTemplate.Spec.Resources, defaultElasticsearchResourceLimits, defaultElasticsearchResourceRequests)
 >>>>>>> update statefulset
+=======
+		setDefaultResourceLimits(&e.Spec.Topology.Master.Resources, defaultElasticsearchResourceLimits, defaultElasticsearchResourceLimits)
+	} else {
+		setDefaultResourceLimits(&e.Spec.PodTemplate.Spec.Resources, defaultElasticsearchResourceLimits, defaultElasticsearchResourceLimits)
+>>>>>>> revendor
 	}
 
 	e.setDefaultAffinity(&e.Spec.PodTemplate, e.OffshootSelectors(), topology)
