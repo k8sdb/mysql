@@ -64,18 +64,24 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 		for idx := range dbList {
 			db := dbList[idx]
 
-			glog.Infof("Starting health check for db %s/%s", db.Namespace, db.Name)
 			if db.DeletionTimestamp != nil {
 				continue
 			}
 			wg.Add(1)
 			go func() {
 				defer func() {
-					glog.Infof("Ending health check for db %s/%s", db.Namespace, db.Name)
 					wg.Done()
 				}()
 				// Create database client
 				engine, err := c.getMySQLClient(db)
+				defer func() {
+					if engine != nil {
+						err = engine.Close()
+						if err != nil {
+							glog.Errorf("Can't close the engine. error: %v", err)
+						}
+					}
+				}()
 				if err != nil {
 					// Since the client was unable to connect the database,
 					// update "AcceptingConnection" to "false".
@@ -182,7 +188,6 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 			}()
 		}
 		wg.Wait()
-		glog.Info("Ending health check loop")
 	}, c.ReadinessProbeInterval, stopCh)
 
 	// will wait here until stopCh is closed.
@@ -193,11 +198,10 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 func (c *Controller) checkMySQLClusterHealth(db *api.MySQL, engine *xorm.Engine) (bool, error) {
 	// sql queries for checking cluster healthiness
 	// 1. ping database
-	err := engine.Ping()
+	_, err := engine.QueryString("SELECT 1;")
 	if err != nil {
 		return false, err
 	}
-	defer engine.Close()
 
 	// 2. check all nodes are in ONLINE
 	result, err := engine.QueryString("SELECT MEMBER_STATE FROM performance_schema.replication_group_members;")
@@ -228,7 +232,7 @@ func (c *Controller) checkMySQLClusterHealth(db *api.MySQL, engine *xorm.Engine)
 func (c *Controller) checkMySQLStandaloneHealth(engine *xorm.Engine) (bool, error) {
 	// sql queries for checking standalone healthiness
 	// 1. ping database
-	err := engine.Ping()
+	_, err := engine.QueryString("SELECT 1;")
 	if err != nil {
 		return false, err
 	}
