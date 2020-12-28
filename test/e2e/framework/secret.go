@@ -235,10 +235,10 @@ func (i *Invocation) GetAuthSecret(meta metav1.ObjectMeta, mangedByKubeDB bool) 
 	}
 	return &core.Secret{
 		ObjectMeta: dbObjectMeta,
-		Type:       core.SecretTypeOpaque,
+		Type:       core.SecretTypeBasicAuth,
 		StringData: map[string]string{
-			KeyMySQLUser:     mysqlUser,
-			KeyMySQLPassword: password.Generate(api.DefaultPasswordLength),
+			core.BasicAuthUsernameKey: mysqlUser,
+			core.BasicAuthPasswordKey: password.Generate(api.DefaultPasswordLength),
 		},
 	}
 }
