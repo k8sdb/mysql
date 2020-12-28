@@ -39,8 +39,6 @@ const (
 	ServiceAccount      = "ServiceAccount"
 	CustomSecretSuffix  = "custom-secret"
 	mysqlUser           = "root"
-	KeyMySQLUser        = "username"
-	KeyMySQLPassword    = "password"
 )
 
 func (i *Invocation) ServiceAccount() *core.ServiceAccount {
