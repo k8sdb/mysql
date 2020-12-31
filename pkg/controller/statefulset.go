@@ -24,7 +24,6 @@ import (
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/pkg/eventer"
-	"kubedb.dev/apimachinery/pkg/util"
 
 	"github.com/fatih/structs"
 	"gomodules.xyz/x/log"
@@ -148,7 +147,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 			}
 
 			if db.Spec.Topology == nil && db.Spec.TLS != nil {
-				container.Args = append(container.Args, util.MySQLTLSArgs(db)...)
+				container.Args = append(container.Args, db.MySQLTLSArgs()...)
 			}
 
 			if db.UsesGroupReplication() {
@@ -170,7 +169,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				// add ssl certs flag into args in peer-finder to configure TLS for group replication
 				args := db.Spec.PodTemplate.Spec.Args
 				if db.Spec.TLS != nil {
-					args = append(args, util.MySQLTLSArgs(db)...)
+					args = append(args, db.MySQLTLSArgs()...)
 				}
 
 				container.Args = []string{
@@ -233,7 +232,7 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 						"/bin/mysqld_exporter",
 						fmt.Sprintf("--web.listen-address=:%d", db.Spec.Monitor.Prometheus.Exporter.Port),
 						fmt.Sprintf("--web.telemetry-path=%v", db.StatsService().Path()),
-						util.MySQLExporterTLSArg(),
+						api.MySQLExporterTLSArg(),
 					}, db.Spec.Monitor.Prometheus.Exporter.Args...), " ")
 					commands = []string{cmd}
 				} else {
