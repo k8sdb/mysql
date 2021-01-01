@@ -74,14 +74,6 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 				}()
 				// Create database client
 				engine, err := c.getMySQLClient(db)
-				defer func() {
-					if engine != nil {
-						err = engine.Close()
-						if err != nil {
-							glog.Errorf("Can't close the engine. error: %v", err)
-						}
-					}
-				}()
 				if err != nil {
 					// Since the client was unable to connect the database,
 					// update "AcceptingConnection" to "false".
@@ -117,6 +109,15 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 					// Since the client isn't created, skip rest operations.
 					return
 				}
+
+				defer func() {
+					if engine != nil {
+						err = engine.Close()
+						if err != nil {
+							glog.Errorf("Can't close the engine. error: %v", err)
+						}
+					}
+				}()
 
 				// While creating the client, we perform a health check along with it.
 				// If the client is created without any error,
