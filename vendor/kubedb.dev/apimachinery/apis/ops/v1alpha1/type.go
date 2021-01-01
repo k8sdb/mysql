@@ -86,6 +86,11 @@ const (
 	ReplicasetVolumeExpansion   = "ReplicasetVolumeExpansion"
 	ShardVolumeExpansion        = "ShardVolumeExpansion"
 	ConfigServerVolumeExpansion = "ConfigServerVolumeExpansion"
+	RestartStandalone           = "RestartStandalone"
+	RestartReplicaSet           = "RestartReplicaSet"
+	RestartMongos               = "RestartMongos"
+	RestartConfigServer         = "RestartConfigServer"
+	RestartShard                = "RestartShard"
 
 	// Elasticsearch Constant
 	OrphanStatefulSetPods  = "OrphanStatefulSetPods"
