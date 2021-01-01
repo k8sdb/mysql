@@ -26,7 +26,6 @@ import (
 	"kubedb.dev/apimachinery/pkg/eventer"
 
 	"github.com/fatih/structs"
-	"gomodules.xyz/pointer"
 	"gomodules.xyz/x/log"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
@@ -55,9 +54,6 @@ func (c *Controller) ensureStatefulSet(db *api.MySQL) error {
 
 		// Check StatefulSet Pod status
 		if vt != kutil.VerbUnchanged {
-			if err := c.checkStatefulSetPodStatus(stsNew); err != nil {
-				return err
-			}
 			c.Recorder.Eventf(
 				db,
 				core.EventTypeNormal,
@@ -502,16 +498,6 @@ func upsertInitScript(statefulSet *apps.StatefulSet, script core.VolumeSource) *
 		}
 	}
 	return statefulSet
-}
-
-func (c *Controller) checkStatefulSetPodStatus(statefulSet *apps.StatefulSet) error {
-	return core_util.WaitUntilPodRunningBySelector(
-		context.TODO(),
-		c.Client,
-		statefulSet.Namespace,
-		statefulSet.Spec.Selector,
-		int(pointer.Int32(statefulSet.Spec.Replicas)),
-	)
 }
 
 func upsertCustomConfig(statefulSet *apps.StatefulSet, db *api.MySQL) *apps.StatefulSet {
