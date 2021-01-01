@@ -185,15 +185,7 @@ func (m *MySQL) SetDefaults() {
 	m.Spec.Monitor.SetDefaults()
 
 	m.SetTLSDefaults()
-<<<<<<< HEAD
-<<<<<<< HEAD
 	setDefaultResourceLimits(&m.Spec.PodTemplate.Spec.Resources, defaultResourceLimits, defaultResourceLimits)
-=======
-	setDefaultResourceLimits(&m.Spec.PodTemplate.Spec.Resources, defaultResourceLimits, defaultResourceRequests)
->>>>>>> update statefulset
-=======
-	setDefaultResourceLimits(&m.Spec.PodTemplate.Spec.Resources, defaultMySQLResourceLimits, defaultMySQLResourceLimits)
->>>>>>> revendor
 }
 
 func (m *MySQL) SetTLSDefaults() {
