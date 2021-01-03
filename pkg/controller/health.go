@@ -274,7 +274,7 @@ func (c *Controller) getMySQLClient(db *api.MySQL) (*xorm.Engine, error) {
 		}
 	}
 
-	cnnstr := fmt.Sprintf("%v:%v@tcp(%s:%d)/%s?%s", user, pass, getURL(db), port, api.ResourceSingularMySQL, tlsConfig)
+	cnnstr := fmt.Sprintf("%v:%v@tcp(%s:%d)/%s?%s", user, pass, db.PrimaryServiceDNS(), port, api.ResourceSingularMySQL, tlsConfig)
 	return xorm.NewEngine(api.ResourceSingularMySQL, cnnstr)
 }
 
@@ -288,8 +288,4 @@ func (c *Controller) getMySQLBasicAuth(db *api.MySQL) (string, string, error) {
 		return "", "", err
 	}
 	return string(secret.Data[core.BasicAuthUsernameKey]), string(secret.Data[core.BasicAuthPasswordKey]), nil
-}
-
-func getURL(db *api.MySQL) string {
-	return fmt.Sprintf("%s.%s.svc", db.GoverningServiceName(), db.GetNamespace())
 }

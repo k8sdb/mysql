@@ -146,8 +146,20 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				},
 			}
 
+			// add ssl certs flag into args to configure TLS for standalone
 			if db.Spec.Topology == nil && db.Spec.TLS != nil {
-				container.Args = append(container.Args, db.MySQLTLSArgs()...)
+				args := container.Args
+				tlsArgs := []string{
+					"--ssl-capath=/etc/mysql/certs",
+					"--ssl-ca=/etc/mysql/certs/ca.crt",
+					"--ssl-cert=/etc/mysql/certs/server.crt",
+					"--ssl-key=/etc/mysql/certs/server.key",
+				}
+				args = append(args, tlsArgs...)
+				if db.Spec.RequireSSL {
+					args = append(args, "--require-secure-transport=ON")
+				}
+				container.Args = args
 			}
 
 			if db.UsesGroupReplication() {
@@ -157,7 +169,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 					Name:            api.ReplicationModeDetectorContainerName,
 					Image:           mysqlVersion.Spec.ReplicationModeDetector.Image,
 					ImagePullPolicy: core.PullIfNotPresent,
-					Args:            append([]string{"run", fmt.Sprintf("--db-name=%s", db.Name), fmt.Sprintf("--db-kind=%s", api.ResourceKindMySQL)}, c.LoggerOptions.ToFlags()...),
+					Args:            append([]string{"run", fmt.Sprintf("--db-name=%s", db.Name)}, c.LoggerOptions.ToFlags()...),
 				}
 
 				in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, replicationModeDetector)
@@ -166,10 +178,20 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 					"peer-finder",
 				}
 
-				// add ssl certs flag into args in peer-finder to configure TLS for group replication
 				args := db.Spec.PodTemplate.Spec.Args
+
+				// add ssl certs flag into args in peer-finder to configure TLS for group replication
 				if db.Spec.TLS != nil {
-					args = append(args, db.MySQLTLSArgs()...)
+					tlsArgs := []string{
+						"--ssl-capath=/etc/mysql/certs",
+						"--ssl-ca=/etc/mysql/certs/ca.crt",
+						"--ssl-cert=/etc/mysql/certs/server.crt",
+						"--ssl-key=/etc/mysql/certs/server.key",
+					}
+					args = append(args, tlsArgs...)
+					if db.Spec.RequireSSL {
+						args = append(args, "--require-secure-transport=ON ")
+					}
 				}
 
 				container.Args = []string{
@@ -232,7 +254,7 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 						"/bin/mysqld_exporter",
 						fmt.Sprintf("--web.listen-address=:%d", db.Spec.Monitor.Prometheus.Exporter.Port),
 						fmt.Sprintf("--web.telemetry-path=%v", db.StatsService().Path()),
-						api.MySQLExporterTLSArg(),
+						"--config.my-cnf=/etc/mysql/certs/exporter.cnf",
 					}, db.Spec.Monitor.Prometheus.Exporter.Args...), " ")
 					commands = []string{cmd}
 				} else {
