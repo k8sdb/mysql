@@ -128,14 +128,23 @@ func (c completedConfig) New() (*MySQLServer, error) {
 		return nil, err
 	}
 
+	ctrl, err := c.OperatorConfig.New()
+	if err != nil {
+		return nil, err
+	}
+
 	if c.OperatorConfig.EnableMutatingWebhook {
 		c.ExtraConfig.AdmissionHooks = []hooks.AdmissionHook{
-			&myAdmsn.MySQLMutator{},
+			&myAdmsn.MySQLMutator{
+				ClusterTopology: ctrl.ClusterTopology,
+			},
 		}
 	}
 	if c.OperatorConfig.EnableValidatingWebhook {
 		c.ExtraConfig.AdmissionHooks = append(c.ExtraConfig.AdmissionHooks,
-			&myAdmsn.MySQLValidator{},
+			&myAdmsn.MySQLValidator{
+				ClusterTopology: ctrl.ClusterTopology,
+			},
 			&namespace.NamespaceValidator{
 				Resources: []string{api.ResourcePluralMySQL},
 			},
@@ -143,11 +152,6 @@ func (c completedConfig) New() (*MySQLServer, error) {
 	}
 
 	license.NewLicenseEnforcer(c.OperatorConfig.ClientConfig, c.OperatorConfig.LicenseFile).Install(genericServer.Handler.NonGoRestfulMux)
-
-	ctrl, err := c.OperatorConfig.New()
-	if err != nil {
-		return nil, err
-	}
 
 	s := &MySQLServer{
 		GenericAPIServer: genericServer,
