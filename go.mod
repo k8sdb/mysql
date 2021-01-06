@@ -29,7 +29,7 @@ require (
 	kmodules.xyz/monitoring-agent-api v0.0.0-20201105074044-be7a1044891a
 	kmodules.xyz/offshoot-api v0.0.0-20201105074700-8675f5f686f2
 	kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
-	kubedb.dev/apimachinery v0.16.0-rc.0.0.20210105043123-31ec37c3e5e7
+	kubedb.dev/apimachinery v0.16.0-rc.0.0.20210106185329-7a3dd5ee0094
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
