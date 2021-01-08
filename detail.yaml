@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  creationTimestamp: "2021-01-08T12:28:30Z"
+  creationTimestamp: "2021-01-08T12:40:04Z"
   generateName: my-group-
   labels:
     app.kubernetes.io/instance: my-group
     app.kubernetes.io/managed-by: kubedb.com
     app.kubernetes.io/name: mysqls.kubedb.com
-    controller-revision-hash: my-group-56bd974ccd
+    controller-revision-hash: my-group-65f7549884
     statefulset.kubernetes.io/pod-name: my-group-0
   managedFields:
   - apiVersion: v1
@@ -24,7 +24,7 @@ metadata:
           f:statefulset.kubernetes.io/pod-name: {}
         f:ownerReferences:
           .: {}
-          k:{"uid":"e1a7f0d3-779d-4934-b690-d5af9a49af43"}:
+          k:{"uid":"c785ff4b-f672-4d10-b0f2-bdde602ddcef"}:
             .: {}
             f:apiVersion: {}
             f:blockOwnerDeletion: {}
@@ -90,16 +90,6 @@ metadata:
                     f:fieldPath: {}
             f:image: {}
             f:imagePullPolicy: {}
-            f:livenessProbe:
-              .: {}
-              f:exec:
-                .: {}
-                f:command: {}
-              f:failureThreshold: {}
-              f:initialDelaySeconds: {}
-              f:periodSeconds: {}
-              f:successThreshold: {}
-              f:timeoutSeconds: {}
             f:name: {}
             f:ports:
               .: {}
@@ -108,16 +98,6 @@ metadata:
                 f:containerPort: {}
                 f:name: {}
                 f:protocol: {}
-            f:readinessProbe:
-              .: {}
-              f:exec:
-                .: {}
-                f:command: {}
-              f:failureThreshold: {}
-              f:initialDelaySeconds: {}
-              f:periodSeconds: {}
-              f:successThreshold: {}
-              f:timeoutSeconds: {}
             f:resources:
               .: {}
               f:limits:
@@ -235,7 +215,7 @@ metadata:
             f:name: {}
     manager: kube-controller-manager
     operation: Update
-    time: "2021-01-08T12:28:30Z"
+    time: "2021-01-08T12:40:04Z"
   - apiVersion: v1
     fieldsType: FieldsV1
     fieldsV1:
@@ -271,7 +251,7 @@ metadata:
         f:startTime: {}
     manager: kubelet
     operation: Update
-    time: "2021-01-08T12:28:34Z"
+    time: "2021-01-08T12:40:09Z"
   name: my-group-0
   namespace: demo
   ownerReferences:
@@ -280,10 +260,10 @@ metadata:
     controller: true
     kind: StatefulSet
     name: my-group
-    uid: e1a7f0d3-779d-4934-b690-d5af9a49af43
-  resourceVersion: "980"
+    uid: c785ff4b-f672-4d10-b0f2-bdde602ddcef
+  resourceVersion: "1016"
   selfLink: /api/v1/namespaces/demo/pods/my-group-0
-  uid: 936565c0-f0bc-4b1d-9931-b4347775c4b3
+  uid: ee1e54be-cc78-44cc-9cd8-84d3b6f3671d
 spec:
   affinity:
     podAntiAffinity:
@@ -341,7 +321,7 @@ spec:
     terminationMessagePolicy: File
     volumeMounts:
     - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-      name: my-group-token-zn5nh
+      name: my-group-token-mwx4s
       readOnly: true
   - args:
     - -service=my-group-pods
@@ -375,39 +355,11 @@ spec:
       value: "100"
     image: suaas21/mysql:8.0.21
     imagePullPolicy: IfNotPresent
-    livenessProbe:
-      exec:
-        command:
-        - bash
-        - -c
-        - |2
-
-          export MYSQL_PWD=${MYSQL_ROOT_PASSWORD}
-          mysql -h localhost -nsLNE -e "select member_state from performance_schema.replication_group_members where member_id=@@server_uuid;" 2>/dev/null | grep "ONLINE"
-      failureThreshold: 3
-      initialDelaySeconds: 30
-      periodSeconds: 5
-      successThreshold: 1
-      timeoutSeconds: 1
     name: mysql
     ports:
     - containerPort: 3306
       name: db
       protocol: TCP
-    readinessProbe:
-      exec:
-        command:
-        - bash
-        - -c
-        - |2
-
-          export MYSQL_PWD=${MYSQL_ROOT_PASSWORD}
-          mysql -h localhost -nsLNE -e "select member_state from performance_schema.replication_group_members where member_id=@@server_uuid;" 2>/dev/null | grep "ONLINE"
-      failureThreshold: 3
-      initialDelaySeconds: 60
-      periodSeconds: 10
-      successThreshold: 1
-      timeoutSeconds: 50
     resources:
       limits:
         cpu: 500m
@@ -429,7 +381,7 @@ spec:
     - mountPath: /var/lib/mysql
       name: data
     - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-      name: my-group-token-zn5nh
+      name: my-group-token-mwx4s
       readOnly: true
   dnsPolicy: ClusterFirst
   enableServiceLinks: true
@@ -455,7 +407,7 @@ spec:
     - mountPath: /var/lib/mysql
       name: data
     - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-      name: my-group-token-zn5nh
+      name: my-group-token-mwx4s
       readOnly: true
   nodeName: kind-control-plane
   preemptionPolicy: PreemptLowerPriority
@@ -482,32 +434,32 @@ spec:
       claimName: data-my-group-0
   - emptyDir: {}
     name: tmp
-  - name: my-group-token-zn5nh
+  - name: my-group-token-mwx4s
     secret:
       defaultMode: 420
-      secretName: my-group-token-zn5nh
+      secretName: my-group-token-mwx4s
 status:
   conditions:
   - lastProbeTime: null
-    lastTransitionTime: "2021-01-08T12:28:34Z"
+    lastTransitionTime: "2021-01-08T12:40:09Z"
     message: 'containers with incomplete status: [remove-lost-found]'
     reason: ContainersNotInitialized
     status: "False"
     type: Initialized
   - lastProbeTime: null
-    lastTransitionTime: "2021-01-08T12:28:34Z"
+    lastTransitionTime: "2021-01-08T12:40:09Z"
     message: 'containers with unready status: [replication-mode-detector mysql]'
     reason: ContainersNotReady
     status: "False"
     type: Ready
   - lastProbeTime: null
-    lastTransitionTime: "2021-01-08T12:28:34Z"
+    lastTransitionTime: "2021-01-08T12:40:09Z"
     message: 'containers with unready status: [replication-mode-detector mysql]'
     reason: ContainersNotReady
     status: "False"
     type: ContainersReady
   - lastProbeTime: null
-    lastTransitionTime: "2021-01-08T12:28:34Z"
+    lastTransitionTime: "2021-01-08T12:40:08Z"
     status: "True"
     type: PodScheduled
   containerStatuses:
@@ -544,4 +496,4 @@ status:
         reason: PodInitializing
   phase: Pending
   qosClass: Burstable
-  startTime: "2021-01-08T12:28:34Z"
+  startTime: "2021-01-08T12:40:09Z"
