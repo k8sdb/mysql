@@ -236,6 +236,7 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 					},
 				},
 			}
+			fmt.Println(probe)
 			if db.Spec.Topology == nil {
 				//container.ReadinessProbe = &probe
 				//container.LivenessProbe = &probe
