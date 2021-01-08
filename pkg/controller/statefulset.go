@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"gomodules.xyz/pointer"
 	"strconv"
 	"strings"
 
@@ -131,6 +132,15 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				LivenessProbe:   db.Spec.PodTemplate.Spec.LivenessProbe,
 				ReadinessProbe:  db.Spec.PodTemplate.Spec.ReadinessProbe,
 				Lifecycle:       db.Spec.PodTemplate.Spec.Lifecycle,
+				SecurityContext: &core.SecurityContext{
+					Capabilities: &core.Capabilities{
+						Add: []core.Capability{
+							"SYS_PTRACE",
+						},
+					},
+					Privileged:               pointer.TrueP(),
+					AllowPrivilegeEscalation: pointer.TrueP(),
+				},
 				Ports: []core.ContainerPort{
 					{
 						Name:          api.MySQLDatabasePortName,

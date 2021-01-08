@@ -1,0 +1,552 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2021-01-08T11:32:16Z"
+  generateName: my-group-
+  labels:
+    app.kubernetes.io/instance: my-group
+    app.kubernetes.io/managed-by: kubedb.com
+    app.kubernetes.io/name: mysqls.kubedb.com
+    controller-revision-hash: my-group-7b996bd767
+    statefulset.kubernetes.io/pod-name: my-group-0
+  managedFields:
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:generateName: {}
+        f:labels:
+          .: {}
+          f:app.kubernetes.io/instance: {}
+          f:app.kubernetes.io/managed-by: {}
+          f:app.kubernetes.io/name: {}
+          f:controller-revision-hash: {}
+          f:statefulset.kubernetes.io/pod-name: {}
+        f:ownerReferences:
+          .: {}
+          k:{"uid":"05e26c08-f064-4c48-88f4-e251120b81ce"}:
+            .: {}
+            f:apiVersion: {}
+            f:blockOwnerDeletion: {}
+            f:controller: {}
+            f:kind: {}
+            f:name: {}
+            f:uid: {}
+      f:spec:
+        f:affinity:
+          .: {}
+          f:podAntiAffinity:
+            .: {}
+            f:preferredDuringSchedulingIgnoredDuringExecution: {}
+        f:containers:
+          k:{"name":"mysql"}:
+            .: {}
+            f:args: {}
+            f:command: {}
+            f:env:
+              .: {}
+              k:{"name":"BASE_NAME"}:
+                .: {}
+                f:name: {}
+                f:value: {}
+              k:{"name":"BASE_SERVER_ID"}:
+                .: {}
+                f:name: {}
+                f:value: {}
+              k:{"name":"GOV_SVC"}:
+                .: {}
+                f:name: {}
+                f:value: {}
+              k:{"name":"GROUP_NAME"}:
+                .: {}
+                f:name: {}
+                f:value: {}
+              k:{"name":"MYSQL_ROOT_PASSWORD"}:
+                .: {}
+                f:name: {}
+                f:valueFrom:
+                  .: {}
+                  f:secretKeyRef:
+                    .: {}
+                    f:key: {}
+                    f:name: {}
+              k:{"name":"MYSQL_ROOT_USERNAME"}:
+                .: {}
+                f:name: {}
+                f:valueFrom:
+                  .: {}
+                  f:secretKeyRef:
+                    .: {}
+                    f:key: {}
+                    f:name: {}
+              k:{"name":"POD_NAMESPACE"}:
+                .: {}
+                f:name: {}
+                f:valueFrom:
+                  .: {}
+                  f:fieldRef:
+                    .: {}
+                    f:apiVersion: {}
+                    f:fieldPath: {}
+            f:image: {}
+            f:imagePullPolicy: {}
+            f:livenessProbe:
+              .: {}
+              f:exec:
+                .: {}
+                f:command: {}
+              f:failureThreshold: {}
+              f:initialDelaySeconds: {}
+              f:periodSeconds: {}
+              f:successThreshold: {}
+              f:timeoutSeconds: {}
+            f:name: {}
+            f:ports:
+              .: {}
+              k:{"containerPort":3306,"protocol":"TCP"}:
+                .: {}
+                f:containerPort: {}
+                f:name: {}
+                f:protocol: {}
+            f:readinessProbe:
+              .: {}
+              f:exec:
+                .: {}
+                f:command: {}
+              f:failureThreshold: {}
+              f:initialDelaySeconds: {}
+              f:periodSeconds: {}
+              f:successThreshold: {}
+              f:timeoutSeconds: {}
+            f:resources:
+              .: {}
+              f:limits:
+                .: {}
+                f:cpu: {}
+                f:memory: {}
+              f:requests:
+                .: {}
+                f:cpu: {}
+                f:memory: {}
+            f:terminationMessagePath: {}
+            f:terminationMessagePolicy: {}
+            f:volumeMounts:
+              .: {}
+              k:{"mountPath":"/tmp"}:
+                .: {}
+                f:mountPath: {}
+                f:name: {}
+              k:{"mountPath":"/var/lib/mysql"}:
+                .: {}
+                f:mountPath: {}
+                f:name: {}
+          k:{"name":"replication-mode-detector"}:
+            .: {}
+            f:args: {}
+            f:env:
+              .: {}
+              k:{"name":"MYSQL_ROOT_PASSWORD"}:
+                .: {}
+                f:name: {}
+                f:valueFrom:
+                  .: {}
+                  f:secretKeyRef:
+                    .: {}
+                    f:key: {}
+                    f:name: {}
+              k:{"name":"MYSQL_ROOT_USERNAME"}:
+                .: {}
+                f:name: {}
+                f:valueFrom:
+                  .: {}
+                  f:secretKeyRef:
+                    .: {}
+                    f:key: {}
+                    f:name: {}
+              k:{"name":"POD_NAME"}:
+                .: {}
+                f:name: {}
+                f:valueFrom:
+                  .: {}
+                  f:fieldRef:
+                    .: {}
+                    f:apiVersion: {}
+                    f:fieldPath: {}
+            f:image: {}
+            f:imagePullPolicy: {}
+            f:name: {}
+            f:resources: {}
+            f:terminationMessagePath: {}
+            f:terminationMessagePolicy: {}
+        f:dnsPolicy: {}
+        f:enableServiceLinks: {}
+        f:hostname: {}
+        f:initContainers:
+          .: {}
+          k:{"name":"remove-lost-found"}:
+            .: {}
+            f:command: {}
+            f:image: {}
+            f:imagePullPolicy: {}
+            f:name: {}
+            f:resources:
+              .: {}
+              f:limits:
+                .: {}
+                f:cpu: {}
+                f:memory: {}
+              f:requests:
+                .: {}
+                f:cpu: {}
+                f:memory: {}
+            f:terminationMessagePath: {}
+            f:terminationMessagePolicy: {}
+            f:volumeMounts:
+              .: {}
+              k:{"mountPath":"/var/lib/mysql"}:
+                .: {}
+                f:mountPath: {}
+                f:name: {}
+        f:restartPolicy: {}
+        f:schedulerName: {}
+        f:securityContext: {}
+        f:serviceAccount: {}
+        f:serviceAccountName: {}
+        f:subdomain: {}
+        f:terminationGracePeriodSeconds: {}
+        f:volumes:
+          .: {}
+          k:{"name":"data"}:
+            .: {}
+            f:name: {}
+            f:persistentVolumeClaim:
+              .: {}
+              f:claimName: {}
+          k:{"name":"tmp"}:
+            .: {}
+            f:emptyDir: {}
+            f:name: {}
+    manager: kube-controller-manager
+    operation: Update
+    time: "2021-01-08T11:32:16Z"
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:status:
+        f:conditions:
+          k:{"type":"ContainersReady"}:
+            .: {}
+            f:lastProbeTime: {}
+            f:lastTransitionTime: {}
+            f:message: {}
+            f:reason: {}
+            f:status: {}
+            f:type: {}
+          k:{"type":"Initialized"}:
+            .: {}
+            f:lastProbeTime: {}
+            f:lastTransitionTime: {}
+            f:status: {}
+            f:type: {}
+          k:{"type":"Ready"}:
+            .: {}
+            f:lastProbeTime: {}
+            f:lastTransitionTime: {}
+            f:message: {}
+            f:reason: {}
+            f:status: {}
+            f:type: {}
+        f:containerStatuses: {}
+        f:hostIP: {}
+        f:initContainerStatuses: {}
+        f:phase: {}
+        f:podIP: {}
+        f:podIPs:
+          .: {}
+          k:{"ip":"10.244.0.23"}:
+            .: {}
+            f:ip: {}
+        f:startTime: {}
+    manager: kubelet
+    operation: Update
+    time: "2021-01-08T11:34:39Z"
+  name: my-group-0
+  namespace: demo
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: StatefulSet
+    name: my-group
+    uid: 05e26c08-f064-4c48-88f4-e251120b81ce
+  resourceVersion: "65497"
+  selfLink: /api/v1/namespaces/demo/pods/my-group-0
+  uid: bdf62f18-0bc8-4538-b83c-33693c892075
+spec:
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: my-group
+              app.kubernetes.io/managed-by: kubedb.com
+              app.kubernetes.io/name: mysqls.kubedb.com
+          namespaces:
+          - demo
+          topologyKey: kubernetes.io/hostname
+        weight: 100
+      - podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/instance: my-group
+              app.kubernetes.io/managed-by: kubedb.com
+              app.kubernetes.io/name: mysqls.kubedb.com
+          namespaces:
+          - demo
+          topologyKey: failure-domain.beta.kubernetes.io/zone
+        weight: 50
+  containers:
+  - args:
+    - run
+    - --db-name=my-group
+    - --db-kind=MySQL
+    - --logtostderr=true
+    - --alsologtostderr=false
+    - --v=3
+    - --stderrthreshold=0
+    env:
+    - name: MYSQL_ROOT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: my-group-auth
+    - name: MYSQL_ROOT_USERNAME
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: my-group-auth
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.name
+    image: kubedb/replication-mode-detector:v0.3.0-rc.0
+    imagePullPolicy: IfNotPresent
+    name: replication-mode-detector
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: my-group-token-659gz
+      readOnly: true
+  - args:
+    - -service=my-group-pods
+    - -on-start
+    - /on-start.sh
+    command:
+    - peer-finder
+    env:
+    - name: MYSQL_ROOT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: my-group-auth
+    - name: MYSQL_ROOT_USERNAME
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: my-group-auth
+    - name: BASE_NAME
+      value: my-group
+    - name: GOV_SVC
+      value: my-group-pods
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.namespace
+    - name: GROUP_NAME
+      value: dc002fc3-c412-4d18-b1d4-66c1fbfbbc9b
+    - name: BASE_SERVER_ID
+      value: "100"
+    image: suaas21/mysql:8.0.21
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      exec:
+        command:
+        - bash
+        - -c
+        - |2
+
+          export MYSQL_PWD=${MYSQL_ROOT_PASSWORD}
+          mysql -h localhost -nsLNE -e "select member_state from performance_schema.replication_group_members where member_id=@@server_uuid;" 2>/dev/null | grep "ONLINE"
+      failureThreshold: 3
+      initialDelaySeconds: 30
+      periodSeconds: 5
+      successThreshold: 1
+      timeoutSeconds: 1
+    name: mysql
+    ports:
+    - containerPort: 3306
+      name: db
+      protocol: TCP
+    readinessProbe:
+      exec:
+        command:
+        - bash
+        - -c
+        - |2
+
+          export MYSQL_PWD=${MYSQL_ROOT_PASSWORD}
+          mysql -h localhost -nsLNE -e "select member_state from performance_schema.replication_group_members where member_id=@@server_uuid;" 2>/dev/null | grep "ONLINE"
+      failureThreshold: 3
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 50
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /tmp
+      name: tmp
+    - mountPath: /var/lib/mysql
+      name: data
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: my-group-token-659gz
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  hostname: my-group-0
+  initContainers:
+  - command:
+    - rm
+    - -rf
+    - /var/lib/mysql/lost+found
+    image: kubedb/busybox
+    imagePullPolicy: IfNotPresent
+    name: remove-lost-found
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/lib/mysql
+      name: data
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: my-group-token-659gz
+      readOnly: true
+  nodeName: kind-control-plane
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: my-group
+  serviceAccountName: my-group
+  subdomain: my-group-pods
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: data-my-group-0
+  - emptyDir: {}
+    name: tmp
+  - name: my-group-token-659gz
+    secret:
+      defaultMode: 420
+      secretName: my-group-token-659gz
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2021-01-08T11:32:25Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2021-01-08T11:32:22Z"
+    message: 'containers with unready status: [mysql]'
+    reason: ContainersNotReady
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2021-01-08T11:32:22Z"
+    message: 'containers with unready status: [mysql]'
+    reason: ContainersNotReady
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2021-01-08T11:32:21Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://e521db378c1b881605705044a5befaa0952b3e5b37fbf808dafff1056399248a
+    image: docker.io/suaas21/mysql:8.0.21
+    imageID: sha256:a1f942a98ab36102f51086188327ab78cc57e7e68848a4a885e538082fb5c5d4
+    lastState:
+      terminated:
+        containerID: containerd://465082286e201e08f3befbea3371caa562b4227b44430e8436d3e4f41d0a447f
+        exitCode: 2
+        finishedAt: "2021-01-08T11:34:38Z"
+        reason: Error
+        startedAt: "2021-01-08T11:33:54Z"
+    name: mysql
+    ready: false
+    restartCount: 3
+    started: true
+    state:
+      running:
+        startedAt: "2021-01-08T11:34:39Z"
+  - containerID: containerd://775b0f210eec05c4b85bef12af5176255d57e42face28271a95a372c3df1d531
+    image: docker.io/kubedb/replication-mode-detector:v0.3.0-rc.0
+    imageID: docker.io/kubedb/replication-mode-detector@sha256:e4e9e3c6889182db888e979c2d49c563ddf7b492ddfa13a11619a4a17525d639
+    lastState: {}
+    name: replication-mode-detector
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2021-01-08T11:32:26Z"
+  hostIP: 172.18.0.2
+  initContainerStatuses:
+  - containerID: containerd://3379a10b86799a5c99847c6703f4c3933bc61cd1f3a1ddf583a6cd7eec929f49
+    image: docker.io/kubedb/busybox:latest
+    imageID: docker.io/kubedb/busybox@sha256:4415a904b1aca178c2450fd54928ab362825e863c0ad5452fd020e92f7a6a47e
+    lastState: {}
+    name: remove-lost-found
+    ready: true
+    restartCount: 0
+    state:
+      terminated:
+        containerID: containerd://3379a10b86799a5c99847c6703f4c3933bc61cd1f3a1ddf583a6cd7eec929f49
+        exitCode: 0
+        finishedAt: "2021-01-08T11:32:24Z"
+        reason: Completed
+        startedAt: "2021-01-08T11:32:24Z"
+  phase: Running
+  podIP: 10.244.0.23
+  podIPs:
+  - ip: 10.244.0.23
+  qosClass: Burstable
+  startTime: "2021-01-08T11:32:22Z"
