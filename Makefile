@@ -352,7 +352,7 @@ endif
 
 .PHONY: install
 install:
-	@cd ../installer; \
+	cd ../installer; \
 	helm install kubedb-community charts/kubedb --wait  \
 		--namespace=$(KUBE_NAMESPACE)         \
 		--set-file license=$(LICENSE_FILE)    \
