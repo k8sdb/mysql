@@ -237,8 +237,8 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 				},
 			}
 			if db.Spec.Topology == nil {
-				container.ReadinessProbe = &probe
-				container.LivenessProbe = &probe
+				//container.ReadinessProbe = &probe
+				//container.LivenessProbe = &probe
 			}
 			if container.ReadinessProbe != nil {
 				container.ReadinessProbe.InitialDelaySeconds = 60
