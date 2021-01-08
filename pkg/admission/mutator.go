@@ -143,6 +143,8 @@ func setDefaultValues(mysql *api.MySQL, ClusterTopology *core_util.Topology) (ru
 	}
 
 	mysql.SetDefaults(ClusterTopology)
+	mysql.Spec.PodTemplate.Spec.LivenessProbe = nil
+	mysql.Spec.PodTemplate.Spec.ReadinessProbe = nil
 
 	return mysql, nil
 }

@@ -19,7 +19,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"gomodules.xyz/pointer"
 	"strconv"
 	"strings"
 
@@ -27,6 +26,7 @@ import (
 	"kubedb.dev/apimachinery/pkg/eventer"
 
 	"github.com/fatih/structs"
+	"gomodules.xyz/pointer"
 	"gomodules.xyz/x/log"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"

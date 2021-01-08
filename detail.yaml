@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  creationTimestamp: "2021-01-08T11:32:16Z"
+  creationTimestamp: "2021-01-08T12:28:30Z"
   generateName: my-group-
   labels:
     app.kubernetes.io/instance: my-group
     app.kubernetes.io/managed-by: kubedb.com
     app.kubernetes.io/name: mysqls.kubedb.com
-    controller-revision-hash: my-group-7b996bd767
+    controller-revision-hash: my-group-56bd974ccd
     statefulset.kubernetes.io/pod-name: my-group-0
   managedFields:
   - apiVersion: v1
@@ -24,7 +24,7 @@ metadata:
           f:statefulset.kubernetes.io/pod-name: {}
         f:ownerReferences:
           .: {}
-          k:{"uid":"05e26c08-f064-4c48-88f4-e251120b81ce"}:
+          k:{"uid":"e1a7f0d3-779d-4934-b690-d5af9a49af43"}:
             .: {}
             f:apiVersion: {}
             f:blockOwnerDeletion: {}
@@ -128,6 +128,13 @@ metadata:
                 .: {}
                 f:cpu: {}
                 f:memory: {}
+            f:securityContext:
+              .: {}
+              f:allowPrivilegeEscalation: {}
+              f:capabilities:
+                .: {}
+                f:add: {}
+              f:privileged: {}
             f:terminationMessagePath: {}
             f:terminationMessagePolicy: {}
             f:volumeMounts:
@@ -228,7 +235,7 @@ metadata:
             f:name: {}
     manager: kube-controller-manager
     operation: Update
-    time: "2021-01-08T11:32:16Z"
+    time: "2021-01-08T12:28:30Z"
   - apiVersion: v1
     fieldsType: FieldsV1
     fieldsV1:
@@ -246,6 +253,8 @@ metadata:
             .: {}
             f:lastProbeTime: {}
             f:lastTransitionTime: {}
+            f:message: {}
+            f:reason: {}
             f:status: {}
             f:type: {}
           k:{"type":"Ready"}:
@@ -259,17 +268,10 @@ metadata:
         f:containerStatuses: {}
         f:hostIP: {}
         f:initContainerStatuses: {}
-        f:phase: {}
-        f:podIP: {}
-        f:podIPs:
-          .: {}
-          k:{"ip":"10.244.0.23"}:
-            .: {}
-            f:ip: {}
         f:startTime: {}
     manager: kubelet
     operation: Update
-    time: "2021-01-08T11:34:39Z"
+    time: "2021-01-08T12:28:34Z"
   name: my-group-0
   namespace: demo
   ownerReferences:
@@ -278,10 +280,10 @@ metadata:
     controller: true
     kind: StatefulSet
     name: my-group
-    uid: 05e26c08-f064-4c48-88f4-e251120b81ce
-  resourceVersion: "65497"
+    uid: e1a7f0d3-779d-4934-b690-d5af9a49af43
+  resourceVersion: "980"
   selfLink: /api/v1/namespaces/demo/pods/my-group-0
-  uid: bdf62f18-0bc8-4538-b83c-33693c892075
+  uid: 936565c0-f0bc-4b1d-9931-b4347775c4b3
 spec:
   affinity:
     podAntiAffinity:
@@ -339,7 +341,7 @@ spec:
     terminationMessagePolicy: File
     volumeMounts:
     - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-      name: my-group-token-659gz
+      name: my-group-token-zn5nh
       readOnly: true
   - args:
     - -service=my-group-pods
@@ -413,6 +415,12 @@ spec:
       requests:
         cpu: 500m
         memory: 1Gi
+    securityContext:
+      allowPrivilegeEscalation: true
+      capabilities:
+        add:
+        - SYS_PTRACE
+      privileged: true
     terminationMessagePath: /dev/termination-log
     terminationMessagePolicy: File
     volumeMounts:
@@ -421,7 +429,7 @@ spec:
     - mountPath: /var/lib/mysql
       name: data
     - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-      name: my-group-token-659gz
+      name: my-group-token-zn5nh
       readOnly: true
   dnsPolicy: ClusterFirst
   enableServiceLinks: true
@@ -447,9 +455,10 @@ spec:
     - mountPath: /var/lib/mysql
       name: data
     - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
-      name: my-group-token-659gz
+      name: my-group-token-zn5nh
       readOnly: true
   nodeName: kind-control-plane
+  preemptionPolicy: PreemptLowerPriority
   priority: 0
   restartPolicy: Always
   schedulerName: default-scheduler
@@ -473,80 +482,66 @@ spec:
       claimName: data-my-group-0
   - emptyDir: {}
     name: tmp
-  - name: my-group-token-659gz
+  - name: my-group-token-zn5nh
     secret:
       defaultMode: 420
-      secretName: my-group-token-659gz
+      secretName: my-group-token-zn5nh
 status:
   conditions:
   - lastProbeTime: null
-    lastTransitionTime: "2021-01-08T11:32:25Z"
-    status: "True"
+    lastTransitionTime: "2021-01-08T12:28:34Z"
+    message: 'containers with incomplete status: [remove-lost-found]'
+    reason: ContainersNotInitialized
+    status: "False"
     type: Initialized
   - lastProbeTime: null
-    lastTransitionTime: "2021-01-08T11:32:22Z"
-    message: 'containers with unready status: [mysql]'
+    lastTransitionTime: "2021-01-08T12:28:34Z"
+    message: 'containers with unready status: [replication-mode-detector mysql]'
     reason: ContainersNotReady
     status: "False"
     type: Ready
   - lastProbeTime: null
-    lastTransitionTime: "2021-01-08T11:32:22Z"
-    message: 'containers with unready status: [mysql]'
+    lastTransitionTime: "2021-01-08T12:28:34Z"
+    message: 'containers with unready status: [replication-mode-detector mysql]'
     reason: ContainersNotReady
     status: "False"
     type: ContainersReady
   - lastProbeTime: null
-    lastTransitionTime: "2021-01-08T11:32:21Z"
+    lastTransitionTime: "2021-01-08T12:28:34Z"
     status: "True"
     type: PodScheduled
   containerStatuses:
-  - containerID: containerd://e521db378c1b881605705044a5befaa0952b3e5b37fbf808dafff1056399248a
-    image: docker.io/suaas21/mysql:8.0.21
-    imageID: sha256:a1f942a98ab36102f51086188327ab78cc57e7e68848a4a885e538082fb5c5d4
-    lastState:
-      terminated:
-        containerID: containerd://465082286e201e08f3befbea3371caa562b4227b44430e8436d3e4f41d0a447f
-        exitCode: 2
-        finishedAt: "2021-01-08T11:34:38Z"
-        reason: Error
-        startedAt: "2021-01-08T11:33:54Z"
+  - image: suaas21/mysql:8.0.21
+    imageID: ""
+    lastState: {}
     name: mysql
     ready: false
-    restartCount: 3
-    started: true
+    restartCount: 0
+    started: false
     state:
-      running:
-        startedAt: "2021-01-08T11:34:39Z"
-  - containerID: containerd://775b0f210eec05c4b85bef12af5176255d57e42face28271a95a372c3df1d531
-    image: docker.io/kubedb/replication-mode-detector:v0.3.0-rc.0
-    imageID: docker.io/kubedb/replication-mode-detector@sha256:e4e9e3c6889182db888e979c2d49c563ddf7b492ddfa13a11619a4a17525d639
+      waiting:
+        reason: PodInitializing
+  - image: kubedb/replication-mode-detector:v0.3.0-rc.0
+    imageID: ""
     lastState: {}
     name: replication-mode-detector
-    ready: true
+    ready: false
     restartCount: 0
-    started: true
+    started: false
     state:
-      running:
-        startedAt: "2021-01-08T11:32:26Z"
+      waiting:
+        reason: PodInitializing
   hostIP: 172.18.0.2
   initContainerStatuses:
-  - containerID: containerd://3379a10b86799a5c99847c6703f4c3933bc61cd1f3a1ddf583a6cd7eec929f49
-    image: docker.io/kubedb/busybox:latest
-    imageID: docker.io/kubedb/busybox@sha256:4415a904b1aca178c2450fd54928ab362825e863c0ad5452fd020e92f7a6a47e
+  - image: kubedb/busybox
+    imageID: ""
     lastState: {}
     name: remove-lost-found
-    ready: true
+    ready: false
     restartCount: 0
     state:
-      terminated:
-        containerID: containerd://3379a10b86799a5c99847c6703f4c3933bc61cd1f3a1ddf583a6cd7eec929f49
-        exitCode: 0
-        finishedAt: "2021-01-08T11:32:24Z"
-        reason: Completed
-        startedAt: "2021-01-08T11:32:24Z"
-  phase: Running
-  podIP: 10.244.0.23
-  podIPs:
-  - ip: 10.244.0.23
+      waiting:
+        reason: PodInitializing
+  phase: Pending
   qosClass: Burstable
-  startTime: "2021-01-08T11:32:22Z"
+  startTime: "2021-01-08T12:28:34Z"
