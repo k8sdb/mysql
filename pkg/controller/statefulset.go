@@ -25,7 +25,6 @@ import (
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/pkg/eventer"
 
-	"github.com/fatih/structs"
 	"gomodules.xyz/x/log"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
@@ -203,41 +202,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 					"-on-start",
 					strings.Join(append([]string{"/on-start.sh"}, args...), " "),
 				}
-				if container.LivenessProbe != nil && structs.IsZero(*container.LivenessProbe) {
-					container.LivenessProbe = nil
-				}
-				if container.ReadinessProbe != nil && structs.IsZero(*container.ReadinessProbe) {
-					container.ReadinessProbe = nil
-				}
 			}
-
-			// TODO: probe for standalone needs to be set from mutator
-			probe := core.Probe{
-				Handler: core.Handler{
-					Exec: &core.ExecAction{
-						Command: []string{
-							"bash",
-							"-c",
-							`
-export MYSQL_PWD=${MYSQL_ROOT_PASSWORD}
-mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
-`,
-						},
-					},
-				},
-			}
-			if db.Spec.Topology == nil {
-				container.ReadinessProbe = &probe
-				container.LivenessProbe = &probe
-			}
-			if container.ReadinessProbe != nil {
-				container.ReadinessProbe.InitialDelaySeconds = 60
-				container.ReadinessProbe.PeriodSeconds = 10
-				container.ReadinessProbe.TimeoutSeconds = 50
-				container.ReadinessProbe.SuccessThreshold = 1
-				container.ReadinessProbe.FailureThreshold = 3
-			}
-
 			in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, container)
 			in.Spec.Template.Spec.Volumes = []core.Volume{
 				{
@@ -327,8 +292,22 @@ mysql -h localhost -nsLNE -e "select 1;" 2>/dev/null | grep -v "*"
 			// configure tls if configured in DB
 			in = upsertTLSVolume(in, db)
 
+			// addPodReadinessGates for checking db readiness
+			in = addPodReadinessGates(in)
+
 			return in
 		}, metav1.PatchOptions{})
+}
+
+func addPodReadinessGates(statefulSet *apps.StatefulSet) *apps.StatefulSet {
+	if len(statefulSet.Spec.Template.Spec.ReadinessGates) == 0 && !hasConditionTypeInReadinessGate(statefulSet.Spec.Template.Spec.ReadinessGates, dbConditionTypeReady) {
+		statefulSet.Spec.Template.Spec.ReadinessGates = []core.PodReadinessGate{
+			{
+				ConditionType: dbConditionTypeReady,
+			},
+		}
+	}
+	return statefulSet
 }
 
 func upsertDataVolume(statefulSet *apps.StatefulSet, db *api.MySQL) *apps.StatefulSet {
