@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	dbConditionTypeReady = core.PodConditionType("kubedb.com/Ready")
+	dbConditionTypeReady   = core.PodConditionType("kubedb.com/Ready")
 	dbConditionTypeOffline = "DBConditionTypeIsNotReadyForServerOffline"
-	dbConditionTypeOnline = "DBConditionTypeReadyAndServerOnline"
+	dbConditionTypeOnline  = "DBConditionTypeReadyAndServerOnline"
 )
 
 // hasCondition returns "true" if the desired condition provided in "condType" is present in the condition list.

@@ -72,10 +72,10 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 				defer func() {
 					wg.Done()
 				}()
-                // 1st insure all the pods are going to join the cluster(offline/online) to form a group replication
-                // then check if the db is going to accepting connection and in ready state.
+				// 1st insure all the pods are going to join the cluster(offline/online) to form a group replication
+				// then check if the db is going to accepting connection and in ready state.
 
-                // verifying all pods are going Online
+				// verifying all pods are going Online
 				podList, err := c.Client.CoreV1().Pods(db.Namespace).List(context.TODO(), metav1.ListOptions{
 					LabelSelector: labels.Set(db.OffshootSelectors()).String(),
 				})
@@ -84,26 +84,8 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 				}
 
 				for _, pod := range podList.Items {
-					if !hasPodCondition(pod.Status.Conditions, dbConditionTypeReady) {
-						_, err = c.Client.CoreV1().Pods(pod.Namespace).UpdateStatus(context.TODO(), &core.Pod{
-							TypeMeta:   pod.TypeMeta,
-							ObjectMeta: pod.ObjectMeta,
-							Spec:       pod.Spec,
-							Status: func(in core.PodStatus) core.PodStatus {
-								in.Conditions = setPodCondition(in.Conditions, core.PodCondition{
-									Type:               dbConditionTypeReady,
-									Status:             core.ConditionFalse,
-									LastProbeTime:      metav1.Time{},
-									LastTransitionTime: metav1.Now(),
-									Reason:            dbConditionTypeOffline,
-									Message:          "DB is not ready because of server getting Offline/Recovering state",
-								})
-								return in
-							}(pod.Status),
-						}, metav1.UpdateOptions{})
-						if err != nil {
-							glog.Warning("Failed to update pod status with: ", err.Error())
-						}
+					if isPodConditionTrue(pod.Status.Conditions, dbConditionTypeReady) {
+						continue
 					}
 
 					engine, err := c.getMySQLClient(db, HostDNS(db, pod.ObjectMeta), api.MySQLDatabasePort)
@@ -125,21 +107,14 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 					}
 					// update pod status if specific host get online
 					if isHostOnline {
-						_, err = c.Client.CoreV1().Pods(pod.Namespace).UpdateStatus(context.TODO(), &core.Pod{
-							TypeMeta:   pod.TypeMeta,
-							ObjectMeta: pod.ObjectMeta,
-							Spec:       pod.Spec,
-							Status: func(in core.PodStatus) core.PodStatus {
-								in.Conditions = setPodCondition(in.Conditions, core.PodCondition{
-									Type:               dbConditionTypeReady,
-									Status:             core.ConditionTrue,
-									LastTransitionTime: metav1.Now(),
-									Reason:             dbConditionTypeOnline,
-									Message:            "DB is ready because of server getting Online and getting Running state",
-								})
-								return in
-							}(pod.Status),
-						}, metav1.UpdateOptions{})
+						pod.Status.Conditions = setPodCondition(pod.Status.Conditions, core.PodCondition{
+							Type:               dbConditionTypeReady,
+							Status:             core.ConditionTrue,
+							LastTransitionTime: metav1.Now(),
+							Reason:             dbConditionTypeOnline,
+							Message:            "DB is ready because of server getting Online and getting Running state",
+						})
+						_, err = c.Client.CoreV1().Pods(pod.Namespace).UpdateStatus(context.TODO(), &pod, metav1.UpdateOptions{})
 						if err != nil {
 							glog.Warning("Failed to update pod status with: ", err.Error())
 						}
