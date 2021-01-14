@@ -112,7 +112,7 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 							Status:             core.ConditionTrue,
 							LastTransitionTime: metav1.Now(),
 							Reason:             dbConditionTypeOnline,
-							Message:            "DB is ready because of server getting Online and getting Running state",
+							Message:            "DB is ready because of server getting Online and Running state",
 						})
 						_, err = c.Client.CoreV1().Pods(pod.Namespace).UpdateStatus(context.TODO(), &pod, metav1.UpdateOptions{})
 						if err != nil {
