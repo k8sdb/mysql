@@ -37,6 +37,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	kmapi "kmodules.xyz/client-go/api/v1"
+	core_util "kmodules.xyz/client-go/core/v1"
 )
 
 const (
@@ -84,7 +85,7 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 				}
 
 				for _, pod := range podList.Items {
-					if isPodConditionTrue(pod.Status.Conditions, dbConditionTypeReady) {
+					if core_util.IsPodConditionTrue(pod.Status.Conditions, core_util.PodConditionTypeReady) {
 						continue
 					}
 
@@ -107,11 +108,11 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 					}
 					// update pod status if specific host get online
 					if isHostOnline {
-						pod.Status.Conditions = setPodCondition(pod.Status.Conditions, core.PodCondition{
-							Type:               dbConditionTypeReady,
+						pod.Status.Conditions = core_util.SetPodCondition(pod.Status.Conditions, core.PodCondition{
+							Type:               core_util.PodConditionTypeReady,
 							Status:             core.ConditionTrue,
 							LastTransitionTime: metav1.Now(),
-							Reason:             dbConditionTypeOnline,
+							Reason:             "DBConditionTypeReadyAndServerOnline",
 							Message:            "DB is ready because of server getting Online and Running state",
 						})
 						_, err = c.Client.CoreV1().Pods(pod.Namespace).UpdateStatus(context.TODO(), &pod, metav1.UpdateOptions{})
@@ -124,7 +125,7 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 				// verify db is going to accepting connection and in ready state
 				port, err := c.GetPrimaryServicePort(db)
 				if err != nil {
-					glog.Warning("Failed to primary service port with: %s", err.Error())
+					glog.Warning("Failed to primary service port with: ", err.Error())
 					return
 				}
 				engine, err := c.getMySQLClient(db, db.PrimaryServiceDNS(), port)

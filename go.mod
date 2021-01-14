@@ -23,12 +23,12 @@ require (
 	k8s.io/apimachinery v0.18.9
 	k8s.io/apiserver v0.18.9
 	k8s.io/client-go v0.18.9
-	kmodules.xyz/client-go v0.0.0-20201230092550-8ca15cfcbefa
+	kmodules.xyz/client-go v0.0.0-20210114092027-4449ffa9981e
 	kmodules.xyz/custom-resources v0.0.0-20201124062543-bd8d35c21b0c
 	kmodules.xyz/monitoring-agent-api v0.0.0-20201105074044-be7a1044891a
 	kmodules.xyz/offshoot-api v0.0.0-20201105074700-8675f5f686f2
 	kmodules.xyz/webhook-runtime v0.0.0-20201105073856-2dc7382b88c6
-	kubedb.dev/apimachinery v0.16.0-rc.0.0.20210111044312-210c3ca8b0d7
+	kubedb.dev/apimachinery v0.16.0-rc.0.0.20210114093057-d516b399d9d4
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d

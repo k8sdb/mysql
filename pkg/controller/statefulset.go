@@ -292,22 +292,10 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 			// configure tls if configured in DB
 			in = upsertTLSVolume(in, db)
 
-			// addPodReadinessGates for checking db readiness
-			in = addPodReadinessGates(in)
+			in.Spec.Template.Spec.ReadinessGates = core_util.UpsertPodReadinessGateConditionType(in.Spec.Template.Spec.ReadinessGates, core_util.PodConditionTypeReady)
 
 			return in
 		}, metav1.PatchOptions{})
-}
-
-func addPodReadinessGates(statefulSet *apps.StatefulSet) *apps.StatefulSet {
-	if len(statefulSet.Spec.Template.Spec.ReadinessGates) == 0 && !hasConditionTypeInReadinessGate(statefulSet.Spec.Template.Spec.ReadinessGates, dbConditionTypeReady) {
-		statefulSet.Spec.Template.Spec.ReadinessGates = []core.PodReadinessGate{
-			{
-				ConditionType: dbConditionTypeReady,
-			},
-		}
-	}
-	return statefulSet
 }
 
 func upsertDataVolume(statefulSet *apps.StatefulSet, db *api.MySQL) *apps.StatefulSet {

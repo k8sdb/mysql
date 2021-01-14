@@ -1,11 +1,11 @@
 /*
 Copyright AppsCode Inc. and Contributors
 
-Licensed under the AppsCode Community License 1.0.0 (the "License");
+Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    https://github.com/appscode/licenses/raw/1.0.0/AppsCode-Community-1.0.0.md
+    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,21 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controller
+package v1
 
 import (
 	core "k8s.io/api/core/v1"
 )
 
 const (
-	dbConditionTypeReady   = core.PodConditionType("kubedb.com/Ready")
-	dbConditionTypeOffline = "DBConditionTypeIsNotReadyForServerOffline"
-	dbConditionTypeOnline  = "DBConditionTypeReadyAndServerOnline"
+	PodConditionTypeReady = core.PodConditionType("kubedb.com/Ready")
 )
 
-// hasCondition returns "true" if the desired condition provided in "condType" is present in the condition list.
+// HasCondition returns "true" if the desired condition provided in "condType" is present in the condition list.
 // Otherwise, it returns "false".
-func hasPodCondition(conditions []core.PodCondition, condType core.PodConditionType) bool {
+func HasPodCondition(conditions []core.PodCondition, condType core.PodConditionType) bool {
 	for i := range conditions {
 		if conditions[i].Type == condType {
 			return true
@@ -37,8 +35,8 @@ func hasPodCondition(conditions []core.PodCondition, condType core.PodConditionT
 	return false
 }
 
-// getPodCondition returns a pointer to the desired condition referred by "condType". Otherwise, it returns nil.
-func getPodCondition(conditions []core.PodCondition, condType core.PodConditionType) (int, *core.PodCondition) {
+// GetPodCondition returns a pointer to the desired condition referred by "condType". Otherwise, it returns nil.
+func GetPodCondition(conditions []core.PodCondition, condType core.PodConditionType) (int, *core.PodCondition) {
 	for i := range conditions {
 		c := conditions[i]
 		if c.Type == condType {
@@ -48,10 +46,10 @@ func getPodCondition(conditions []core.PodCondition, condType core.PodConditionT
 	return -1, nil
 }
 
-// setPodCondition add/update the desired condition to the condition list. It does nothing if the condition is already in
+// SetPodCondition add/update the desired condition to the condition list. It does nothing if the condition is already in
 // its desired state.
-func setPodCondition(conditions []core.PodCondition, newCondition core.PodCondition) []core.PodCondition {
-	idx, curCond := getPodCondition(conditions, newCondition.Type)
+func SetPodCondition(conditions []core.PodCondition, newCondition core.PodCondition) []core.PodCondition {
+	idx, curCond := GetPodCondition(conditions, newCondition.Type)
 	// The desired conditions is not in the condition list or is not in its desired state.
 	// If the current condition status is in its desired state, we have nothing to do. Just return the original condition list.
 	// Update it if present in the condition list, or append the new condition if it does not present.
@@ -69,8 +67,8 @@ func setPodCondition(conditions []core.PodCondition, newCondition core.PodCondit
 }
 
 // RemovePodCondition remove a condition from the condition list referred by "condType" parameter.
-func removePodCondition(conditions []core.PodCondition, condType core.PodConditionType) []core.PodCondition {
-	idx, _ := getPodCondition(conditions, condType)
+func RemovePodCondition(conditions []core.PodCondition, condType core.PodConditionType) []core.PodCondition {
+	idx, _ := GetPodCondition(conditions, condType)
 	if idx == -1 {
 		// The desired condition is not present in the condition list. So, nothing to do.
 		return conditions
@@ -80,7 +78,7 @@ func removePodCondition(conditions []core.PodCondition, condType core.PodConditi
 
 // IsPodConditionTrue returns "true" if the desired condition is in true state.
 // It returns "false" if the desired condition is not in "true" state or is not in the condition list.
-func isPodConditionTrue(conditions []core.PodCondition, condType core.PodConditionType) bool {
+func IsPodConditionTrue(conditions []core.PodCondition, condType core.PodConditionType) bool {
 	for i := range conditions {
 		if conditions[i].Type == condType && conditions[i].Status == core.ConditionTrue {
 			return true
@@ -91,7 +89,7 @@ func isPodConditionTrue(conditions []core.PodCondition, condType core.PodConditi
 
 // IsPodConditionFalse returns "true" if the desired condition is in false state.
 // It returns "false" if the desired condition is not in "false" state or is not in the condition list.
-func isPodConditionFalse(conditions []core.PodCondition, condType core.PodConditionType) bool {
+func IsPodConditionFalse(conditions []core.PodCondition, condType core.PodConditionType) bool {
 	for i := range conditions {
 		if conditions[i].Type == condType && conditions[i].Status == core.ConditionFalse {
 			return true
@@ -100,11 +98,13 @@ func isPodConditionFalse(conditions []core.PodCondition, condType core.PodCondit
 	return false
 }
 
-func hasConditionTypeInReadinessGate(podReadinessGates []core.PodReadinessGate, podConditionType core.PodConditionType) bool {
-	for i := range podReadinessGates {
-		if podReadinessGates[i].ConditionType == podConditionType {
-			return true
+func UpsertPodReadinessGateConditionType(readinessGates []core.PodReadinessGate, conditionType core.PodConditionType) []core.PodReadinessGate {
+	for i := range readinessGates {
+		if readinessGates[i].ConditionType == conditionType {
+			return readinessGates
 		}
 	}
-	return false
+	return append(readinessGates, core.PodReadinessGate{
+		ConditionType: conditionType,
+	})
 }
