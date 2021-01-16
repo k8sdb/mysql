@@ -102,7 +102,7 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 							}
 						}
 					}()
-					isHostOnline, err := c.isHostOnline(engine)
+					isHostOnline, err := c.isHostOnline(db, engine)
 					if err != nil {
 						glog.Warning("Host is not online ", err.Error())
 					}
@@ -293,23 +293,27 @@ func (c *Controller) checkMySQLStandaloneHealth(engine *xorm.Engine) (bool, erro
 	return true, nil
 }
 
-func (c *Controller) isHostOnline(engine *xorm.Engine) (bool, error) {
-	// 1. ping database
+func (c *Controller) isHostOnline(db *api.MySQL, engine *xorm.Engine) (bool, error) {
+	// 1. ping for both standalone and group replication member
 	_, err := engine.QueryString("SELECT 1;")
 	if err != nil {
 		return false, err
 	}
-	result, err := engine.QueryString("select member_state from performance_schema.replication_group_members where member_id=@@server_uuid;")
-	if err != nil {
-		return false, err
+
+	if db.UsesGroupReplication() {
+		result, err := engine.QueryString("select member_state from performance_schema.replication_group_members where member_id=@@server_uuid;")
+		if err != nil {
+			return false, err
+		}
+		if result == nil {
+			return false, fmt.Errorf("Checking member state, result: nil")
+		}
+		memberState, ok := result[0]["member_state"]
+		if !ok || strings.Compare(memberState, "ONLINE") != 0 {
+			return false, fmt.Errorf("The member is not online yet")
+		}
 	}
-	if result == nil {
-		return false, fmt.Errorf("Query result is nil for checking member host online")
-	}
-	memberState, ok := result[0]["member_state"]
-	if !ok || strings.Compare(memberState, "ONLINE") != 0 {
-		return false, fmt.Errorf("The member is not online yet")
-	}
+
 	return true, nil
 }
 
