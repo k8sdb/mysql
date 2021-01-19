@@ -82,6 +82,7 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 				})
 				if err != nil {
 					glog.Warning("Failed to list DB pod with ", err.Error())
+					return
 				}
 
 				for _, pod := range podList.Items {
@@ -92,34 +93,39 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 					engine, err := c.getMySQLClient(db, HostDNS(db, pod.ObjectMeta), api.MySQLDatabasePort)
 					if err != nil {
 						glog.Warning("Failed to get db client for host ", pod.Namespace, "/", pod.Name)
-						return
+						continue
 					}
-					defer func() {
-						if engine != nil {
-							err = engine.Close()
+					func(engine *xorm.Engine) {
+						defer func() {
+							if engine != nil {
+								err = engine.Close()
+								if err != nil {
+									glog.Errorf("Can't close the engine. error: %v", err)
+								}
+							}
+						}()
+
+						isHostOnline, err := c.isHostOnline(db, engine)
+						if err != nil {
+							glog.Warning("Host is not online ", err.Error())
+							return
+						}
+						// update pod status if specific host get online
+						if isHostOnline {
+							pod.Status.Conditions = core_util.SetPodCondition(pod.Status.Conditions, core.PodCondition{
+								Type:               core_util.PodConditionTypeReady,
+								Status:             core.ConditionTrue,
+								LastTransitionTime: metav1.Now(),
+								Reason:             "DBConditionTypeReadyAndServerOnline",
+								Message:            "DB is ready because of server getting Online and Running state",
+							})
+							_, err = c.Client.CoreV1().Pods(pod.Namespace).UpdateStatus(context.TODO(), &pod, metav1.UpdateOptions{})
 							if err != nil {
-								glog.Errorf("Can't close the engine. error: %v", err)
+								glog.Warning("Failed to update pod status with: ", err.Error())
+								return
 							}
 						}
-					}()
-					isHostOnline, err := c.isHostOnline(db, engine)
-					if err != nil {
-						glog.Warning("Host is not online ", err.Error())
-					}
-					// update pod status if specific host get online
-					if isHostOnline {
-						pod.Status.Conditions = core_util.SetPodCondition(pod.Status.Conditions, core.PodCondition{
-							Type:               core_util.PodConditionTypeReady,
-							Status:             core.ConditionTrue,
-							LastTransitionTime: metav1.Now(),
-							Reason:             "DBConditionTypeReadyAndServerOnline",
-							Message:            "DB is ready because of server getting Online and Running state",
-						})
-						_, err = c.Client.CoreV1().Pods(pod.Namespace).UpdateStatus(context.TODO(), &pod, metav1.UpdateOptions{})
-						if err != nil {
-							glog.Warning("Failed to update pod status with: ", err.Error())
-						}
-					}
+					}(engine)
 				}
 
 				// verify db is going to accepting connection and in ready state
