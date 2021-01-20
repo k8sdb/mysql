@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/client/clientset/versioned/typed/kubedb/v1alpha2/util"
@@ -95,6 +96,7 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 						glog.Warning("Failed to get db client for host ", pod.Namespace, "/", pod.Name)
 						continue
 					}
+
 					func(engine *xorm.Engine) {
 						defer func() {
 							if engine != nil {
@@ -110,7 +112,7 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 							glog.Warning("Host is not online ", err.Error())
 							return
 						}
-						// update pod status if specific host get online
+
 						if isHostOnline {
 							pod.Status.Conditions = core_util.SetPodCondition(pod.Status.Conditions, core.PodCondition{
 								Type:               core_util.PodConditionTypeReady,
@@ -256,15 +258,19 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 }
 
 func (c *Controller) checkMySQLClusterHealth(db *api.MySQL, engine *xorm.Engine) (bool, error) {
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	session := engine.NewSession()
+	session.Context(ctx)
+	defer session.Close()
 	// sql queries for checking cluster healthiness
 	// 1. ping database
-	_, err := engine.QueryString("SELECT 1;")
+	_, err := session.QueryString("SELECT 1;")
 	if err != nil {
 		return false, err
 	}
 
 	// 2. check all nodes are in ONLINE
-	result, err := engine.QueryString("SELECT MEMBER_STATE FROM performance_schema.replication_group_members;")
+	result, err := session.QueryString("SELECT MEMBER_STATE FROM performance_schema.replication_group_members;")
 	if err != nil {
 		return false, err
 	}
@@ -290,9 +296,13 @@ func (c *Controller) checkMySQLClusterHealth(db *api.MySQL, engine *xorm.Engine)
 }
 
 func (c *Controller) checkMySQLStandaloneHealth(engine *xorm.Engine) (bool, error) {
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	session := engine.NewSession()
+	session.Context(ctx)
+	defer session.Close()
 	// sql queries for checking standalone healthiness
 	// 1. ping database
-	_, err := engine.QueryString("SELECT 1;")
+	_, err := session.QueryString("SELECT 1;")
 	if err != nil {
 		return false, err
 	}
@@ -300,14 +310,19 @@ func (c *Controller) checkMySQLStandaloneHealth(engine *xorm.Engine) (bool, erro
 }
 
 func (c *Controller) isHostOnline(db *api.MySQL, engine *xorm.Engine) (bool, error) {
+
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	session := engine.NewSession()
+	session.Context(ctx)
+	defer session.Close()
 	// 1. ping for both standalone and group replication member
-	_, err := engine.QueryString("SELECT 1;")
+	_, err := session.QueryString("SELECT 1;")
 	if err != nil {
 		return false, err
 	}
 
 	if db.UsesGroupReplication() {
-		result, err := engine.QueryString("select member_state from performance_schema.replication_group_members where member_id=@@server_uuid;")
+		result, err := session.QueryString("select member_state from performance_schema.replication_group_members where member_id=@@server_uuid;")
 		if err != nil {
 			return false, err
 		}
@@ -353,7 +368,12 @@ func (c *Controller) getMySQLClient(db *api.MySQL, dns string, port int32) (*xor
 	}
 
 	cnnstr := fmt.Sprintf("%v:%v@tcp(%s:%d)/%s?%s", user, pass, dns, port, api.ResourceSingularMySQL, tlsParam)
-	return xorm.NewEngine(api.ResourceSingularMySQL, cnnstr)
+	engine, err := xorm.NewEngine(api.ResourceSingularMySQL, cnnstr)
+	if err != nil {
+		return engine, err
+	}
+
+	return engine, nil
 }
 
 func (c *Controller) getDBRootCredential(db *api.MySQL) (string, string, error) {
