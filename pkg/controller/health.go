@@ -258,9 +258,10 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 }
 
 func (c *Controller) checkMySQLClusterHealth(db *api.MySQL, engine *xorm.Engine) (bool, error) {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	session := engine.NewSession()
 	session.Context(ctx)
+	defer cancel()
 	defer session.Close()
 	// sql queries for checking cluster healthiness
 	// 1. ping database
@@ -296,9 +297,10 @@ func (c *Controller) checkMySQLClusterHealth(db *api.MySQL, engine *xorm.Engine)
 }
 
 func (c *Controller) checkMySQLStandaloneHealth(engine *xorm.Engine) (bool, error) {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	session := engine.NewSession()
 	session.Context(ctx)
+	defer cancel()
 	defer session.Close()
 	// sql queries for checking standalone healthiness
 	// 1. ping database
@@ -311,9 +313,10 @@ func (c *Controller) checkMySQLStandaloneHealth(engine *xorm.Engine) (bool, erro
 
 func (c *Controller) isHostOnline(db *api.MySQL, engine *xorm.Engine) (bool, error) {
 
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	session := engine.NewSession()
 	session.Context(ctx)
+	defer cancel()
 	defer session.Close()
 	// 1. ping for both standalone and group replication member
 	_, err := session.QueryString("SELECT 1;")
