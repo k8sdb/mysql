@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -181,21 +182,25 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 					"peer-finder",
 				}
 
-				args := db.Spec.PodTemplate.Spec.Args
+				autoConfiguredArgs := map[string]string{
+					// Add auto configured args here
+				}
+				userArgs := meta_util.ParseArgumentListToMap(db.Spec.PodTemplate.Spec.Args)
 
+				specArgs := map[string]string{}
 				// add ssl certs flag into args in peer-finder to configure TLS for group replication
 				if db.Spec.TLS != nil {
-					tlsArgs := []string{
-						"--ssl-capath=/etc/mysql/certs",
-						"--ssl-ca=/etc/mysql/certs/ca.crt",
-						"--ssl-cert=/etc/mysql/certs/server.crt",
-						"--ssl-key=/etc/mysql/certs/server.key",
-					}
-					args = append(args, tlsArgs...)
+					specArgs["ssl-capath"] = "/etc/mysql/certs"
+					specArgs["ssl-ca"] = "/etc/mysql/certs/ca.crt"
+					specArgs["ssl-cert"] = "/etc/mysql/certs/server.crt"
+					specArgs["ssl-key"] = "/etc/mysql/certs/server.key"
 					if db.Spec.RequireSSL {
-						args = append(args, "--require-secure-transport=ON ")
+						specArgs["require-secure-transport"] = "ON"
 					}
 				}
+				// Argument priority (lowest to highest): autoConfiguredArgs, userArgs, specArgs
+				args := meta_util.BuildArgumentListFromMap(meta_util.OverwriteKeys(autoConfiguredArgs, userArgs), specArgs)
+				sort.Strings(args)
 
 				container.Args = []string{
 					fmt.Sprintf("-service=%s", db.GoverningServiceName()),
