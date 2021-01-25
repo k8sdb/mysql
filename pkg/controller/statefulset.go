@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"github.com/coreos/go-semver/semver"
 	"sort"
 	"strconv"
 	"strings"
@@ -181,10 +182,22 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				container.Command = []string{
 					"peer-finder",
 				}
-
-				autoConfiguredArgs := map[string]string{
-					// Add auto configured args here
+				// add auto configured args:
+				autoConfiguredArgs := map[string]string{}
+				// https://dev.mysql.com/doc/refman/5.7/en/innodb-buffer-pool-resize.html
+				// recommended innodb_buffer_pool_size value is 50 to 75 percent of system memory
+				// (system_memory/100)*50=(1024/100)*50=512mb=536870912byte
+				autoConfiguredArgs["innodb-buffer-pool-size"] = "536870912"
+				// https://dev.mysql.com/doc/refman/8.0/en/group-replication-options.html#sysvar_group_replication_message_cache_size
+				// recommended minimum loose-group-replication-message-cache-size is 128mb=134217728byte from version 8.0.21
+				refVersion:= semver.New("8.0.21")
+				curVersion:= semver.New(mysqlVersion.Spec.Version)
+				if curVersion.Compare(*refVersion) != -1 {
+					autoConfiguredArgs["loose-group-replication-message-cache-size"] = "134217728"
 				}
+				// https://dev.mysql.com/doc/refman/8.0/en/group-replication-options.html#sysvar_group_replication_clone_threshold
+				autoConfiguredArgs["loose-group-replication-clone-threshold"] = "1000"
+
 				userArgs := meta_util.ParseArgumentListToMap(db.Spec.PodTemplate.Spec.Args)
 
 				specArgs := map[string]string{}
