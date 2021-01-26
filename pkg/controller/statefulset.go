@@ -19,17 +19,19 @@ package controller
 import (
 	"context"
 	"fmt"
-	"github.com/coreos/go-semver/semver"
 	"sort"
 	"strconv"
 	"strings"
 
+	"kubedb.dev/apimachinery/apis/catalog/v1alpha1"
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/pkg/eventer"
 
+	"github.com/coreos/go-semver/semver"
 	"gomodules.xyz/x/log"
 	apps "k8s.io/api/apps/v1"
 	core "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	kutil "kmodules.xyz/client-go"
@@ -182,21 +184,6 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				container.Command = []string{
 					"peer-finder",
 				}
-				// add auto configured args:
-				autoConfiguredArgs := map[string]string{}
-				// https://dev.mysql.com/doc/refman/5.7/en/innodb-buffer-pool-resize.html
-				// recommended innodb_buffer_pool_size value is 50 to 75 percent of system memory
-				// (system_memory/100)*50=(1024/100)*50=512mb=536870912byte
-				autoConfiguredArgs["innodb-buffer-pool-size"] = "536870912"
-				// https://dev.mysql.com/doc/refman/8.0/en/group-replication-options.html#sysvar_group_replication_message_cache_size
-				// recommended minimum loose-group-replication-message-cache-size is 128mb=134217728byte from version 8.0.21
-				refVersion:= semver.New("8.0.21")
-				curVersion:= semver.New(mysqlVersion.Spec.Version)
-				if curVersion.Compare(*refVersion) != -1 {
-					autoConfiguredArgs["loose-group-replication-message-cache-size"] = "134217728"
-				}
-				// https://dev.mysql.com/doc/refman/8.0/en/group-replication-options.html#sysvar_group_replication_clone_threshold
-				autoConfiguredArgs["loose-group-replication-clone-threshold"] = "1000"
 
 				userArgs := meta_util.ParseArgumentListToMap(db.Spec.PodTemplate.Spec.Args)
 
@@ -212,7 +199,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 					}
 				}
 				// Argument priority (lowest to highest): autoConfiguredArgs, userArgs, specArgs
-				args := meta_util.BuildArgumentListFromMap(meta_util.OverwriteKeys(autoConfiguredArgs, userArgs), specArgs)
+				args := meta_util.BuildArgumentListFromMap(meta_util.OverwriteKeys(recommendedArgs(db, mysqlVersion), userArgs), specArgs)
 				sort.Strings(args)
 
 				container.Args = []string{
@@ -672,4 +659,35 @@ func upsertTLSVolume(sts *apps.StatefulSet, db *api.MySQL) *apps.StatefulSet {
 	}
 
 	return sts
+}
+
+func recommendedArgs(db *api.MySQL, myVersion *v1alpha1.MySQLVersion) map[string]string {
+	recommendedArgs := map[string]string{}
+	// https://dev.mysql.com/doc/refman/5.7/en/innodb-buffer-pool-resize.html
+	// recommended innodb_buffer_pool_size value is 50 to 75 percent of system memory
+	// Buffer pool size must always be equal to or a multiple of innodb_buffer_pool_chunk_size * innodb_buffer_pool_instances
+
+	available := db.Spec.PodTemplate.Spec.Resources.Limits.Memory()
+
+	// reserved memory for performance schema and other processes
+	reserved := resource.MustParse("256Mi")
+	available.Sub(reserved)
+	allocableBytes := available.Value()
+
+	// allocate 75% of the available memory for innodb buffer pool size
+	innoDBChunkSize := float64(134217728) // 128Mi
+	maxNumberOfChunk := int64((float64(allocableBytes) * 0.75) / innoDBChunkSize)
+	innoDBPoolSize := maxNumberOfChunk * int64(innoDBChunkSize)
+	recommendedArgs["innodb-buffer-pool-size"] = fmt.Sprintf("%d", innoDBPoolSize)
+
+	// allocate rest of the memory for group replication cache size
+	// https://dev.mysql.com/doc/refman/8.0/en/group-replication-options.html#sysvar_group_replication_message_cache_size
+	// recommended minimum loose-group-replication-message-cache-size is 128mb=134217728byte from version 8.0.21
+	refVersion := semver.New("8.0.21")
+	curVersion := semver.New(myVersion.Spec.Version)
+	if curVersion.Compare(*refVersion) != -1 {
+		recommendedArgs["loose-group-replication-message-cache-size"] = fmt.Sprintf("%d", allocableBytes-innoDBPoolSize)
+	}
+
+	return recommendedArgs
 }
