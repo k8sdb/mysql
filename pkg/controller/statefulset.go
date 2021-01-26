@@ -198,7 +198,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 						specArgs["require-secure-transport"] = "ON"
 					}
 				}
-				// Argument priority (lowest to highest): autoConfiguredArgs, userArgs, specArgs
+				// Argument priority (lowest to highest): recommendedArgs, userArgs, specArgs
 				args := meta_util.BuildArgumentListFromMap(meta_util.OverwriteKeys(recommendedArgs(db, mysqlVersion), userArgs), specArgs)
 				sort.Strings(args)
 
