@@ -221,32 +221,51 @@ func (c *Controller) CheckMySQLHealth(stopCh <-chan struct{}) {
 					}
 				}
 
-				if !isHealthy {
-					// Since the get status failed, skip remaining operations.
-					return
+				if isHealthy {
+					// database is healthy. So update to "Ready" condition to "true"
+					_, err = util.UpdateMySQLStatus(
+						context.TODO(),
+						c.DBClient.KubedbV1alpha2(),
+						db.ObjectMeta,
+						func(in *api.MySQLStatus) (types.UID, *api.MySQLStatus) {
+							in.Conditions = kmapi.SetCondition(in.Conditions,
+								kmapi.Condition{
+									Type:               api.DatabaseReady,
+									Status:             core.ConditionTrue,
+									Reason:             api.ReadinessCheckSucceeded,
+									ObservedGeneration: db.Generation,
+									Message:            fmt.Sprintf("The MySQL: %s/%s is ready.", db.Namespace, db.Name),
+								})
+							return db.UID, in
+						},
+						metav1.UpdateOptions{},
+					)
+					if err != nil {
+						glog.Errorf("Failed to update status for MySQL: %s/%s", db.Namespace, db.Name)
+					}
+				} else {
+					// database is not healthy. So update to "Ready" condition to "false"
+					_, err = util.UpdateMySQLStatus(
+						context.TODO(),
+						c.DBClient.KubedbV1alpha2(),
+						db.ObjectMeta,
+						func(in *api.MySQLStatus) (types.UID, *api.MySQLStatus) {
+							in.Conditions = kmapi.SetCondition(in.Conditions,
+								kmapi.Condition{
+									Type:               api.DatabaseReady,
+									Status:             core.ConditionFalse,
+									Reason:             api.ReadinessCheckFailed,
+									ObservedGeneration: db.Generation,
+									Message:            fmt.Sprintf("The MySQL: %s/%s is not ready.", db.Namespace, db.Name),
+								})
+							return db.UID, in
+						},
+						metav1.UpdateOptions{},
+					)
+					if err != nil {
+						glog.Errorf("Failed to update status for MySQL: %s/%s", db.Namespace, db.Name)
+					}
 				}
-				// database is healthy. So update to "Ready" condition to "true"
-				_, err = util.UpdateMySQLStatus(
-					context.TODO(),
-					c.DBClient.KubedbV1alpha2(),
-					db.ObjectMeta,
-					func(in *api.MySQLStatus) (types.UID, *api.MySQLStatus) {
-						in.Conditions = kmapi.SetCondition(in.Conditions,
-							kmapi.Condition{
-								Type:               api.DatabaseReady,
-								Status:             core.ConditionTrue,
-								Reason:             api.ReadinessCheckSucceeded,
-								ObservedGeneration: db.Generation,
-								Message:            fmt.Sprintf("The MySQL: %s/%s is ready.", db.Namespace, db.Name),
-							})
-						return db.UID, in
-					},
-					metav1.UpdateOptions{},
-				)
-				if err != nil {
-					glog.Errorf("Failed to update status for MySQL: %s/%s", db.Namespace, db.Name)
-				}
-
 			}()
 		}
 		wg.Wait()
