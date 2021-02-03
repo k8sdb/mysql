@@ -20,7 +20,6 @@ import (
 	"context"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 
 	"kubedb.dev/apimachinery/apis/catalog/v1alpha1"
@@ -408,8 +407,8 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.MySQL, stsName string) *ap
 						Value: db.Spec.Topology.Group.Name,
 					},
 					{
-						Name:  "BASE_SERVER_ID",
-						Value: strconv.Itoa(int(*db.Spec.Topology.Group.BaseServerID)),
+						Name:  "DB_NAME",
+						Value: db.GetName(),
 					},
 				}...)
 			}
