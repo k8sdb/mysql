@@ -190,10 +190,32 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				specArgs := map[string]string{}
 				// add ssl certs flag into args in peer-finder to configure TLS for group replication
 				if db.Spec.TLS != nil {
+					// https://dev.mysql.com/doc/refman/8.0/en/group-replication-secure-socket-layer-support-ssl.html
+					// Host name identity verification with VERIFY_IDENTITY does not work with self-signed certificate
+					//specArgs["loose-group_replication_ssl_mode"] = "VERIFY_IDENTITY"
+					specArgs["loose-group_replication_ssl_mode"] = "VERIFY_CA"
+					// the configuration for Group Replication's group communication connections is taken from the server's SSL configuration
+					// https://dev.mysql.com/doc/refman/8.0/en/group-replication-secure-socket-layer-support-ssl.html
 					specArgs["ssl-capath"] = "/etc/mysql/certs"
 					specArgs["ssl-ca"] = "/etc/mysql/certs/ca.crt"
 					specArgs["ssl-cert"] = "/etc/mysql/certs/server.crt"
 					specArgs["ssl-key"] = "/etc/mysql/certs/server.key"
+					// By default, distributed recovery connections do not use SSL, even if we activated SSL for group communication connections,
+					// and the server SSL options are not applied for distributed recovery connections. we must configure these connections separately
+					// https://dev.mysql.com/doc/refman/8.0/en/group-replication-configuring-ssl-for-recovery.html
+					specArgs["loose-group_replication_recovery_ssl_ca"] = "/etc/mysql/certs/ca.crt"
+					specArgs["loose-group_replication_recovery_ssl_cert"] = "/etc/mysql/certs/server.crt"
+					specArgs["loose-group_replication_recovery_ssl_key"] = "/etc/mysql/certs/server.key"
+
+					refVersion := semver.New("8.0.17")
+					curVersion := semver.New(mysqlVersion.Spec.Version)
+					if curVersion.Compare(*refVersion) != -1 {
+						// https://dev.mysql.com/doc/refman/8.0/en/clone-plugin-remote.html
+						specArgs["loose-clone_ssl_ca"] = "/etc/mysql/certs/ca.crt"
+						specArgs["loose-clone_ssl_cert"] = "/etc/mysql/certs/server.crt"
+						specArgs["loose-clone_ssl_key"] = "/etc/mysql/certs/server.key"
+					}
+
 					if db.Spec.RequireSSL {
 						specArgs["require-secure-transport"] = "ON"
 					}

@@ -24,6 +24,7 @@ import (
 	api "kubedb.dev/apimachinery/apis/kubedb/v1alpha2"
 	"kubedb.dev/apimachinery/pkg/eventer"
 
+	"github.com/pkg/errors"
 	"gomodules.xyz/pointer"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -56,6 +57,19 @@ func (c *Controller) ensureAppBinding(db *api.MySQL) (kutil.VerbType, error) {
 		return kutil.VerbUnchanged, fmt.Errorf("failed to get MySQLVersion %v for %v/%v. Reason: %v", db.Spec.Version, db.Namespace, db.Name, err)
 	}
 
+	var caBundle []byte
+	if db.Spec.TLS != nil {
+		certSecret, err := c.Client.CoreV1().Secrets(db.Namespace).Get(context.TODO(), db.MustCertSecretName(api.MySQLClientCert), metav1.GetOptions{})
+		if err != nil {
+			return kutil.VerbUnchanged, errors.Wrapf(err, "failed to read certificate secret for MySQL %s/%s", db.Namespace, db.Name)
+		}
+		v, ok := certSecret.Data["ca.crt"]
+		if !ok {
+			return kutil.VerbUnchanged, errors.Errorf("ca.cert is missing in certificate secret for MySQL %s/%s", db.Namespace, db.Name)
+		}
+		caBundle = v
+	}
+
 	_, vt, err := appcat_util.CreateOrPatchAppBinding(context.TODO(), c.AppCatalogClient.AppcatalogV1alpha1(), meta, func(in *appcat.AppBinding) *appcat.AppBinding {
 		core_util.EnsureOwnerReference(&in.ObjectMeta, owner)
 		in.Labels = db.OffshootLabels()
@@ -71,6 +85,10 @@ func (c *Controller) ensureAppBinding(db *api.MySQL) (kutil.VerbType, error) {
 			Path:   "/",
 		}
 		in.Spec.ClientConfig.InsecureSkipTLSVerify = false
+
+		if caBundle != nil {
+			in.Spec.ClientConfig.CABundle = caBundle
+		}
 
 		in.Spec.Secret = &core.LocalObjectReference{
 			Name: db.Spec.AuthSecret.Name,
