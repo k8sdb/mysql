@@ -40,6 +40,12 @@ import (
 	mona "kmodules.xyz/monitoring-agent-api/api/v1"
 )
 
+const (
+	caFile   = "/etc/mysql/certs/ca.crt"
+	certFile = "/etc/mysql/certs/server.crt"
+	keyFile  = "/etc/mysql/certs/server.key"
+)
+
 func (c *Controller) ensureStatefulSet(db *api.MySQL) error {
 	stsName, _, err := c.findStatefulSet(db)
 	if err != nil {
@@ -153,9 +159,9 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				args := container.Args
 				tlsArgs := []string{
 					"--ssl-capath=/etc/mysql/certs",
-					"--ssl-ca=/etc/mysql/certs/ca.crt",
-					"--ssl-cert=/etc/mysql/certs/server.crt",
-					"--ssl-key=/etc/mysql/certs/server.key",
+					"--ssl-ca=" + caFile,
+					"--ssl-cert=" + certFile,
+					"--ssl-key=" + keyFile,
 				}
 				args = append(args, tlsArgs...)
 				if db.Spec.RequireSSL {
@@ -196,23 +202,23 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 					// the configuration for Group Replication's group communication connections is taken from the server's SSL configuration
 					// https://dev.mysql.com/doc/refman/8.0/en/group-replication-secure-socket-layer-support-ssl.html
 					specArgs["ssl-capath"] = "/etc/mysql/certs"
-					specArgs["ssl-ca"] = "/etc/mysql/certs/ca.crt"
-					specArgs["ssl-cert"] = "/etc/mysql/certs/server.crt"
-					specArgs["ssl-key"] = "/etc/mysql/certs/server.key"
+					specArgs["ssl-ca"] = caFile
+					specArgs["ssl-cert"] = certFile
+					specArgs["ssl-key"] = keyFile
 					// By default, distributed recovery connections do not use SSL, even if we activated SSL for group communication connections,
 					// and the server SSL options are not applied for distributed recovery connections. we must configure these connections separately
 					// https://dev.mysql.com/doc/refman/8.0/en/group-replication-configuring-ssl-for-recovery.html
-					specArgs["loose-group_replication_recovery_ssl_ca"] = "/etc/mysql/certs/ca.crt"
-					specArgs["loose-group_replication_recovery_ssl_cert"] = "/etc/mysql/certs/server.crt"
-					specArgs["loose-group_replication_recovery_ssl_key"] = "/etc/mysql/certs/server.key"
+					specArgs["loose-group_replication_recovery_ssl_ca"] = caFile
+					specArgs["loose-group_replication_recovery_ssl_cert"] = certFile
+					specArgs["loose-group_replication_recovery_ssl_key"] = keyFile
 
 					refVersion := semver.New("8.0.17")
 					curVersion := semver.New(mysqlVersion.Spec.Version)
 					if curVersion.Compare(*refVersion) != -1 {
 						// https://dev.mysql.com/doc/refman/8.0/en/clone-plugin-remote.html
-						specArgs["loose-clone_ssl_ca"] = "/etc/mysql/certs/ca.crt"
-						specArgs["loose-clone_ssl_cert"] = "/etc/mysql/certs/server.crt"
-						specArgs["loose-clone_ssl_key"] = "/etc/mysql/certs/server.key"
+						specArgs["loose-clone_ssl_ca"] = caFile
+						specArgs["loose-clone_ssl_cert"] = certFile
+						specArgs["loose-clone_ssl_key"] = keyFile
 					}
 
 					if db.Spec.RequireSSL {
@@ -696,7 +702,7 @@ func recommendedArgs(db *api.MySQL, myVersion *v1alpha1.MySQLVersion) map[string
 	allocableBytes := available.Value()
 
 	// allocate 75% of the available memory for innodb buffer pool size
-	innoDBChunkSize := float64(134217728) // 128Mi
+	innoDBChunkSize := float64(128*1024*1024) // 128Mi
 	maxNumberOfChunk := int64((float64(allocableBytes) * 0.75) / innoDBChunkSize)
 	innoDBPoolSize := maxNumberOfChunk * int64(innoDBChunkSize)
 	recommendedArgs["innodb-buffer-pool-size"] = fmt.Sprintf("%d", innoDBPoolSize)
