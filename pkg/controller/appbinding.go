@@ -28,6 +28,7 @@ import (
 	"gomodules.xyz/pointer"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	kutil "kmodules.xyz/client-go"
 	core_util "kmodules.xyz/client-go/core/v1"
@@ -85,6 +86,15 @@ func (c *Controller) ensureAppBinding(db *api.MySQL) (kutil.VerbType, error) {
 			Path:   "/",
 		}
 		in.Spec.ClientConfig.InsecureSkipTLSVerify = false
+		in.Spec.Parameters = &runtime.RawExtension{
+			Object: &appcat.StashAddon{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       appcat.SchemeGroupVersion.String(),
+					APIVersion: "StashAddon",
+				},
+				Stash: mysqlVersion.Spec.Stash,
+			},
+		}
 
 		if caBundle != nil {
 			in.Spec.ClientConfig.CABundle = caBundle
