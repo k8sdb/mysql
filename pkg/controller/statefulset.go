@@ -688,5 +688,11 @@ func recommendedArgs(db *api.MySQL, myVersion *v1alpha1.MySQLVersion) map[string
 		recommendedArgs["loose-group-replication-message-cache-size"] = fmt.Sprintf("%d", allocableBytes-innoDBPoolSize)
 	}
 
+	// Sets the binary log expiration period in seconds. After their expiration period ends, binary log files can be automatically removed.
+	// Possible removals happen at startup and when the binary log is flushed
+	// https://dev.mysql.com/doc/refman/8.0/en/replication-options-binary-log.html#sysvar_binlog_expire_logs_seconds
+	expireLogsSeconds := 259200 // 3 days
+	recommendedArgs["binlog-expire-logs-seconds"] = fmt.Sprintf("%d", expireLogsSeconds)
+
 	return recommendedArgs
 }
