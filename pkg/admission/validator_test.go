@@ -394,26 +394,6 @@ var cases = []struct {
 		false,
 		false,
 	},
-	{"Create group with baseServerID 0",
-		requestKind,
-		"foo",
-		"default",
-		admission.Create,
-		groupWithBaseServerIDZero(),
-		api.MySQL{},
-		false,
-		false,
-	},
-	{"Create group with baseServerID exceeded max limit",
-		requestKind,
-		"foo",
-		"default",
-		admission.Create,
-		groupWithBaseServerIDExceededMaxLimit(),
-		api.MySQL{},
-		false,
-		false,
-	},
 }
 
 func sampleMySQL() api.MySQL {
@@ -579,20 +559,6 @@ func groupWithEmptyGroupName() api.MySQL {
 func groupWithInvalidGroupName() api.MySQL {
 	old := validGroup(sampleMySQL())
 	old.Spec.Topology.Group.Name = "a-a-a-a-a"
-
-	return old
-}
-
-func groupWithBaseServerIDZero() api.MySQL {
-	old := validGroup(sampleMySQL())
-	old.Spec.Topology.Group.BaseServerID = pointer.Int64P(0)
-
-	return old
-}
-
-func groupWithBaseServerIDExceededMaxLimit() api.MySQL {
-	old := validGroup(sampleMySQL())
-	old.Spec.Topology.Group.BaseServerID = pointer.Int64P(api.MySQLMaxBaseServerID + 1)
 
 	return old
 }
