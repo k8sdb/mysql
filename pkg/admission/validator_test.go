@@ -85,6 +85,14 @@ func TestMySQLValidator_Admit(t *testing.T) {
 				},
 				&catalog.MySQLVersion{
 					ObjectMeta: metaV1.ObjectMeta{
+						Name: "8.0.23",
+					},
+					Spec: catalog.MySQLVersionSpec{
+						Version: "8.0.23",
+					},
+				},
+				&catalog.MySQLVersion{
+					ObjectMeta: metaV1.ObjectMeta{
 						Name: "5.6",
 					},
 					Spec: catalog.MySQLVersionSpec{
