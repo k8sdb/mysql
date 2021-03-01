@@ -702,7 +702,7 @@ func recommendedArgs(db *api.MySQL, myVersion *v1alpha1.MySQLVersion) map[string
 	allocableBytes := available.Value()
 
 	// allocate 75% of the available memory for innodb buffer pool size
-	innoDBChunkSize := float64(128*1024*1024) // 128Mi
+	innoDBChunkSize := float64(128 * 1024 * 1024) // 128Mi
 	maxNumberOfChunk := int64((float64(allocableBytes) * 0.75) / innoDBChunkSize)
 	innoDBPoolSize := maxNumberOfChunk * int64(innoDBChunkSize)
 	recommendedArgs["innodb-buffer-pool-size"] = fmt.Sprintf("%d", innoDBPoolSize)
