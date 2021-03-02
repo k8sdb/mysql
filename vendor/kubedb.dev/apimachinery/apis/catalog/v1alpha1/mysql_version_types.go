@@ -52,12 +52,12 @@ type MySQLVersion struct {
 type MySQLVersionSpec struct {
 	// Version
 	Version string `json:"version" protobuf:"bytes,1,opt,name=version"`
+	// Distribution
+	Distribution MySQLDistro `json:"distribution,omitempty" protobuf:"bytes,2,opt,name=distribution,casttype=MySQLDistro"`
 	// Database Image
-	DB MySQLVersionDatabase `json:"db" protobuf:"bytes,2,opt,name=db"`
+	DB MySQLVersionDatabase `json:"db" protobuf:"bytes,3,opt,name=db"`
 	// Exporter Image
-	Exporter MySQLVersionExporter `json:"exporter" protobuf:"bytes,3,opt,name=exporter"`
-	// Tools Image
-	Tools MySQLVersionTools `json:"tools" protobuf:"bytes,4,opt,name=tools"`
+	Exporter MySQLVersionExporter `json:"exporter" protobuf:"bytes,4,opt,name=exporter"`
 	// ReplicationModeDetector Image
 	ReplicationModeDetector ReplicationModeDetector `json:"replicationModeDetector" protobuf:"bytes,5,opt,name=replicationModeDetector"`
 	// Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.
@@ -81,11 +81,6 @@ type MySQLVersionDatabase struct {
 
 // MySQLVersionExporter is the image for the MySQL exporter
 type MySQLVersionExporter struct {
-	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
-}
-
-// MySQLVersionTools is the image for the MySQL tools
-type MySQLVersionTools struct {
 	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
 }
 
@@ -129,3 +124,11 @@ type MySQLVersionList struct {
 	// Items is a list of MySQLVersion CRD objects
 	Items []MySQLVersion `json:"items,omitempty" protobuf:"bytes,2,rep,name=items"`
 }
+
+// +kubebuilder:validation:Enum=Oracle;Percona
+type MySQLDistro string
+
+const (
+	MySQLDistroOracle  MySQLDistro = "Oracle"
+	MySQLDistroPercona MySQLDistro = "Percona"
+)

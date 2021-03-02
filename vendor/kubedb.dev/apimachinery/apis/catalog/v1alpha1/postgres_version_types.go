@@ -52,20 +52,28 @@ type PostgresVersion struct {
 type PostgresVersionSpec struct {
 	// Version
 	Version string `json:"version" protobuf:"bytes,1,opt,name=version"`
+
+	//init container image
+	InitContainer PostgresVersionInitContainer `json:"initContainer,omitempty" protobuf:"bytes,2,opt,name=initContainer"`
 	// Database Image
-	DB PostgresVersionDatabase `json:"db" protobuf:"bytes,2,opt,name=db"`
+	DB PostgresVersionDatabase `json:"db" protobuf:"bytes,3,opt,name=db"`
 	// Exporter Image
-	Exporter PostgresVersionExporter `json:"exporter" protobuf:"bytes,3,opt,name=exporter"`
-	// Tools Image
-	Tools PostgresVersionTools `json:"tools" protobuf:"bytes,4,opt,name=tools"`
+	Exporter PostgresVersionExporter `json:"exporter" protobuf:"bytes,4,opt,name=exporter"`
+	// Coordinator Image
+	Coordinator PostgresVersionCoordinator `json:"coordinator,omitempty" protobuf:"bytes,5,opt,name=coordinator"`
 	// Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.
 	// +optional
-	Deprecated bool `json:"deprecated,omitempty" protobuf:"varint,5,opt,name=deprecated"`
+	Deprecated bool `json:"deprecated,omitempty" protobuf:"varint,6,opt,name=deprecated"`
 	// PSP names
-	PodSecurityPolicies PostgresVersionPodSecurityPolicy `json:"podSecurityPolicies" protobuf:"bytes,6,opt,name=podSecurityPolicies"`
+	PodSecurityPolicies PostgresVersionPodSecurityPolicy `json:"podSecurityPolicies" protobuf:"bytes,7,opt,name=podSecurityPolicies"`
 	// Stash defines backup and restore task definitions.
 	// +optional
-	Stash appcat.StashAddonSpec `json:"stash,omitempty" protobuf:"bytes,7,opt,name=stash"`
+	Stash appcat.StashAddonSpec `json:"stash,omitempty" protobuf:"bytes,8,opt,name=stash"`
+}
+
+// PostgresVersionInitContainer is the Postgres init container image
+type PostgresVersionInitContainer struct {
+	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
 }
 
 // PostgresVersionDatabase is the Postgres Database image
@@ -73,13 +81,13 @@ type PostgresVersionDatabase struct {
 	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
 }
 
-// PostgresVersionExporter is the image for the Postgres exporter
-type PostgresVersionExporter struct {
+// PostgresVersionCoordinator is the Postgres leader elector image
+type PostgresVersionCoordinator struct {
 	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
 }
 
-// PostgresVersionTools is the image for the postgres tools
-type PostgresVersionTools struct {
+// PostgresVersionExporter is the image for the Postgres exporter
+type PostgresVersionExporter struct {
 	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
 }
 

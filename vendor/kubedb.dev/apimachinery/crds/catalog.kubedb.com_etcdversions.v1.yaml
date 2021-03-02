@@ -108,19 +108,11 @@ spec:
                     - restoreTask
                     type: object
                 type: object
-              tools:
-                properties:
-                  image:
-                    type: string
-                required:
-                - image
-                type: object
               version:
                 type: string
             required:
             - db
             - exporter
-            - tools
             - version
             type: object
         type: object
