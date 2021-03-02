@@ -53,15 +53,15 @@ type ElasticsearchVersion struct {
 type ElasticsearchVersionSpec struct {
 	// Version
 	Version string `json:"version" protobuf:"bytes,1,opt,name=version"`
-	// Authentication plugin used by Elasticsearch cluster.
-	AuthPlugin ElasticsearchAuthPlugin `json:"authPlugin" protobuf:"bytes,2,opt,name=authPlugin,casttype=ElasticsearchAuthPlugin"`
+	// Distribution
+	Distribution ElasticsearchDistro `json:"distribution,omitempty" protobuf:"bytes,2,opt,name=distribution,casttype=ElasticsearchDistro"`
+	// Authentication plugin used by Elasticsearch cluster
+	// Deprecated
+	AuthPlugin ElasticsearchAuthPlugin `json:"authPlugin" protobuf:"bytes,3,opt,name=authPlugin,casttype=ElasticsearchAuthPlugin"`
 	// Database Image
-	DB ElasticsearchVersionDatabase `json:"db" protobuf:"bytes,3,opt,name=db"`
+	DB ElasticsearchVersionDatabase `json:"db" protobuf:"bytes,4,opt,name=db"`
 	// Exporter Image
-	Exporter ElasticsearchVersionExporter `json:"exporter" protobuf:"bytes,4,opt,name=exporter"`
-	// Tools Image
-	// +optional
-	Tools ElasticsearchVersionTools `json:"tools,omitempty" protobuf:"bytes,5,opt,name=tools"`
+	Exporter ElasticsearchVersionExporter `json:"exporter" protobuf:"bytes,5,opt,name=exporter"`
 	// Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.
 	// +optional
 	Deprecated bool `json:"deprecated,omitempty" protobuf:"varint,6,opt,name=deprecated"`
@@ -81,11 +81,6 @@ type ElasticsearchVersionDatabase struct {
 
 // ElasticsearchVersionExporter is the image for the Elasticsearch exporter
 type ElasticsearchVersionExporter struct {
-	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
-}
-
-// ElasticsearchVersionTools is the image for the elasticsearch tools
-type ElasticsearchVersionTools struct {
 	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
 }
 
@@ -117,4 +112,13 @@ const (
 	ElasticsearchAuthPluginSearchGuard ElasticsearchAuthPlugin = "SearchGuard"
 	ElasticsearchAuthPluginXpack       ElasticsearchAuthPlugin = "X-Pack"
 	ElasticsearchAuthPluginOpenDistro  ElasticsearchAuthPlugin = "OpenDistro"
+)
+
+// +kubebuilder:validation:Enum=SearchGuard;X-Pack;OpenDistro
+type ElasticsearchDistro string
+
+const (
+	ElasticsearchDistroSearchGuard ElasticsearchDistro = "SearchGuard"
+	ElasticsearchDistroXpack       ElasticsearchDistro = "X-Pack"
+	ElasticsearchDistroOpenDistro  ElasticsearchDistro = "OpenDistro"
 )

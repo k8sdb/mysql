@@ -20913,13 +20913,6 @@ func schema_apimachinery_apis_ops_v1alpha1_MySQLHorizontalScalingSpec(ref common
 							Format:      "int32",
 						},
 					},
-					"memberWeight": {
-						SchemaProps: spec.SchemaProps{
-							Description: "specifies the weight of the current member/Node",
-							Type:        []string{"integer"},
-							Format:      "int32",
-						},
-					},
 				},
 			},
 		},

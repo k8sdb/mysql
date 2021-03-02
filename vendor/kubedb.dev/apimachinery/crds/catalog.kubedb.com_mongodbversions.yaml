@@ -54,6 +54,11 @@ spec:
               type: object
             deprecated:
               type: boolean
+            distribution:
+              enum:
+              - MongoDB
+              - Percona
+              type: string
             exporter:
               properties:
                 image:
@@ -129,13 +134,6 @@ spec:
                   - restoreTask
                   type: object
               type: object
-            tools:
-              properties:
-                image:
-                  type: string
-              required:
-              - image
-              type: object
             version:
               type: string
           required:
@@ -144,7 +142,6 @@ spec:
           - initContainer
           - podSecurityPolicies
           - replicationModeDetector
-          - tools
           - version
           type: object
       type: object

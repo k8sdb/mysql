@@ -52,12 +52,12 @@ type MongoDBVersion struct {
 type MongoDBVersionSpec struct {
 	// Version
 	Version string `json:"version" protobuf:"bytes,1,opt,name=version"`
+	// Distribution
+	Distribution MongoDBDistro `json:"distribution,omitempty" protobuf:"bytes,2,opt,name=distribution,casttype=MongoDBDistro"`
 	// Database Image
-	DB MongoDBVersionDatabase `json:"db" protobuf:"bytes,2,opt,name=db"`
+	DB MongoDBVersionDatabase `json:"db" protobuf:"bytes,3,opt,name=db"`
 	// Exporter Image
-	Exporter MongoDBVersionExporter `json:"exporter" protobuf:"bytes,3,opt,name=exporter"`
-	// Tools Image
-	Tools MongoDBVersionTools `json:"tools" protobuf:"bytes,4,opt,name=tools"`
+	Exporter MongoDBVersionExporter `json:"exporter" protobuf:"bytes,4,opt,name=exporter"`
 	// Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.
 	// +optional
 	Deprecated bool `json:"deprecated,omitempty" protobuf:"varint,5,opt,name=deprecated"`
@@ -82,11 +82,6 @@ type MongoDBVersionExporter struct {
 	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
 }
 
-// MongoDBVersionTools is the image for the mongodb tools
-type MongoDBVersionTools struct {
-	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
-}
-
 // MongoDBVersionInitContainer is the Elasticsearch Container initializer
 type MongoDBVersionInitContainer struct {
 	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
@@ -106,3 +101,11 @@ type MongoDBVersionList struct {
 	// Items is a list of MongoDBVersion CRD objects
 	Items []MongoDBVersion `json:"items,omitempty" protobuf:"bytes,2,rep,name=items"`
 }
+
+// +kubebuilder:validation:Enum=MongoDB;Percona
+type MongoDBDistro string
+
+const (
+	MongoDBDistroMongoDB MongoDBDistro = "MongoDB"
+	MongoDBDistroPercona MongoDBDistro = "Percona"
+)

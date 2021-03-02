@@ -56,14 +56,12 @@ type EtcdVersionSpec struct {
 	DB EtcdVersionDatabase `json:"db" protobuf:"bytes,2,opt,name=db"`
 	// Exporter Image
 	Exporter EtcdVersionExporter `json:"exporter" protobuf:"bytes,3,opt,name=exporter"`
-	// Tools Image
-	Tools EtcdVersionTools `json:"tools" protobuf:"bytes,4,opt,name=tools"`
 	// Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.
 	// +optional
-	Deprecated bool `json:"deprecated,omitempty" protobuf:"varint,5,opt,name=deprecated"`
+	Deprecated bool `json:"deprecated,omitempty" protobuf:"varint,4,opt,name=deprecated"`
 	// Stash defines backup and restore task definitions.
 	// +optional
-	Stash appcat.StashAddonSpec `json:"stash,omitempty" protobuf:"bytes,6,opt,name=stash"`
+	Stash appcat.StashAddonSpec `json:"stash,omitempty" protobuf:"bytes,5,opt,name=stash"`
 }
 
 // EtcdVersionDatabase is the Etcd Database image
@@ -73,11 +71,6 @@ type EtcdVersionDatabase struct {
 
 // EtcdVersionExporter is the image for the Etcd exporter
 type EtcdVersionExporter struct {
-	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
-}
-
-// EtcdVersionTools is the image for the Etcd exporter
-type EtcdVersionTools struct {
 	Image string `json:"image" protobuf:"bytes,1,opt,name=image"`
 }
 

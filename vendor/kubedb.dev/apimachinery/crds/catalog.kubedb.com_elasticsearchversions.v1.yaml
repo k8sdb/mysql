@@ -63,6 +63,12 @@ spec:
                 type: object
               deprecated:
                 type: boolean
+              distribution:
+                enum:
+                - SearchGuard
+                - X-Pack
+                - OpenDistro
+                type: string
               exporter:
                 properties:
                   image:
@@ -133,13 +139,6 @@ spec:
                     - backupTask
                     - restoreTask
                     type: object
-                type: object
-              tools:
-                properties:
-                  image:
-                    type: string
-                required:
-                - image
                 type: object
               version:
                 type: string
