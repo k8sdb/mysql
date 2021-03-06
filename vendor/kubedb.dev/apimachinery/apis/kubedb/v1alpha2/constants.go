@@ -200,20 +200,23 @@ const (
 	MariaDBClusterCustomConfigMountPath = "/etc/percona-xtradb-cluster.conf.d/"
 
 	// =========================== PostgreSQL Constants ============================
-	PostgresDatabasePortName             = "db"
-	PostgresPrimaryServicePortName       = "primary"
-	PostgresStandbyServicePortName       = "standby"
-	PostgresDatabasePort                 = 5432
-	PostgresPodPrimary                   = "primary"
-	PostgresPodStandby                   = "standby"
-	PostgresLabelRole                    = kubedb.GroupName + "/role"
-	PostgresLeaderElectionContainerName  = "leader-elector"
-	PostgresLeaderElectionPort           = 12345
-	PostgresLeaderElectionPortName       = "leaderelection"
-	PostgresLeaderElectionClientPort     = 12380
-	PostgresLeaderElectionClientPortName = "leaderapiclient"
-	PostgresRunScriptMountPath           = "/run_scripts"
-	PostgresRunScriptVolumeName          = "scripts"
+	PostgresDatabasePortName       = "db"
+	PostgresPrimaryServicePortName = "primary"
+	PostgresStandbyServicePortName = "standby"
+	PostgresDatabasePort           = 5432
+	PostgresPodPrimary             = "primary"
+	PostgresPodStandby             = "standby"
+	PostgresLabelRole              = kubedb.GroupName + "/role"
+
+	PostgresCoordinatorContainerName = "pg-coordinator"
+	PostgresCoordinatorPort          = 2380
+	PostgresCoordinatorPortName      = "coordinator"
+
+	PostgresCoordinatorClientPort     = 2379
+	PostgresCoordinatorClientPortName = "coordinatclient"
+
+	PostgresRunScriptMountPath  = "/run_scripts"
+	PostgresRunScriptVolumeName = "scripts"
 
 	PostgresCurrentXlogLocation     = "pg_current_xlog_location"
 	PostgresLastXlogReceiveLocation = "pg_last_xlog_receive_location"
@@ -227,7 +230,7 @@ const (
 
 	PostgresKeyFileSecretSuffix = "key"
 	PostgresPEMSecretSuffix     = "pem"
-	PostgresRootUsername        = "root"
+	PostgresDefaultUsername     = "postgres"
 
 	// =========================== ProxySQL Constants ============================
 	LabelProxySQLName        = ProxySQLKey + "/name"
