@@ -20845,6 +20845,13 @@ func schema_apimachinery_apis_catalog_v1alpha1_PostgresVersionSpec(ref common.Re
 							Format:      "",
 						},
 					},
+					"distribution": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Distribution",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"initContainer": {
 						SchemaProps: spec.SchemaProps{
 							Description: "init container image",

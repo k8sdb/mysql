@@ -105,20 +105,20 @@ type ElasticsearchVersionList struct {
 	Items []ElasticsearchVersion `json:"items,omitempty" protobuf:"bytes,2,rep,name=items"`
 }
 
-// +kubebuilder:validation:Enum=SearchGuard;X-Pack;OpenDistro
+// +kubebuilder:validation:Enum=OpenDistro;SearchGuard;X-Pack
 type ElasticsearchAuthPlugin string
 
 const (
+	ElasticsearchAuthPluginOpenDistro  ElasticsearchAuthPlugin = "OpenDistro"
 	ElasticsearchAuthPluginSearchGuard ElasticsearchAuthPlugin = "SearchGuard"
 	ElasticsearchAuthPluginXpack       ElasticsearchAuthPlugin = "X-Pack"
-	ElasticsearchAuthPluginOpenDistro  ElasticsearchAuthPlugin = "OpenDistro"
 )
 
-// +kubebuilder:validation:Enum=SearchGuard;X-Pack;OpenDistro
+// +kubebuilder:validation:Enum=ElasticStack;OpenDistro;SearchGuard
 type ElasticsearchDistro string
 
 const (
-	ElasticsearchDistroSearchGuard ElasticsearchDistro = "SearchGuard"
-	ElasticsearchDistroXpack       ElasticsearchDistro = "X-Pack"
-	ElasticsearchDistroOpenDistro  ElasticsearchDistro = "OpenDistro"
+	ElasticsearchDistroElasticStack ElasticsearchDistro = "ElasticStack"
+	ElasticsearchDistroOpenDistro   ElasticsearchDistro = "OpenDistro"
+	ElasticsearchDistroSearchGuard  ElasticsearchDistro = "SearchGuard"
 )

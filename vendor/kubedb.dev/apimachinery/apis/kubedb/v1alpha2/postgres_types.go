@@ -235,11 +235,12 @@ const (
 	// PostgresSSLModeDisable represents `disable` sslMode. It ensures that the server does not use TLS/SSL.
 	PostgresSSLModeDisable PostgresSSLMode = "disable"
 
-	// PostgresSSLModeAllow represents `allow` sslMode. 	I don't care about security, but I will pay the overhead of encryption if the server insists on it.
+	// PostgresSSLModeAllow represents `allow` sslMode. 	I don't care about security,
+	// but I will pay the overhead of encryption if the server insists on it.
 	PostgresSSLModeAllow PostgresSSLMode = "allow"
 
 	// PostgresSSLModePrefer represents `preferSSL` sslMode.
-	//I don't care about encryption, but I wish to pay the overhead of encryption if the server supports it.
+	// I don't care about encryption, but I wish to pay the overhead of encryption if the server supports it.
 	PostgresSSLModePrefer PostgresSSLMode = "prefer"
 
 	// PostgresSSLModeRequire represents `requiteSSL` sslmode. I want my data to be encrypted, and I accept the overhead.
@@ -255,7 +256,7 @@ const (
 	PostgresSSLModeVerifyFull PostgresSSLMode = "verify-full"
 )
 
-// PostgresClientAuthMode represents the clusterAuthMode of mongodb clusters ( replicaset or sharding)
+// PostgresClientAuthMode represents the ClientAuthMode of PostgreSQL clusters ( replicaset )
 // ref: https://www.postgresql.org/docs/12/auth-methods.html
 // +kubebuilder:validation:Enum=md5;scram;cert
 type PostgresClientAuthMode string
@@ -273,7 +274,8 @@ const (
 	// This is the most secure of the currently provided methods, but it is not supported by older client libraries.
 	ClientAuthModeScram PostgresClientAuthMode = "scram"
 
-	// ClientAuthModeCert represents `sendx509` mongodb clusterAuthMode. This mode is usually for rolling upgrade purposes.
-	// Send the x.509 certificate for authentication but can accept both keyfiles and x.509 certificates.
+	// ClientAuthModeCert represents `cert clientcert=1` auth mode where client need to provide cert and private key for authentication.
+	// When server is config with this auth method. Client can't connect with postgreSQL server with password. They need
+	// to Send the client cert and client key certificate for authentication.
 	ClientAuthModeCert PostgresClientAuthMode = "cert"
 )

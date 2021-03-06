@@ -50,9 +50,9 @@ spec:
             properties:
               authPlugin:
                 enum:
+                - OpenDistro
                 - SearchGuard
                 - X-Pack
-                - OpenDistro
                 type: string
               db:
                 properties:
@@ -65,9 +65,9 @@ spec:
                 type: boolean
               distribution:
                 enum:
-                - SearchGuard
-                - X-Pack
+                - ElasticStack
                 - OpenDistro
+                - SearchGuard
                 type: string
               exporter:
                 properties:

@@ -610,28 +610,31 @@ message PostgresVersionSpec {
   // Version
   optional string version = 1;
 
+  // Distribution
+  optional string distribution = 2;
+
   // init container image
-  optional PostgresVersionInitContainer initContainer = 2;
+  optional PostgresVersionInitContainer initContainer = 3;
 
   // Database Image
-  optional PostgresVersionDatabase db = 3;
+  optional PostgresVersionDatabase db = 4;
 
   // Exporter Image
-  optional PostgresVersionExporter exporter = 4;
+  optional PostgresVersionExporter exporter = 5;
 
   // Coordinator Image
-  optional PostgresVersionCoordinator coordinator = 5;
+  optional PostgresVersionCoordinator coordinator = 6;
 
   // Deprecated versions usable but regarded as obsolete and best avoided, typically due to having been superseded.
   // +optional
-  optional bool deprecated = 6;
+  optional bool deprecated = 7;
 
   // PSP names
-  optional PostgresVersionPodSecurityPolicy podSecurityPolicies = 7;
+  optional PostgresVersionPodSecurityPolicy podSecurityPolicies = 8;
 
   // Stash defines backup and restore task definitions.
   // +optional
-  optional kmodules.xyz.custom_resources.apis.appcatalog.v1alpha1.StashAddonSpec stash = 8;
+  optional kmodules.xyz.custom_resources.apis.appcatalog.v1alpha1.StashAddonSpec stash = 9;
 }
 
 // +kubebuilder:object:root=true

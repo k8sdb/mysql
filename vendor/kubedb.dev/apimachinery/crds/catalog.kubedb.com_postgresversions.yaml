@@ -61,6 +61,11 @@ spec:
               type: object
             deprecated:
               type: boolean
+            distribution:
+              enum:
+              - PostgreSQL
+              - TimescaleDB
+              type: string
             exporter:
               properties:
                 image:
