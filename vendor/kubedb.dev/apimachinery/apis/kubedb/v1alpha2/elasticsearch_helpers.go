@@ -338,7 +338,7 @@ func (e *Elasticsearch) SetDefaults(esVersion *v1alpha1.ElasticsearchVersion, to
 		}
 		SetDefaultResourceLimits(&e.Spec.Topology.Master.Resources, DefaultResourceLimits)
 	} else {
-		SetDefaultResourceLimits(&e.Spec.PodTemplate.Spec.Resources, DefaultResourceLimits)
+		SetDefaultResourceLimits(&e.Spec.PodTemplate.Spec.Container.Resources, DefaultResourceLimits)
 	}
 
 	// set default kernel settings
@@ -351,6 +351,15 @@ func (e *Elasticsearch) SetDefaults(esVersion *v1alpha1.ElasticsearchVersion, to
 					Name:  "vm.max_map_count",
 					Value: "262144",
 				},
+			},
+		}
+	}
+
+	if e.Spec.PodTemplate.Spec.Container.SecurityContext == nil {
+		e.Spec.PodTemplate.Spec.Container.SecurityContext = &core.SecurityContext{
+			Privileged: pointer.BoolP(false),
+			Capabilities: &core.Capabilities{
+				Add: []core.Capability{"IPC_LOCK", "SYS_RESOURCE"},
 			},
 		}
 	}

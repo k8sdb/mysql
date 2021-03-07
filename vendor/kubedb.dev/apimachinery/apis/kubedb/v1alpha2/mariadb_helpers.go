@@ -176,7 +176,7 @@ func (m *MariaDB) SetDefaults() {
 	}
 	m.Spec.Monitor.SetDefaults()
 	m.SetTLSDefaults()
-	SetDefaultResourceLimits(&m.Spec.PodTemplate.Spec.Resources, DefaultResourceLimits)
+	SetDefaultResourceLimits(&m.Spec.PodTemplate.Spec.Container.Resources, DefaultResourceLimits)
 }
 
 func (m *MariaDB) SetTLSDefaults() {

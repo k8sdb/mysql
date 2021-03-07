@@ -24,6 +24,7 @@ import (
 	"kubedb.dev/apimachinery/apis/kubedb"
 	"kubedb.dev/apimachinery/crds"
 
+	"gomodules.xyz/pointer"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -164,7 +165,7 @@ func (p *Postgres) SetDefaults(topology *core_util.Topology) {
 			//we have set this default to 33554432. if the difference between primary and replica is more then this,
 			//the replica node is going to manually sync itself.
 			Period:                   metav1.Duration{Duration: 100 * time.Millisecond},
-			MaximumLagBeforeFailover: 33554432,
+			MaximumLagBeforeFailover: 32 * 1024 * 1024,
 			ElectionTick:             10,
 			HeartbeatTick:            1,
 		}
@@ -190,9 +191,18 @@ func (p *Postgres) SetDefaults(topology *core_util.Topology) {
 		}
 	}
 
+	if p.Spec.PodTemplate.Spec.Container.SecurityContext == nil {
+		p.Spec.PodTemplate.Spec.Container.SecurityContext = &core.SecurityContext{
+			Privileged: pointer.BoolP(false),
+			Capabilities: &core.Capabilities{
+				Add: []core.Capability{"IPC_LOCK", "SYS_RESOURCE"},
+			},
+		}
+	}
+
 	p.Spec.Monitor.SetDefaults()
 	p.SetTLSDefaults()
-	SetDefaultResourceLimits(&p.Spec.PodTemplate.Spec.Resources, DefaultResourceLimits)
+	SetDefaultResourceLimits(&p.Spec.PodTemplate.Spec.Container.Resources, DefaultResourceLimits)
 	p.setDefaultAffinity(&p.Spec.PodTemplate, p.OffshootSelectors(), topology)
 }
 

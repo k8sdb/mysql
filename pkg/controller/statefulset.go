@@ -123,7 +123,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 									MountPath: "/var/lib/mysql",
 								},
 							},
-							Resources: db.Spec.PodTemplate.Spec.Resources,
+							Resources: db.Spec.PodTemplate.Spec.Container.Resources,
 						},
 					},
 					db.Spec.PodTemplate.Spec.InitContainers...,
@@ -134,11 +134,12 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				Name:            api.ResourceSingularMySQL,
 				Image:           mysqlVersion.Spec.DB.Image,
 				ImagePullPolicy: core.PullIfNotPresent,
-				Args:            db.Spec.PodTemplate.Spec.Args,
-				Resources:       db.Spec.PodTemplate.Spec.Resources,
-				LivenessProbe:   db.Spec.PodTemplate.Spec.LivenessProbe,
-				ReadinessProbe:  db.Spec.PodTemplate.Spec.ReadinessProbe,
-				Lifecycle:       db.Spec.PodTemplate.Spec.Lifecycle,
+				Args:            db.Spec.PodTemplate.Spec.Container.Args,
+				Resources:       db.Spec.PodTemplate.Spec.Container.Resources,
+				SecurityContext: db.Spec.PodTemplate.Spec.Container.SecurityContext,
+				LivenessProbe:   db.Spec.PodTemplate.Spec.Container.LivenessProbe,
+				ReadinessProbe:  db.Spec.PodTemplate.Spec.Container.ReadinessProbe,
+				Lifecycle:       db.Spec.PodTemplate.Spec.Container.Lifecycle,
 				Ports: []core.ContainerPort{
 					{
 						Name:          api.MySQLDatabasePortName,
@@ -190,7 +191,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 					"peer-finder",
 				}
 
-				userArgs := meta_util.ParseArgumentListToMap(db.Spec.PodTemplate.Spec.Args)
+				userArgs := meta_util.ParseArgumentListToMap(db.Spec.PodTemplate.Spec.Container.Args)
 
 				specArgs := map[string]string{}
 				// add ssl certs flag into args in peer-finder to configure TLS for group replication
@@ -312,9 +313,10 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 			in.Spec.Template.Spec.ImagePullSecrets = db.Spec.PodTemplate.Spec.ImagePullSecrets
 			in.Spec.Template.Spec.PriorityClassName = db.Spec.PodTemplate.Spec.PriorityClassName
 			in.Spec.Template.Spec.Priority = db.Spec.PodTemplate.Spec.Priority
-			if in.Spec.Template.Spec.SecurityContext == nil {
-				in.Spec.Template.Spec.SecurityContext = db.Spec.PodTemplate.Spec.SecurityContext
-			}
+			in.Spec.Template.Spec.HostNetwork = db.Spec.PodTemplate.Spec.HostNetwork
+			in.Spec.Template.Spec.HostPID = db.Spec.PodTemplate.Spec.HostPID
+			in.Spec.Template.Spec.HostIPC = db.Spec.PodTemplate.Spec.HostIPC
+			in.Spec.Template.Spec.SecurityContext = db.Spec.PodTemplate.Spec.SecurityContext
 			in.Spec.Template.Spec.ServiceAccountName = db.Spec.PodTemplate.Spec.ServiceAccountName
 			in.Spec.UpdateStrategy = apps.StatefulSetUpdateStrategy{
 				Type: apps.OnDeleteStatefulSetStrategyType,
@@ -463,7 +465,7 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.MySQL, stsName string) *ap
 func upsertUserEnv(statefulSet *apps.StatefulSet, db *api.MySQL) *apps.StatefulSet {
 	for i, container := range statefulSet.Spec.Template.Spec.Containers {
 		if container.Name == api.ResourceSingularMySQL {
-			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, db.Spec.PodTemplate.Spec.Env...)
+			statefulSet.Spec.Template.Spec.Containers[i].Env = core_util.UpsertEnvVars(container.Env, db.Spec.PodTemplate.Spec.Container.Env...)
 			return statefulSet
 		}
 	}
@@ -694,7 +696,7 @@ func recommendedArgs(db *api.MySQL, myVersion *v1alpha1.MySQLVersion) map[string
 	// recommended innodb_buffer_pool_size value is 50 to 75 percent of system memory
 	// Buffer pool size must always be equal to or a multiple of innodb_buffer_pool_chunk_size * innodb_buffer_pool_instances
 
-	available := db.Spec.PodTemplate.Spec.Resources.Limits.Memory()
+	available := db.Spec.PodTemplate.Spec.Container.Resources.Limits.Memory()
 
 	// reserved memory for performance schema and other processes
 	reserved := resource.MustParse("256Mi")
