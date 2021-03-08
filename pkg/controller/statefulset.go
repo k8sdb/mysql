@@ -721,8 +721,15 @@ func recommendedArgs(db *api.MySQL, myVersion *v1alpha1.MySQLVersion) map[string
 	// Sets the binary log expiration period in seconds. After their expiration period ends, binary log files can be automatically removed.
 	// Possible removals happen at startup and when the binary log is flushed
 	// https://dev.mysql.com/doc/refman/8.0/en/replication-options-binary-log.html#sysvar_binlog_expire_logs_seconds
+	// https://mydbops.wordpress.com/2017/04/13/binlog-expiry-now-in-seconds-mysql-8-0/
 	expireLogsSeconds := 259200 // 3 days
-	recommendedArgs["binlog-expire-logs-seconds"] = fmt.Sprintf("%d", expireLogsSeconds)
+	refVersion = semver.New("8.0.1")
+	curVersion = semver.New(myVersion.Spec.Version)
+	if curVersion.Compare(*refVersion) != -1 {
+		recommendedArgs["binlog-expire-logs-seconds"] = fmt.Sprintf("%d", expireLogsSeconds)
+	} else {
+		recommendedArgs["expire-logs-days"] = fmt.Sprintf("%d", 3)
+	}
 
 	return recommendedArgs
 }
