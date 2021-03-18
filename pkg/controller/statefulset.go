@@ -106,28 +106,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 			in.Spec.Template.Annotations = db.Spec.PodTemplate.Annotations
 			in.Spec.Template.Spec.InitContainers = core_util.UpsertContainers(
 				in.Spec.Template.Spec.InitContainers,
-				append(
-					[]core.Container{
-						{
-							Name:            "remove-lost-found",
-							Image:           mysqlVersion.Spec.InitContainer.Image,
-							ImagePullPolicy: core.PullIfNotPresent,
-							Command: []string{
-								"rm",
-								"-rf",
-								"/var/lib/mysql/lost+found",
-							},
-							VolumeMounts: []core.VolumeMount{
-								{
-									Name:      "data",
-									MountPath: "/var/lib/mysql",
-								},
-							},
-							Resources: db.Spec.PodTemplate.Spec.Resources,
-						},
-					},
-					db.Spec.PodTemplate.Spec.InitContainers...,
-				),
+				append(getInitContainers(in, mysqlVersion), db.Spec.PodTemplate.Spec.InitContainers...),
 			)
 
 			container := core.Container{
@@ -188,7 +167,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, replicationModeDetector)
 
 				container.Command = []string{
-					"peer-finder",
+					"/scripts/peer-finder",
 				}
 
 				userArgs := meta_util.ParseArgumentListToMap(db.Spec.PodTemplate.Spec.Args)
@@ -233,7 +212,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				container.Args = []string{
 					fmt.Sprintf("-service=%s", db.GoverningServiceName()),
 					"-on-start",
-					strings.Join(append([]string{"/on-start.sh"}, args...), " "),
+					strings.Join(append([]string{"scripts/on-start.sh"}, args...), " "),
 				}
 			}
 			in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, container)
@@ -297,6 +276,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 			}
 			// Set Admin Secret as MYSQL_ROOT_PASSWORD env variable
 			in = upsertEnv(in, db, stsName)
+			in = upsertSharedScriptsVolume(in)
 			in = upsertDataVolume(in, db)
 			in = upsertCustomConfig(in, db)
 
@@ -330,6 +310,61 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 
 			return in
 		}, metav1.PatchOptions{})
+}
+
+func getInitContainers(statefulSet *apps.StatefulSet, mysqlVersion *v1alpha1.MySQLVersion) []core.Container {
+	statefulSet.Spec.Template.Spec.InitContainers = core_util.UpsertContainer(
+		statefulSet.Spec.Template.Spec.InitContainers,
+		core.Container{
+			Name:  "mysql-init",
+			Image: mysqlVersion.Spec.InitContainer.Image,
+			VolumeMounts: []core.VolumeMount{
+				{
+					Name:      "data",
+					MountPath: "/var/lib/mysql",
+				},
+			},
+		})
+	return statefulSet.Spec.Template.Spec.InitContainers
+}
+
+func upsertSharedScriptsVolume(statefulSet *apps.StatefulSet) *apps.StatefulSet {
+	for i, container := range statefulSet.Spec.Template.Spec.Containers {
+		if container.Name == api.ResourceSingularMySQL {
+			configVolumeMount := core.VolumeMount{
+				Name:      "init-scripts",
+				MountPath: "/scripts",
+			}
+			volumeMounts := container.VolumeMounts
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, configVolumeMount)
+			statefulSet.Spec.Template.Spec.Containers[i].VolumeMounts = volumeMounts
+
+		}
+	}
+	for i, initContainer := range statefulSet.Spec.Template.Spec.InitContainers {
+		if initContainer.Name == "mysql-init" {
+			configVolumeMount := core.VolumeMount{
+				Name:      "init-scripts",
+				MountPath: "/scripts",
+			}
+			volumeMounts := initContainer.VolumeMounts
+			volumeMounts = core_util.UpsertVolumeMount(volumeMounts, configVolumeMount)
+			statefulSet.Spec.Template.Spec.InitContainers[i].VolumeMounts = volumeMounts
+
+		}
+	}
+
+	configVolume := core.Volume{
+		Name: "init-scripts",
+		VolumeSource: core.VolumeSource{
+			EmptyDir: &core.EmptyDirVolumeSource{},
+		},
+	}
+
+	volumes := statefulSet.Spec.Template.Spec.Volumes
+	volumes = core_util.UpsertVolume(volumes, configVolume)
+	statefulSet.Spec.Template.Spec.Volumes = volumes
+	return statefulSet
 }
 
 func upsertDataVolume(statefulSet *apps.StatefulSet, db *api.MySQL) *apps.StatefulSet {
