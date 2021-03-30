@@ -87,6 +87,14 @@ const (
 	StatsServiceAlias   ServiceAlias = "stats"
 )
 
+// +kubebuilder:validation:Enum=IP;DNS
+type DBPodIdentity string
+
+const (
+	DBPodIdentityIP  DBPodIdentity = "IP"
+	DBPodIdentityDNS DBPodIdentity = "DNS"
+)
+
 type NamedServiceTemplateSpec struct {
 	// Alias represents the identifier of the service.
 	Alias ServiceAlias `json:"alias" protobuf:"bytes,1,opt,name=alias"`

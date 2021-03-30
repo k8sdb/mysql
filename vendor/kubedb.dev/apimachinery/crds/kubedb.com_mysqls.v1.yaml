@@ -808,6 +808,11 @@ spec:
                         type: object
                     type: object
                 type: object
+              podIdentity:
+                enum:
+                - IP
+                - DNS
+                type: string
               podTemplate:
                 properties:
                   controller:
@@ -2283,6 +2288,18 @@ spec:
                           items:
                             type: string
                           type: array
+                        issuerRef:
+                          properties:
+                            apiGroup:
+                              type: string
+                            kind:
+                              type: string
+                            name:
+                              type: string
+                          required:
+                          - kind
+                          - name
+                          type: object
                         privateKey:
                           properties:
                             encoding:
