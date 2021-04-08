@@ -209,21 +209,21 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				args := meta_util.BuildArgumentListFromMap(meta_util.OverwriteKeys(recommendedArgs(db, mysqlVersion), userArgs), specArgs)
 				sort.Strings(args)
 
-				// in peer-finder, we have to form peers either using pod IP or DNS. if podIdentity is set to `IP` then we have to use pod IP from pod status
-				// otherwise, we have to use pod `DNS` using govern service.
+				// in peer-finder, we have to form peers either using pod IP or DNS. if podIdentity is set to `IP`/`IPv4`/`Ipv6`,
+				// then we have to use pod IP from pod status. Otherwise, we have to use pod `DNS` using governing service.
 				// That's why we have to pass either `selector` to select IP's of the pod or `service` to find the DNS of the pod.
-				var peerFinderArgs string
+				peerFinderArgs := []string{
+					fmt.Sprintf("-address-type=%s", db.Spec.UseAddressType),
+				}
 				if db.Spec.UseAddressType.IsIP() {
-					peerFinderArgs = fmt.Sprintf("-selector=%s", labels.Set(db.OffshootSelectors()).String())
+					peerFinderArgs = append(peerFinderArgs, fmt.Sprintf("-selector=%s", labels.Set(db.OffshootSelectors()).String()))
 				} else {
-					peerFinderArgs = fmt.Sprintf("-service=%s", db.GoverningServiceName())
+					peerFinderArgs = append(peerFinderArgs, fmt.Sprintf("-service=%s", db.GoverningServiceName()))
 				}
 
-				container.Args = []string{
-					peerFinderArgs,
+				container.Args = append(peerFinderArgs,
 					"-on-start",
-					strings.Join(append([]string{"scripts/on-start.sh"}, args...), " "),
-				}
+					strings.Join(append([]string{"scripts/on-start.sh"}, args...), " "))
 			}
 			in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, container)
 			in.Spec.Template.Spec.Volumes = []core.Volume{
