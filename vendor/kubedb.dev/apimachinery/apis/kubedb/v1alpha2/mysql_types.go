@@ -121,9 +121,12 @@ type MySQLSpec struct {
 	// TerminationPolicy controls the delete operation for database
 	// +optional
 	TerminationPolicy TerminationPolicy `json:"terminationPolicy,omitempty" protobuf:"bytes,16,opt,name=terminationPolicy,casttype=TerminationPolicy"`
+
+	// db pod identifies using IP or DNS
+	PodIdentity DBPodIdentity `json:"podIdentity,omitempty" protobuf:"bytes,17,opt,name=podIdentity"`
 }
 
-// +kubebuilder:validation:Enum=server;archiver;metrics-exporter
+// +kubebuilder:validation:Enum=server;client;metrics-exporter
 type MySQLCertificateAlias string
 
 const (

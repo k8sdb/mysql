@@ -209,8 +209,18 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				args := meta_util.BuildArgumentListFromMap(meta_util.OverwriteKeys(recommendedArgs(db, mysqlVersion), userArgs), specArgs)
 				sort.Strings(args)
 
+				// in peer-finder, we have to form peers either using pod IP or DNS. if podIdentity is set to `IP` then we have to use pod IP from pod status
+				// otherwise, we have to use pod `DNS` using govern service.
+				// That's why we have to pass either `selector` to select IP's of the pod or `service` to find the DNS of the pod.
+				var peerFinderArgs string
+				if db.Spec.PodIdentity == api.DBPodIdentityIP {
+					peerFinderArgs = fmt.Sprintf("-selector=%s", labels.Set(db.OffshootSelectors()).String())
+				} else {
+					peerFinderArgs = fmt.Sprintf("-service=%s", db.GoverningServiceName())
+				}
+
 				container.Args = []string{
-					fmt.Sprintf("-service=%s", db.GoverningServiceName()),
+					peerFinderArgs,
 					"-on-start",
 					strings.Join(append([]string{"scripts/on-start.sh"}, args...), " "),
 				}
@@ -294,6 +304,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 			in.Spec.Template.Spec.PriorityClassName = db.Spec.PodTemplate.Spec.PriorityClassName
 			in.Spec.Template.Spec.Priority = db.Spec.PodTemplate.Spec.Priority
 			in.Spec.Template.Spec.HostNetwork = db.Spec.PodTemplate.Spec.HostNetwork
+			in.Spec.Template.Spec.DNSPolicy = db.Spec.PodTemplate.Spec.DNSPolicy
 			in.Spec.Template.Spec.HostPID = db.Spec.PodTemplate.Spec.HostPID
 			in.Spec.Template.Spec.HostIPC = db.Spec.PodTemplate.Spec.HostIPC
 			in.Spec.Template.Spec.SecurityContext = db.Spec.PodTemplate.Spec.SecurityContext
@@ -301,6 +312,15 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 			in.Spec.UpdateStrategy = apps.StatefulSetUpdateStrategy{
 				Type: apps.OnDeleteStatefulSetStrategyType,
 			}
+
+			// if we use `IP` as podIdentity, we have to set hostNetwork to `True` and
+			// dnsPolicy to `ClusterFirstWithHostNet` for using host IP
+			// https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
+			if db.Spec.PodIdentity == api.DBPodIdentityIP {
+				in.Spec.Template.Spec.HostNetwork = true
+				in.Spec.Template.Spec.DNSPolicy = core.DNSClusterFirstWithHostNet
+			}
+
 			in = upsertUserEnv(in, db)
 
 			// configure tls if configured in DB
