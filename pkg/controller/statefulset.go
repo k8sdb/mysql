@@ -213,7 +213,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				// otherwise, we have to use pod `DNS` using govern service.
 				// That's why we have to pass either `selector` to select IP's of the pod or `service` to find the DNS of the pod.
 				var peerFinderArgs string
-				if db.Spec.PodIdentity == api.DBPodIdentityIP {
+				if db.Spec.UseAddressType.IsIP() {
 					peerFinderArgs = fmt.Sprintf("-selector=%s", labels.Set(db.OffshootSelectors()).String())
 				} else {
 					peerFinderArgs = fmt.Sprintf("-service=%s", db.GoverningServiceName())
@@ -316,7 +316,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 			// if we use `IP` as podIdentity, we have to set hostNetwork to `True` and
 			// dnsPolicy to `ClusterFirstWithHostNet` for using host IP
 			// https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
-			if db.Spec.PodIdentity == api.DBPodIdentityIP {
+			if db.Spec.UseAddressType.IsIP() {
 				in.Spec.Template.Spec.HostNetwork = true
 				in.Spec.Template.Spec.DNSPolicy = core.DNSClusterFirstWithHostNet
 			}
