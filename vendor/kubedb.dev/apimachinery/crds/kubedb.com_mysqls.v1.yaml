@@ -808,6 +808,11 @@ spec:
                         type: object
                     type: object
                 type: object
+              podIdentity:
+                enum:
+                - IP
+                - DNS
+                type: string
               podTemplate:
                 properties:
                   controller:

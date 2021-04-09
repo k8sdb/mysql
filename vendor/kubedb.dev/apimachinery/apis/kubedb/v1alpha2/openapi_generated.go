@@ -21135,6 +21135,13 @@ func schema_apimachinery_apis_kubedb_v1alpha2_MySQLSpec(ref common.ReferenceCall
 							Format:      "",
 						},
 					},
+					"podIdentity": {
+						SchemaProps: spec.SchemaProps{
+							Description: "db pod identifies using IP or DNS",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 				},
 				Required: []string{"version"},
 			},
