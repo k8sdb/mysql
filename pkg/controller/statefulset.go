@@ -212,18 +212,19 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 				// in peer-finder, we have to form peers either using pod IP or DNS. if podIdentity is set to `IP` then we have to use pod IP from pod status
 				// otherwise, we have to use pod `DNS` using govern service.
 				// That's why we have to pass either `selector` to select IP's of the pod or `service` to find the DNS of the pod.
-				var peerFinderArgs string
-				if db.Spec.PodIdentity == api.DBPodIdentityIP {
-					peerFinderArgs = fmt.Sprintf("-selector=%s", labels.Set(db.OffshootSelectors()).String())
+				peerFinderArgs := []string{
+					fmt.Sprintf("-address-type=%s", db.Spec.UseAddressType),
+				}
+				if db.Spec.UseAddressType.IsIP() {
+					peerFinderArgs = append(peerFinderArgs, fmt.Sprintf("-selector=%s", labels.Set(db.OffshootSelectors()).String()))
 				} else {
-					peerFinderArgs = fmt.Sprintf("-service=%s", db.GoverningServiceName())
+					peerFinderArgs = append(peerFinderArgs, fmt.Sprintf("-service=%s", db.GoverningServiceName()))
 				}
 
-				container.Args = []string{
-					peerFinderArgs,
+				container.Args = append(peerFinderArgs,
 					"-on-start",
 					strings.Join(append([]string{"scripts/on-start.sh"}, args...), " "),
-				}
+				)
 			}
 			in.Spec.Template.Spec.Containers = core_util.UpsertContainer(in.Spec.Template.Spec.Containers, container)
 			in.Spec.Template.Spec.Volumes = []core.Volume{
@@ -316,7 +317,7 @@ func (c *Controller) createOrPatchStatefulSet(db *api.MySQL, stsName string) (*a
 			// if we use `IP` as podIdentity, we have to set hostNetwork to `True` and
 			// dnsPolicy to `ClusterFirstWithHostNet` for using host IP
 			// https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
-			if db.Spec.PodIdentity == api.DBPodIdentityIP {
+			if db.Spec.UseAddressType.IsIP() {
 				in.Spec.Template.Spec.HostNetwork = true
 				in.Spec.Template.Spec.DNSPolicy = core.DNSClusterFirstWithHostNet
 			}

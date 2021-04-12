@@ -343,7 +343,7 @@ $(BUILD_DIRS):
 	@mkdir -p $@
 
 REGISTRY_SECRET 	?=
-IMAGE_PULL_POLICY 	?= Always
+IMAGE_PULL_POLICY 	?= IfNotPresent
 
 ifeq ($(strip $(REGISTRY_SECRET)),)
 	IMAGE_PULL_SECRETS =
