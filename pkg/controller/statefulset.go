@@ -496,6 +496,14 @@ func upsertEnv(statefulSet *apps.StatefulSet, db *api.MySQL, stsName string) *ap
 						Name:  "DB_NAME",
 						Value: db.GetName(),
 					},
+					{
+						Name: "POD_IP",
+						ValueFrom: &core.EnvVarSource{
+							FieldRef: &core.ObjectFieldSelector{
+								FieldPath: "status.podIP",
+							},
+						},
+					},
 				}...)
 			}
 			if container.Name == api.ReplicationModeDetectorContainerName {
