@@ -17,13 +17,12 @@ limitations under the License.
 package main
 
 import (
-	"log"
-
 	"kubedb.dev/mysql/pkg/cmds"
 
 	_ "go.bytebuilders.dev/license-verifier/info"
 	_ "k8s.io/client-go/kubernetes/fake"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/klog"
 	"kmodules.xyz/client-go/logs"
 )
 
@@ -31,6 +30,6 @@ func main() {
 	logs.InitLogs()
 	defer logs.FlushLogs()
 	if err := cmds.NewRootCmd(Version).Execute(); err != nil {
-		log.Fatal(err)
+		klog.Fatal(err)
 	}
 }

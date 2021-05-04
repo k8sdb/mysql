@@ -9,27 +9,28 @@ require (
 	github.com/google/uuid v1.1.2
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.47.0
-	github.com/spf13/cobra v1.1.1
+	github.com/spf13/cobra v1.1.3
 	github.com/spf13/pflag v1.0.5
-	go.bytebuilders.dev/license-verifier v0.9.0
-	go.bytebuilders.dev/license-verifier/kubernetes v0.9.0
+	go.bytebuilders.dev/license-verifier v0.9.1
+	go.bytebuilders.dev/license-verifier/kubernetes v0.9.1
 	gomodules.xyz/password-generator v0.2.6
 	gomodules.xyz/pointer v0.0.0-20201105071923-daf60fa55209
-	gomodules.xyz/runtime v0.0.0-20201104200926-d838b09dda8b
+	gomodules.xyz/runtime v0.2.0
 	gomodules.xyz/sets v0.0.0-20210218105342-2efe2fb519a2
-	gomodules.xyz/x v0.0.0-20201105065653-91c568df6331
+	gomodules.xyz/x v0.0.3
 	k8s.io/api v0.21.0
 	k8s.io/apiextensions-apiserver v0.21.0
 	k8s.io/apimachinery v0.21.0
 	k8s.io/apiserver v0.21.0
-	k8s.io/client-go v12.0.0+incompatible
+	k8s.io/client-go v0.21.0
+	k8s.io/klog v1.0.0
 	k8s.io/klog/v2 v2.8.0
-	kmodules.xyz/client-go v0.0.0-20210503064222-c8c59295a3a5
-	kmodules.xyz/custom-resources v0.0.0-20210503065135-5267be335cb4
-	kmodules.xyz/monitoring-agent-api v0.0.0-20210503064631-e2d5686a9acd
-	kmodules.xyz/offshoot-api v0.0.0-20210503065102-3250bbdedc8f
-	kmodules.xyz/webhook-runtime v0.0.0-20210503065550-dc37e69fdba2
-	kubedb.dev/apimachinery v0.18.1-0.20210503232843-7030bd8fddb2
+	kmodules.xyz/client-go v0.0.0-20210504024435-1eb80721e9b8
+	kmodules.xyz/custom-resources v0.0.0-20210504034124-54c54fcdb690
+	kmodules.xyz/monitoring-agent-api v0.0.0-20210504040241-261c2428d207
+	kmodules.xyz/offshoot-api v0.0.0-20210504040651-7951e351f0f5
+	kmodules.xyz/webhook-runtime v0.0.0-20210504042742-3a9911e3dcdc
+	kubedb.dev/apimachinery v0.18.1-0.20210504045738-11d1c3068aa3
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
