@@ -197,9 +197,9 @@ func ValidateMySQL(client kubernetes.Interface, extClient cs.Interface, mysql *a
 
 		// currently supported cluster mode for MySQL is "GroupReplication". So
 		// '.spec.topology.mode' has been validated only for value "GroupReplication"
-		if *mysql.Spec.Topology.Mode != api.MySQLClusterModeGroup {
-			return errors.Errorf("currently supported cluster mode for MySQL is %[1]q, spec.topology.mode must be %[1]q",
-				api.MySQLClusterModeGroup)
+		if *mysql.Spec.Topology.Mode != api.MySQLClusterModeGroup && *mysql.Spec.Topology.Mode != api.InnoDBClusterModeGroup {
+			return errors.Errorf("currently supported cluster mode for MySQL is %[1]q %[2]q , spec.topology.mode must be %[1]q %[2]q",
+				api.MySQLClusterModeGroup, api.InnoDBClusterModeGroup)
 		}
 
 		// validation for group configuration is performed only when

@@ -1,13 +1,13 @@
 apiVersion: kubedb.com/v1alpha2
 kind: MySQL
 metadata:
-  name: mysql
+  name: "innodb"
   namespace: demo
 spec:
-  version: "8.0.23-v1"
+  version: "8.0.24"
   replicas: 3
   topology:
-    mode: GroupReplication
+    mode: InnoDBCluster
     group:
       name: "dc002fc3-c412-4d18-b1d4-66c1fbfbbc9b"
   storageType: Durable
